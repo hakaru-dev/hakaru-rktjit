@@ -1,0 +1,4 @@
+(function : x (array real) : 
+  (summate i from 0 to (size x) : 
+    (* (index x i)
+       (prob2real (recip (nat2prob (+ (size x) 1)))))))
