@@ -12,17 +12,16 @@
   (apply set '(size index recip nat2prob prob2real + * == && < ||)))
 (define internal-loop-ops
   (set 'summate 'product 'array))
-;;LEVEL1
+
 (define (reduce-function exp)
   (define (combine-functions prg [var-type-assoc null])
     (match prg
       [`(function : ,var ,type : ,body)
-       (combine-functions body (cons (cons var type) var-type-assoc))]
+       (combine-functions body (cons (list var type) var-type-assoc))]
       [else (values (reverse var-type-assoc) prg)]))
   (define-values (args fbody) (combine-functions exp))
   `(function (,@args) ,fbody))
 
-;;LEVEL2
 (define (simplify-exp exp)
   (define sa simplify-exp)
   (match exp
@@ -38,7 +37,6 @@
      `(,rator ,@(map sa rands))]
     [else exp]))
 
-;;LEVEL3
 (define (uniquify exp)
   (define (rv exp vars)
     (match exp
@@ -65,7 +63,144 @@
       [else (rv exp vars)]))
   (u exp '()))
 
-;;LEVEL4
+(define (simple? x)
+  (or (symbol? x) (number? x) (and (not (set-member? internal-loop-ops (car x)))
+                                   (andmap simple? x))))
+
+(define (do-anf expr)
+  (define (wrap-simplify body)
+    (if (simple? body)
+        (values body identity)
+        (let ((sym (gensym^ 's)))
+          (values sym
+                  (λ (prg) `(let1 (,sym ,(do-anf body)) ,prg))))))
+  ;(printf "do-anf ~a\n" expr)
+  (match expr
+    [`(function ,args ,body)
+     `(function ,args
+                (let1 (ret ,(do-anf body))
+                      ret))]
+    [`(,op (,index ,start ,end) ,body)
+     #:when (set-member? internal-loop-ops op)
+     (define-values (start-sym start-wrap) (wrap-simplify start))
+     (define-values (end-sym end-wrap) (wrap-simplify end))
+     (start-wrap (end-wrap `(,op (,index ,start-sym ,end-sym) ,(do-anf body))))]
+    [`(if ,tst ,thn ,els)
+     (define-values (tst-sym tst-wrap) (wrap-simplify tst))
+     (tst-wrap `(if ,tst-sym ,(do-anf thn) ,(do-anf els)))]
+    [`(,exprs ...)
+     (define-values (syms wrappers)
+       (for/fold [(syms '())
+                  (wrappers '())]
+                 [(e (reverse exprs))]
+         (define-values (s w) (wrap-simplify e))
+         (values (cons s syms) (cons w wrappers))))
+     ;(printf "syms: ~a\n" syms)
+     (for/fold [(e syms)]
+               [(w wrappers)]
+       (w e))]
+    [(? simple?) expr]))
+
+
+(define (combine-lets expr)
+  (define (get-let-map expr let-map)
+    (match expr
+      [`(let1 (,sym ,val) ,body)
+       (define-values (val-body val-let-map) (get-let-map val let-map))
+       (define nlet-map (cons (cons sym val-body) val-let-map))
+       (get-let-map body nlet-map)]
+      [`(,op (,index ,start ,end) ,body)
+       #:when (set-member? internal-loop-ops op)
+       (values `(,op (,index ,start ,end) ,(combine-let1 body)) let-map)]
+      [`(if ,tst ,thn ,els)
+       (values `(if ,(combine-let1 tst) ,(combine-let1 thn) ,(combine-let1 els))
+               let-map)]
+      [else
+       (values expr let-map)]))
+  (define (combine-let1 expr)
+    (define-values (body-expr body-let-map) (get-let-map expr '()))
+    ;; (printf "body-expr:\n\t ~a\n body-let-map: \n\t~a\n" body-expr body-let-map)
+    (if (not (null? body-let-map))
+        `(,(if (eq? (length body-let-map) 1) 'let 'let*)
+             ,(for/list [(s (reverse body-let-map))]
+                `(,(car s) ,(cdr s)))
+           ,body-expr)
+        body-expr))
+  (match expr
+    [`(function ,args ,body)
+     `(function ,args ,(combine-let1 body))]))
+
+(define (assign-types expr)
+  (define (unify-type t1 t2)
+    (define (nat? t) (eq? t 'nat))
+    (define (real? t) (eq? t 'real))
+    (define (array-type? t) (and (cons? t) (eq? (car t) 'array)))
+    (define (nat-or-real? t) (or (nat? t) (real? t)))
+    (define (t? t) (eq? t '?))
+    (cond [(eq? t1 t2) t1]
+          [(t? t1) t2]
+          [(t? t2) t1]
+          [(and (real? t1) (not (array-type? t2))) t1]
+          [(and (real? t2) (not (array-type? t1))) t2]
+          [(and (array-type? t1) (array-type? t2)) (list 'array
+                                                         (unify-type (cadr t1) (cadr t2)))]
+          [else (error 'unifying-type t1 t2)]))
+  (define (get-function-type op n)
+    (match op
+      [(? (λ (o) (set-member? (set '+ '* '-) o)))
+       (values 'real (make-list n 'real))]
+      ['prob2real (values 'real '(real))]
+      ['recip (values 'real '(real))]
+      ['nat2prob (values 'real '(nat))]
+      ['size (values 'nat '((array ?)))]))
+  (define (get-arg-types arglist)
+    (match arglist
+      [`((,args ,types) ...)
+       (for/hash ([a args] [t types])
+         (values a t))]))
+  (define (get-and-assign-types expr type type-env)
+    (define gast get-and-assign-types)
+    (match expr
+      [`(,op (,i ,iv ,ev) ,body) #:when (set-member? (set 'summate 'product) op)
+       (define-values (new-body body-type new-type-env)
+         (gast body '? (hash-set type-env i 'nat)))
+       (values `(,op (,i ,iv ,ev) ,new-body)
+               body-type
+               new-type-env)]
+      [`(let ((,s ,v)) ,body)
+       (define-values (n-v v-t v-t-env) (gast v '? (hash-set type-env s '?)))
+       (define-values (n-b b-t b-t-env) (gast body '? v-t-env))
+       (values `(let ((,s ,n-v ,v-t)) ,n-b)
+               b-t
+               b-t-env)]
+      [`(index ,arr ,i)
+       (define arr-type (hash-ref type-env arr))
+       (values `(index ,arr ,i)
+               (cadr arr-type)
+               (hash-set type-env i 'nat))]
+      [`(,rator ,rands ...)
+       (define-values (ret-type arg-types) (get-function-type rator (length rands)))
+       (define-values (new-type-env new-rands)
+         (for/fold ([type-env type-env]
+                    [rnds '()])
+                   ([r rands]
+                    [t arg-types])
+           (define-values (new-r r-type new-type-env) (gast r t type-env))
+           (values new-type-env (cons new-r rnds))))
+       (values `(,rator ,@new-rands)
+               ret-type
+               new-type-env)]
+      [(? symbol?)
+       (define t (unify-type type (hash-ref type-env expr)))
+       (values expr t (hash-set type-env expr t))]
+      [(? number?)
+       (define t (unify-type type 'nat))
+       (values expr t type-env)]))
+  (match expr
+    [`(function ,args ,body)
+     (define-values (new-body body-type type-env) (get-and-assign-types body '? (get-arg-types args)))
+     `(function ,args ,new-body)]))
+
 (define (simplify-end-iter exp)
   (define sl simplify-end-iter)
   (match exp
@@ -82,16 +217,8 @@
      `(,rator ,@(map sl rands))]
     [else exp]))
 
-(define (reduce-folds body)
-  (define (simple? x)
-    (or (symbol? x) (number? x)))
-  (define (wrap-simplify body)
-    (if (simple? body)
-        (values body identity)
-        (let ((sym (gensym^ 's)))
-          (values sym
-                  (λ (prg) `(let (,sym ,body) ,prg))))))
-  (define rh reduce-folds)
+(define (reduce-to-folds body)
+  (define rh reduce-to-folds)
   (define (init-value op size)
     (match op
       ['summate 0]
@@ -100,8 +227,8 @@
       [else (error "unknown op for init-value")]))
   (define (get-assign op result index body)
     (match op
-      ['summate `(assign (+ ,result ,body))]
-      ['product `(assign (* ,result ,body))]
+      ['summate `(assign ,result (+ ,result ,body))]
+      ['product `(assign ,result (* ,result ,body))]
       ['array `(assign (index ,result ,index) ,body)]))
   (match body
     [`(,op (,index ,start ,end) ,body) #:when (set-member? internal-loop-ops op)
@@ -118,22 +245,90 @@
     [else body]))
 
 
-(define compilers (list reduce-function simplify-exp uniquify simplify-end-iter reduce-folds))
+(define (reduce-folds body)
+  (define rf reduce-folds)
+  (match body
+    [`(fold-loop (,index ,start ,end)
+                 (,result ,init-value)
+                 ,body)
+     `(let ((,result ,init-value))
+        (begin
+          (for ((,index ,start) (< ,index end) (+ ,index 1))
+            ,(rf body))
+          ,result))]
+    [`(if ,tst, thn ,els)
+     `(if ,(rf tst) ,(rf thn) ,(rf els))]
+    [`(function ,args ,body)
+     `(function ,args ,(rf body))]
+    [`(,rands ...)
+     `(,@(map rf rands))]
+    [`(let ,arg-vals ,body)
+     `(let ,arg-vals ,(rf body))]
+    [else body]))
+
+(define (compile-to-jit body)
+  (define (check-and-assign body assign-to)
+    (if assign-to
+        `(assign ,assign-to ,body)
+        body))
+  
+  (define (ctj body assign-to)
+    (match body
+      [`(let ((,vars ,vals) ...) ,body)
+       `(let ,(map (λ (v) `(,v nat)) vars)
+          (block
+           ,@(map (λ (var val) `(assign ,var ,val)) vars vals)
+           ,(ctj body assign-to)))]
+      [`(begin ,exps ... ,end-exp)
+       `(block ,@(map (curryr ctj #f) exps)
+               ,(ctj end-exp assign-to))]
+      [`(for ((,index ,init-value) ,check ,next-value) ,body)
+       `(let ((,index nat))
+          (block
+           (assign ,index ,init-value)
+           (while ,check
+             (block ,(ctj body assign-to)
+              (assign ,index ,next-value)))))]
+      [`(,rator ,rands ...)
+       (check-and-assign `(,rator ,@(map (curryr ctj #f) rands)) assign-to)]
+      [else (check-and-assign body assign-to)]))
+  (define (get-type tast)
+    (match tast
+      [`(array ,t)
+       (symbol-append (symbol-append 'array- t) '-p)]))
+  (match body
+    [`(function ,args (let ((ret ,body)) ret))
+     `(module
+          ,@(basic-defines)
+          (define-function ,@(for/list [(arg args)]
+                              `(,(car arg) : ,(get-type (cadr arg)))) : real
+            (let ((ret nat)) (block ,(ctj body 'ret) (return ret)))))]))
+(define compilers (list reduce-function simplify-exp
+			uniquify ;simplify-end-iter
+                        do-anf
+                        combine-lets
+                        assign-types
+                        ;; reduce-to-folds
+                        ;; reduce-folds
+                        ;; compile-to-jit
+                        ))
+
 (define (debug-program prg cmplrs)
   (pretty-display
    (for/fold ([prg prg])
              ([c cmplrs])
-     (pretty-display prg)
-     (printf "applying ~a\n" (object-name c))
+     (parameterize ([pretty-print-current-style-table
+                     (pretty-print-extend-style-table
+                      (pretty-print-current-style-table)
+                      '(block define-variables define-function assign while)
+                      '(begin let lambda set! do))])
+       (pretty-display prg))
+     (printf "\n\napplying ~a\n" (object-name c))
      (c prg))))
-
 
 (module+ test
   (define hello-src (read-file "examples/hello.hkr"))
   (define nbg-src (read-file "examples/naive-bayes-gibbs.hkr"))
   (debug-program hello-src compilers)
-  (debug-program nbg-src compilers)
-  ;; (pretty-display (reduce-folds (simplify-end-iter (uniquify (simplify-exp (reduce-function hello-src))))))
-  ;; (pretty-display (reduce-folds (simplify-end-iter (uniquify (simplify-exp (reduce-function nbg-src))))))
-)
-
+  ;; (debug-program nbg-src compilers)
+  )
