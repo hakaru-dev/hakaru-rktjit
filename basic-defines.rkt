@@ -1,4 +1,5 @@
 #lang racket
+(require ffi/unsafe)
 (require "../libjit/jit.rkt")
 
 (define (basic-defines)
@@ -37,13 +38,39 @@
                (return (* array-ptr (#%offset ,array-type size) : int)))
              (define-function (,(string->symbol (format "index-~a" array-type))
                                (array-ptr : ,array-type-p) (index : int) : ,type)
-               (return (* array-ptr
-                          (#%app jit-add
-                                 (#%offset ,array-type data)
-                                 (#%app jit-mul (#%sizeof ,type) index))
-                          : ,type)))))))
+               (let ((datap : ,type-p))
+                 (block
+                  (set! datap (* array-ptr (#%offset ,array-type data) : ,type-p))
+                  (return (* datap (#%app jit-mul (#%sizeof ,type) index) : ,type)))))))))
     ))
 
 (module+ test
-  (pretty-display (basic-defines))
-  (define benv  (compile-module `(module ,@(basic-defines)))))
+  ;; (pretty-display (basic-defines))
+  (define benv  (compile-module `(module ,@(basic-defines))))
+  (define (get-f fname) (jit-get-function (env-lookup fname benv)))
+
+  (define r-real (jit-get-racket-type (env-lookup 'real benv)))
+  (define r-nat (jit-get-racket-type (env-lookup 'nat benv)))
+  (define test-real-array (list->cblock '(1.0 2.0 3.0 3.14 42.23) r-real))
+  (define test-nat-array (list->cblock '(1 2 3 4 42) r-nat))
+
+  (define make-array-real (get-f 'make-array-real))
+  (define index-array-real (get-f 'index-array-real))
+  (define size-real (get-f 'size-array-real))
+
+
+  (define make-array-nat (get-f 'make-array-nat))
+  (define index-array-nat (get-f 'index-array-nat))
+  (define size-nat (get-f 'size-array-nat))
+  
+  (define tarr (make-array-real 5 test-real-array))
+  (printf "real array, size: ~a, [0]: ~a, [1]: ~a,\n"
+           (size-real tarr)
+           (index-array-real tarr 0)
+           (index-array-real tarr 1))
+
+  (define tnat (make-array-nat 5 test-nat-array))
+  (printf "nat array, size: ~a, [0]: ~a, [1]: ~a,\n"
+           (size-nat tnat)
+           (index-array-nat tnat 0)
+           (index-array-nat tnat 1)))
