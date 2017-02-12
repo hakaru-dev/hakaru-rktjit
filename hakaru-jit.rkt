@@ -2,6 +2,7 @@
 
 (require "../libjit/jit.rkt")
 (require "../libjit/jit-utils.rkt")
+(require "basic-defines.rkt")
 
 (define (read-file filename)
   (call-with-input-file filename
@@ -227,33 +228,35 @@
       [else (error "unknown op for init-value")]))
   (define (get-assign op result index body)
     (match op
-      ['summate `(assign ,result (+ ,result ,body))]
-      ['product `(assign ,result (* ,result ,body))]
-      ['array `(assign (index ,result ,index) ,body)]))
+      ['summate `(set! ,result (+ ,result ,body))]
+      ['product `(set! ,result (* ,result ,body))]
+      ['array `(set! (index ,result ,index) ,body)]))
   (match body
     [`(,op (,index ,start ,end) ,body) #:when (set-member? internal-loop-ops op)
      (define result (gensym^ 'r))
      `(fold-loop (,index ,start ,end)
-                 (,result ,(init-value op end))
+                 (,result ,(init-value op end) ,(if (eq? op 'array) '(array real) 'real))
                  ,(get-assign op result index (rh body)))]
     [`(if ,tst ,thn ,els)
      `(if ,(rh tst) ,(rh thn) ,(rh els))]
+    [`(let ((,args ,vals ,types) ...) ,body)
+     `(let ,(for/list ([arg args] [val vals] [type types])
+               `(,arg ,(rh val) ,type)) ,(rh body))]
     [`(function ,args ,body)
      `(function ,args ,(rh body))]
     [`(,rands ...)
      `(,@(map rh rands))]
     [else body]))
 
-
 (define (reduce-folds body)
   (define rf reduce-folds)
   (match body
     [`(fold-loop (,index ,start ,end)
-                 (,result ,init-value)
+                 (,result ,init-value ,result-type)
                  ,body)
-     `(let ((,result ,init-value))
+     `(let ((,result ,init-value ,result-type))
         (begin
-          (for ((,index ,start) (< ,index end) (+ ,index 1))
+          (for ((,index ,start) (< ,index ,end) (+ ,index 1))
             ,(rf body))
           ,result))]
     [`(if ,tst, thn ,els)
@@ -266,55 +269,84 @@
      `(let ,arg-vals ,(rf body))]
     [else body]))
 
-(define (compile-to-jit body)
+(define op-map (make-hash '((+ . jit-add)
+                            (* . jit-mul)
+                            (< . jit-lt?))))
+(define (compile-to-jit-lang body)
   (define (check-and-assign body assign-to)
     (if assign-to
-        `(assign ,assign-to ,body)
+        `(set! ,assign-to ,(jitfy body))
         body))
-  
+  (define (jitfy expr)
+    (match expr
+      [(? number?) `(#%value ,expr nat)]
+      [else (hash-ref op-map expr expr)]))
   (define (ctj body assign-to)
     (match body
-      [`(let ((,vars ,vals) ...) ,body)
-       `(let ,(map (λ (v) `(,v nat)) vars)
+      [`(let ((,vars ,vals ,type) ...) ,body)
+       `(let ,(map (λ (v) `(,v : nat)) vars)
           (block
-           ,@(map (λ (var val) `(assign ,var ,val)) vars vals)
+           ,@(map (λ (var val) `(set! ,var ,(jitfy val))) vars vals)
            ,(ctj body assign-to)))]
       [`(begin ,exps ... ,end-exp)
        `(block ,@(map (curryr ctj #f) exps)
                ,(ctj end-exp assign-to))]
       [`(for ((,index ,init-value) ,check ,next-value) ,body)
-       `(let ((,index nat))
+       `(let ((,index : nat))
           (block
-           (assign ,index ,init-value)
-           (while ,check
+           (set! ,index ,(jitfy init-value))
+           (while ,(ctj check #f)
              (block ,(ctj body assign-to)
-              (assign ,index ,next-value)))))]
+                    (set! ,index ,(ctj next-value #f))))))]
+      [`(index ,arr ,i)
+       `(#%app ,(string->symbol (format "index-array-~a" (cadr (hash-ref arg-types arr)))) ,arr ,i)]
+      [`(size ,arr)
+       `(#%app ,(string->symbol (format "size-array-~a" (cadr (hash-ref arg-types arr)))) ,arr)]
+      [`(recip ,v)
+       `(#%app jit-div (#%value 1.0 real) ,(ctj v #f))]
       [`(,rator ,rands ...)
-       (check-and-assign `(,rator ,@(map (curryr ctj #f) rands)) assign-to)]
-      [else (check-and-assign body assign-to)]))
+       (check-and-assign `(,@(if (eq? rator 'set!) `(,rator)  `(#%app ,(jitfy rator)))
+                           ,@(map (curryr ctj #f) rands)) assign-to)]
+      [else (check-and-assign (jitfy body) assign-to)]))
   (define (get-type tast)
     (match tast
       [`(array ,t)
-       (symbol-append (symbol-append 'array- t) '-p)]))
+       (symbol-append (symbol-append 'array- t) '-p)]
+      [else tast]))
+  (define arg-types (match body
+    [`(function ,args (let ((ret ,body ,type)) ret))
+     (for/hash ([arg args])
+       (values (car arg) (cadr arg)))]))
   (match body
-    [`(function ,args (let ((ret ,body)) ret))
+    [`(function ,args (let ((ret ,body ,type)) ret))
      `(module
           ,@(basic-defines)
-          (define-function ,@(for/list [(arg args)]
-                              `(,(car arg) : ,(get-type (cadr arg)))) : real
-            (let ((ret nat)) (block ,(ctj body 'ret) (return ret)))))]))
+          (define-function (f ,@(for/list ([arg args])
+                                `(,(car arg) : ,(get-type (cadr arg))))
+                            : ,type)
+            (let ((ret : ,type))
+              (block
+               ,(ctj body 'ret)
+               (return ret)))))]))
+
 (define compilers (list reduce-function simplify-exp
 			uniquify ;simplify-end-iter
                         do-anf
                         combine-lets
                         assign-types
-                        ;; reduce-to-folds
-                        ;; reduce-folds
-                        ;; compile-to-jit
+                        reduce-to-folds
+                        reduce-folds
+                        compile-to-jit-lang
                         ))
-
+;; (compile-to-jit-lang
+;;  '(function ((x (array real)))
+;;             (let ((ret (let ((r1 0 real))
+;;                          (begin (for ((i1 0) (< i1 end) (+ i1 1))
+;;                                   (set! r1
+;;                                         (+ r1
+;;                                            (* (prob2real (recip (nat2prob (+ 1 (size x))))) (index x i1))))) r1)) real)) ret)))
 (define (debug-program prg cmplrs)
-  (pretty-display
+  (define prog-ast
    (for/fold ([prg prg])
              ([c cmplrs])
      (parameterize ([pretty-print-current-style-table
@@ -324,11 +356,33 @@
                       '(begin let lambda set! do))])
        (pretty-display prg))
      (printf "\n\napplying ~a\n" (object-name c))
-     (c prg))))
+     (c prg)))
+  (pretty-display prog-ast)
+  (define env (compile-module prog-ast))
+  env)
 
 (module+ test
-  (define hello-src (read-file "examples/hello.hkr"))
+  (require ffi/unsafe)
+  (define hello-src '(function
+ :
+ x
+ (array real)
+ :
+ (summate
+  i
+  from
+  0
+  to
+  (size x)
+  :
+  (* (index x i) (prob2real (recip (nat2prob (+ (size x) 1))))))) ;(read-file "examples/hello.hkr")
+  )
   (define nbg-src (read-file "examples/naive-bayes-gibbs.hkr"))
-  (debug-program hello-src compilers)
+  (define hello-env (debug-program hello-src compilers))
+  (define (get-hello-f f)
+    (jit-get-function (env-lookup f hello-env)))
+  (define real-type (jit-get-racket-type (env-lookup 'real hello-env)))
+  (define test-array ((get-hello-f 'make-array-real)  4 (list->cblock `(1.0 2.1 3.2 4.4 ) real-type)))
+  (printf "test value: ~a\n"((get-hello-f 'f) test-array))
   ;; (debug-program nbg-src compilers)
   )

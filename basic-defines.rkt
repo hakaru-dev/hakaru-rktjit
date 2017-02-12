@@ -1,6 +1,7 @@
 #lang racket
 (require ffi/unsafe)
 (require "../libjit/jit.rkt")
+(provide basic-defines)
 
 (define (basic-defines)
   `((define-type nat uint)
@@ -13,10 +14,7 @@
     (define-type array-nat-p (pointer array-nat))
     (define-function (prob2real (v : real) : real) (return v))
     (define-function (nat2prob (v : nat) : real) (return v))
-    (define-function (recip (v : real) : real)
-      (return (#%app jit-div
-                     (#%value 1 int)
-                     v)))
+    
     ,@(append*
        (for/list ([type '(nat real)])
          (let ((array-type (string->symbol (format "array-~a" type)))
@@ -41,13 +39,21 @@
                (let ((datap : ,type-p))
                  (block
                   (set! datap (* array-ptr (#%offset ,array-type data) : ,type-p))
-                  (return (* datap (#%app jit-mul (#%sizeof ,type) index) : ,type)))))))))
-    ))
+                  (return (* datap (#%app jit-mul (#%sizeof ,type) index) : ,type)))))
+             (define-function (,(string->symbol (format "recip-~a" type)) (v : ,type) : real)
+               (return (#%app jit-div
+                              (#%value 1.0 real)
+                              v)))))))))
 
 (module+ test
-  ;; (pretty-display (basic-defines))
+  (pretty-display (basic-defines))
   (define benv  (compile-module `(module ,@(basic-defines))))
   (define (get-f fname) (jit-get-function (env-lookup fname benv)))
+
+  (define prob2real (get-f 'prob2real))
+  (define nat2prob (get-f 'nat2prob))
+  (define recip-real (get-f 'recip-real))
+  (define recip-nat (get-f 'recip-nat))
 
   (define r-real (jit-get-racket-type (env-lookup 'real benv)))
   (define r-nat (jit-get-racket-type (env-lookup 'nat benv)))
@@ -73,4 +79,9 @@
   (printf "nat array, size: ~a, [0]: ~a, [1]: ~a,\n"
            (size-nat tnat)
            (index-array-nat tnat 0)
-           (index-array-nat tnat 1)))
+           (index-array-nat tnat 1))
+
+  (printf "prob2real: ~a\n" (prob2real 1.5))
+  (printf "nat2prob: ~a\n" (nat2prob 3))
+  (printf "recip: ~a\n" (recip-real 2.0))
+  (printf "recip: ~a\n" (recip-nat 2)))
