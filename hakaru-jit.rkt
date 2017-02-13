@@ -162,18 +162,44 @@
   (define (get-and-assign-types expr type type-env)
     (define gast get-and-assign-types)
     (match expr
-      [`(,op (,i ,iv ,ev) ,body) #:when (set-member? (set 'summate 'product) op)
+      [`(,op (,i ,iv ,ev) ,body) #:when (set-member? (set 'array 'summate 'product) op)
        (define-values (new-body body-type new-type-env)
          (gast body '? (hash-set type-env i 'nat)))
        (values `(,op (,i ,iv ,ev) ,new-body)
-               body-type
+               (if (eq? op 'array) `(array ,body-type) body-type)
                new-type-env)]
       [`(let ((,s ,v)) ,body)
        (define-values (n-v v-t v-t-env) (gast v '? (hash-set type-env s '?)))
-       (define-values (n-b b-t b-t-env) (gast body '? v-t-env))
+       (define-values (n-b b-t b-t-env) (gast body type v-t-env))
        (values `(let ((,s ,n-v ,v-t)) ,n-b)
                b-t
                b-t-env)]
+      [`(let* ((,syms ,vals) ...) ,body)
+       (define-values (val-bodys val-types val-env)
+         (for/fold ([new-vals '()]
+                    [val-types '()]
+                    [val-env type-env])
+                   ([s syms]
+                    [v vals])
+           (define-values (new-val val-type new-env) (gast v '? val-env))
+           (printf "let* s: ~a, v: ~a, new-val: ~a, val-type: ~a\n" s v new-val val-type)
+           (values (append new-vals (list new-val))
+                   (append val-types (list val-type))
+                   (hash-set new-env s val-type))))
+       (define-values (new-body body-type body-env) (gast body type val-env))
+       (values `(let* ,(for/list ([s syms]
+                                  [v val-bodys]
+                                  [t val-types])
+                         `(,s ,v ,t))
+                  ,new-body)
+               body-type
+               body-env)]
+      [`(if ,tst ,thn ,els)
+       (define-values (thn-b thn-t thn-env) (gast thn type type-env))
+       (define-values (els-b els-t els-env) (gast els thn-t thn-env))
+       (values `(if ,tst ,thn-b ,els-b)
+               els-t
+               els-env)]
       [`(index ,arr ,i)
        (define arr-type (hash-ref type-env arr))
        (values `(index ,arr ,i)
@@ -202,29 +228,13 @@
      (define-values (new-body body-type type-env) (get-and-assign-types body '? (get-arg-types args)))
      `(function ,args ,new-body)]))
 
-(define (simplify-end-iter exp)
-  (define sl simplify-end-iter)
-  (match exp
-    [`(function ,args ,body)
-     `(function ,args ,(sl body))]
-    [`(,op (,index ,start ,end) ,body)
-     #:when (set-member? internal-loop-ops op)
-     (if (or (symbol? end) (number? end) (equal? (car end) 'size))
-         `(,op (,index ,start ,end) ,(sl body))
-         (let ((end^ (gensym^ 'e)))
-           `(let ((,end^ ,(sl end)))
-              (,op (,index ,start ,end^) ,(sl body)))))]
-    [`(,rator ,rands ...)
-     `(,rator ,@(map sl rands))]
-    [else exp]))
-
 (define (reduce-to-folds body)
   (define rh reduce-to-folds)
   (define (init-value op size)
     (match op
       ['summate 0]
       ['product 1]
-      ['array `(new array real ,size)]
+      ['array `(new array-real ,size)]
       [else (error "unknown op for init-value")]))
   (define (get-assign op result index body)
     (match op
@@ -239,9 +249,9 @@
                  ,(get-assign op result index (rh body)))]
     [`(if ,tst ,thn ,els)
      `(if ,(rh tst) ,(rh thn) ,(rh els))]
-    [`(let ((,args ,vals ,types) ...) ,body)
-     `(let ,(for/list ([arg args] [val vals] [type types])
-               `(,arg ,(rh val) ,type)) ,(rh body))]
+    [`(,l ((,args ,vals ,types) ...) ,body) #:when (set-member? (set 'let 'let*) l)
+     `(,l ,(for/list ([arg args] [val vals] [type types])
+              `(,arg ,(rh val) ,type)) ,(rh body))]
     [`(function ,args ,body)
      `(function ,args ,(rh body))]
     [`(,rands ...)
@@ -299,9 +309,9 @@
              (block ,(ctj body assign-to)
                     (set! ,index ,(ctj next-value #f))))))]
       [`(index ,arr ,i)
-       `(#%app ,(string->symbol (format "index-array-~a" (cadr (hash-ref arg-types arr)))) ,arr ,i)]
+       `(#%app ,(string->symbol (format "index-array-~a" (cadr (hash-ref arg-types arr '(array real))))) ,arr ,i)]
       [`(size ,arr)
-       `(#%app ,(string->symbol (format "size-array-~a" (cadr (hash-ref arg-types arr)))) ,arr)]
+       `(#%app ,(string->symbol (format "size-array-~a" (cadr (hash-ref arg-types arr '(array real))))) ,arr)]
       [`(recip ,v)
        `(#%app jit-div (#%value 1.0 real) ,(ctj v #f))]
       [`(,rator ,rands ...)
@@ -330,7 +340,7 @@
                (return ret)))))]))
 
 (define compilers (list reduce-function simplify-exp
-			uniquify ;simplify-end-iter
+			uniquify 
                         do-anf
                         combine-lets
                         assign-types
@@ -338,13 +348,7 @@
                         reduce-folds
                         compile-to-jit-lang
                         ))
-;; (compile-to-jit-lang
-;;  '(function ((x (array real)))
-;;             (let ((ret (let ((r1 0 real))
-;;                          (begin (for ((i1 0) (< i1 end) (+ i1 1))
-;;                                   (set! r1
-;;                                         (+ r1
-;;                                            (* (prob2real (recip (nat2prob (+ 1 (size x))))) (index x i1))))) r1)) real)) ret)))
+
 (define (debug-program prg cmplrs)
   (define prog-ast
    (for/fold ([prg prg])
@@ -363,20 +367,7 @@
 
 (module+ test
   (require ffi/unsafe)
-  (define hello-src '(function
- :
- x
- (array real)
- :
- (summate
-  i
-  from
-  0
-  to
-  (size x)
-  :
-  (* (index x i) (prob2real (recip (nat2prob (+ (size x) 1))))))) ;(read-file "examples/hello.hkr")
-  )
+  (define hello-src (read-file "examples/hello.hkr"))
   (define nbg-src (read-file "examples/naive-bayes-gibbs.hkr"))
   (define hello-env (debug-program hello-src compilers))
   (define (get-hello-f f)
@@ -384,5 +375,7 @@
   (define real-type (jit-get-racket-type (env-lookup 'real hello-env)))
   (define test-array ((get-hello-f 'make-array-real)  4 (list->cblock `(1.0 2.1 3.2 4.4 ) real-type)))
   (printf "test value: ~a\n"((get-hello-f 'f) test-array))
-  ;; (debug-program nbg-src compilers)
+
+  
+  (printf (debug-program nbg-src compilers))
   )
