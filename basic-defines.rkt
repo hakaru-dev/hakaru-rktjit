@@ -6,21 +6,27 @@
 (define (basic-defines)
   `((define-type nat uint)
     (define-type real float32)
+    (define-type prob real)
     (define-type nat-p (pointer nat))
     (define-type real-p (pointer real))
+    (define-type prob-p (pointer prob))
     (define-type array-real (struct (size : int) (data : real-p)))
     (define-type array-real-p (pointer array-real))
+    (define-type array-prob (struct (size : int) (data : prob-p)))
+    (define-type array-prob-p (pointer array-prob))
+
     (define-type array-nat (struct (size : int) (data : nat-p)))
     (define-type array-nat-p (pointer array-nat))
     (define-function (prob2real (v : real) : real) (return v))
     (define-function (nat2prob (v : nat) : real) (return v))
     
     ,@(append*
-       (for/list ([type '(nat real)])
+       (for/list ([type '(nat real prob)])
          (let ((array-type (string->symbol (format "array-~a" type)))
                (array-type-p (string->symbol (format "array-~a-p" type)))
                (type-p (string->symbol (format "~a-p" type))))
-           `((define-function
+           `((define-function ())
+             (define-function
                (,(string->symbol (format "make-array-~a" type))
                 (size : int)
                 (data : ,type-p)

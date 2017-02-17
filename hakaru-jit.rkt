@@ -146,6 +146,8 @@
           [(and (array-type? t1) (array-type? t2)) (list 'array
                                                          (unify-type (cadr t1) (cadr t2)))]
           [else (error 'unifying-type t1 t2)]))
+  (define (jit-type t)
+    (if (symbol? t) t (string->symbol (format "~a-~a-p" (car t) (cadr t)))))
   (define (get-function-type op n)
     (match op
       [(? (λ (o) (set-member? (set '+ '* '-) o)))
@@ -171,7 +173,7 @@
       [`(let ((,s ,v)) ,body)
        (define-values (n-v v-t v-t-env) (gast v '? (hash-set type-env s '?)))
        (define-values (n-b b-t b-t-env) (gast body type v-t-env))
-       (values `(let ((,s ,n-v ,v-t)) ,n-b)
+       (values `(let ((,s ,n-v ,(jit-type v-t))) ,n-b)
                b-t
                b-t-env)]
       [`(let* ((,syms ,vals) ...) ,body)
@@ -190,7 +192,7 @@
        (values `(let* ,(for/list ([s syms]
                                   [v val-bodys]
                                   [t val-types])
-                         `(,s ,v ,t))
+                         `(,s ,v ,(jit-type t)))
                   ,new-body)
                body-type
                body-env)]
@@ -234,7 +236,7 @@
     (match op
       ['summate 0]
       ['product 1]
-      ['array `(new array-real ,size)]
+      ['array `(make-array-real ,size)]
       [else (error "unknown op for init-value")]))
   (define (get-assign op result index body)
     (match op
@@ -245,7 +247,7 @@
     [`(,op (,index ,start ,end) ,body) #:when (set-member? internal-loop-ops op)
      (define result (gensym^ 'r))
      `(fold-loop (,index ,start ,end)
-                 (,result ,(init-value op end) ,(if (eq? op 'array) '(array real) 'real))
+                 (,result ,(init-value op end) ,(if (eq? op 'array) 'array-real-p 'real))
                  ,(get-assign op result index (rh body)))]
     [`(if ,tst ,thn ,els)
      `(if ,(rh tst) ,(rh thn) ,(rh els))]
@@ -275,8 +277,6 @@
      `(function ,args ,(rf body))]
     [`(,rands ...)
      `(,@(map rf rands))]
-    [`(let ,arg-vals ,body)
-     `(let ,arg-vals ,(rf body))]
     [else body]))
 
 (define op-map (make-hash '((+ . jit-add)
@@ -293,10 +293,10 @@
       [else (hash-ref op-map expr expr)]))
   (define (ctj body assign-to)
     (match body
-      [`(let ((,vars ,vals ,type) ...) ,body)
-       `(let ,(map (λ (v) `(,v : nat)) vars)
+      [`(let ((,vars ,vals ,types) ...) ,body)
+       `(let ,(map (λ (v t) `(,v : ,t)) vars types)
           (block
-           ,@(map (λ (var val) `(set! ,var ,(jitfy val))) vars vals)
+           ,@(map (λ (var val) (ctj val var)) vars vals)
            ,(ctj body assign-to)))]
       [`(begin ,exps ... ,end-exp)
        `(block ,@(map (curryr ctj #f) exps)
@@ -304,14 +304,16 @@
       [`(for ((,index ,init-value) ,check ,next-value) ,body)
        `(let ((,index : nat))
           (block
-           (set! ,index ,(jitfy init-value))
+           ,(ctj init-value index)
            (while ,(ctj check #f)
              (block ,(ctj body assign-to)
-                    (set! ,index ,(ctj next-value #f))))))]
+                    ,(ctj next-value index)))))]
       [`(index ,arr ,i)
-       `(#%app ,(string->symbol (format "index-array-~a" (cadr (hash-ref arg-types arr '(array real))))) ,arr ,i)]
+       `(#%app ,(string->symbol (format "index-array-~a"
+                                        (cadr (hash-ref arg-types arr '(array real))))) ,arr ,i)]
       [`(size ,arr)
-       `(#%app ,(string->symbol (format "size-array-~a" (cadr (hash-ref arg-types arr '(array real))))) ,arr)]
+       `(#%app ,(string->symbol (format "size-array-~a"
+                                        (cadr (hash-ref arg-types arr '(array real))))) ,arr)]
       [`(recip ,v)
        `(#%app jit-div (#%value 1.0 real) ,(ctj v #f))]
       [`(,rator ,rands ...)
@@ -336,7 +338,8 @@
                             : ,type)
             (let ((ret : ,type))
               (block
-               ,(ctj body 'ret)
+               ,(ctj body
+                     'ret)
                (return ret)))))]))
 
 (define compilers (list reduce-function simplify-exp
@@ -369,12 +372,14 @@
   (require ffi/unsafe)
   (define hello-src (read-file "examples/hello.hkr"))
   (define nbg-src (read-file "examples/naive-bayes-gibbs.hkr"))
-  (define hello-env (debug-program hello-src compilers))
-  (define (get-hello-f f)
-    (jit-get-function (env-lookup f hello-env)))
-  (define real-type (jit-get-racket-type (env-lookup 'real hello-env)))
-  (define test-array ((get-hello-f 'make-array-real)  4 (list->cblock `(1.0 2.1 3.2 4.4 ) real-type)))
-  (printf "test value: ~a\n"((get-hello-f 'f) test-array))
+  ;; (define hello-env (debug-program hello-src compilers))
+  ;; (define (get-hello-f f)
+  ;;   (jit-get-function (env-lookup f hello-env)))
+  ;; (define real-type (jit-get-racket-type (env-lookup 'real hello-env)))
+  ;; (define test-array ((get-hello-f 'make-array-real)  4
+  ;;                     (list->cblock `(80.0 20.1 30.2 40.4 ) real-type)))
+
+  ;; (printf "test value: ~a\n"((get-hello-f 'f) test-array))
 
   
   (printf (debug-program nbg-src compilers))
