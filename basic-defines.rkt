@@ -25,8 +25,7 @@
          (let ((array-type (string->symbol (format "array-~a" type)))
                (array-type-p (string->symbol (format "array-~a-p" type)))
                (type-p (string->symbol (format "~a-p" type))))
-           `((define-function ())
-             (define-function
+           `((define-function
                (,(string->symbol (format "make-array-~a" type))
                 (size : int)
                 (data : ,type-p)

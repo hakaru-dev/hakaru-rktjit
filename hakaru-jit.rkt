@@ -9,33 +9,48 @@
     (lambda (in)
       (read in))))
 
+(struct function (args ret-type body))
+(struct variable (type sym))
+(struct array (type index size body))
+(struct summate (type index start end body))
+(struct product (type index start end body))
+(struct ifexp (type tst thn els))
+(struct appexp (type rator rands))
+
 (define internal-ops
   (apply set '(size index recip nat2prob prob2real + * == && < ||)))
+(define sum-prod-loops (set 'summate 'product))
 (define internal-loop-ops
   (set 'summate 'product 'array))
 
 (define (reduce-function exp)
   (define (combine-functions prg [var-type-assoc null])
     (match prg
-      [`(function : ,var ,type : ,body)
-       (combine-functions body (cons (list var type) var-type-assoc))]
+      [`((fn ,var ,type ,body) : ,t)
+       (combine-functions body (cons (list var (car t)) var-type-assoc))]
       [else (values (reverse var-type-assoc) prg)]))
   (define-values (args fbody) (combine-functions exp))
-  `(function (,@args) ,fbody))
+  (match fbody
+    [`(,body : ,type)
+     `(fn ,args ,type ,fbody)]))
 
 (define (simplify-exp exp)
   (define sa simplify-exp)
   (match exp
-    [`(function ,args ,body)
-     `(function ,args ,(sa body))]
-    [`(,op ,index from ,start to ,end : ,body)
-     `(,op (,index ,(sa start) ,(sa end)) ,(sa body))]
-    [`(array ,index of ,size : ,body)
-     `(array (,index 0 ,(sa size)) ,(sa body))]
-    [`(match ,tst : true: ,thn false: ,els)
+    [`(fn ,args ,ret-type ,body)
+     `(fn ,args ,ret-type ,(sa body))]
+    [`((summate (,index ,start ,end) ,body) : ,_)
+     `(summate (,index ,(sa start) ,(sa end)) ,(sa body))]
+    [`((product (,index ,start ,end) ,body) : ,_)
+     `(product (,index ,(sa start) ,(sa end)) ,(sa body))]
+    [`((array (,index ,size) ,body) : ,type)
+     `(array ,type (,index ,(sa size)) ,(sa body))]
+    [`((match ,tst (true ,thn) (false ,els)) : ,_)
      `(if ,(sa tst) ,(sa thn) ,(sa els))]
-    [`(,rator ,rands ...)
+    [`((,rator ,rands ...) : ,_)
      `(,rator ,@(map sa rands))]
+    [`(,s : ,_)
+     s]
     [else exp]))
 
 (define (uniquify exp)
@@ -49,14 +64,18 @@
        `(,rator ,(map (curryr u vars) rands))]))
   (define (u exp vars)
     (match exp
-      [`(function ,args ,body)
-       `(function ,args
+      [`(fn ,args ,ret-type ,body)
+       `(fn ,args ,ret-type
                   ,(u body
                       (map (λ (at) (cons (car at) (car at))) args)))]
-      [`(,op (,index ,start ,end) ,body) #:when (set-member? internal-loop-ops op)
+      [`(,op (,index ,start ,end) ,body) #:when (set-member? sum-prod-loops op)
        (define i (gensym^ index))
        (define nv (cons (cons index i) vars))
        `(,op (,i ,(u start vars) ,(u end vars)) ,(u body nv))]
+      [`(array ,type (,index ,size) ,body)
+       (define i (gensym^ index))
+       (define nv (cons (cons index i) vars))
+       `(array ,type (,i ,(u size vars)) ,(u body nv))]
       [`(if ,tst ,thn ,els)
        `(if ,(u tst vars) ,(u thn vars) ,(u els vars))]
       [`(,rator ,rands ...)
@@ -65,8 +84,9 @@
   (u exp '()))
 
 (define (simple? x)
-  (or (symbol? x) (number? x) (and (not (set-member? internal-loop-ops (car x)))
-                                   (andmap simple? x))))
+  (or (symbol? x) (number? x) ;; (and (not (set-member? internal-loop-ops (car x)))
+                              ;;      (andmap simple? x))
+      ))
 
 (define (do-anf expr)
   (define (wrap-simplify body)
@@ -75,17 +95,19 @@
         (let ((sym (gensym^ 's)))
           (values sym
                   (λ (prg) `(let1 (,sym ,(do-anf body)) ,prg))))))
-  ;(printf "do-anf ~a\n" expr)
   (match expr
-    [`(function ,args ,body)
-     `(function ,args
-                (let1 (ret ,(do-anf body))
-                      ret))]
+    [`(fn ,args ,ret-type ,body)
+     `(fn ,args ,ret-type
+          (let1 (ret ,(do-anf body))
+                ret))]
     [`(,op (,index ,start ,end) ,body)
-     #:when (set-member? internal-loop-ops op)
+     #:when (set-member? sum-prod-loops op)
      (define-values (start-sym start-wrap) (wrap-simplify start))
      (define-values (end-sym end-wrap) (wrap-simplify end))
      (start-wrap (end-wrap `(,op (,index ,start-sym ,end-sym) ,(do-anf body))))]
+    [`(array ,type (,index ,size) ,body)
+     (define-values (size-sym size-wrap) (wrap-simplify size))
+     (size-wrap `(array ,type (,index ,size-sym) ,(do-anf body)) )]
     [`(if ,tst ,thn ,els)
      (define-values (tst-sym tst-wrap) (wrap-simplify tst))
      (tst-wrap `(if ,tst-sym ,(do-anf thn) ,(do-anf els)))]
@@ -102,7 +124,6 @@
        (w e))]
     [(? simple?) expr]))
 
-
 (define (combine-lets expr)
   (define (get-let-map expr let-map)
     (match expr
@@ -110,6 +131,8 @@
        (define-values (val-body val-let-map) (get-let-map val let-map))
        (define nlet-map (cons (cons sym val-body) val-let-map))
        (get-let-map body nlet-map)]
+      [`(array ,type (,index ,size) ,body)
+       (values `(array ,type (,index ,size) ,(combine-let1 body)) let-map)]
       [`(,op (,index ,start ,end) ,body)
        #:when (set-member? internal-loop-ops op)
        (values `(,op (,index ,start ,end) ,(combine-let1 body)) let-map)]
@@ -128,8 +151,8 @@
            ,body-expr)
         body-expr))
   (match expr
-    [`(function ,args ,body)
-     `(function ,args ,(combine-let1 body))]))
+    [`(fn ,args ,ret-type ,body)
+     `(fn ,args ,ret-type ,(combine-let1 body))]))
 
 (define (assign-types expr)
   (define (unify-type t1 t2)
@@ -155,6 +178,11 @@
       ['prob2real (values 'real '(real))]
       ['recip (values 'real '(real))]
       ['nat2prob (values 'real '(nat))]
+      ['== (values '? '(?))]
+      ['and (values '? '(?))]
+      ['or (values '? '(?))]
+      ['< (values '? '(?))]
+
       ['size (values 'nat '((array ?)))]))
   (define (get-arg-types arglist)
     (match arglist
@@ -164,6 +192,12 @@
   (define (get-and-assign-types expr type type-env)
     (define gast get-and-assign-types)
     (match expr
+      [`(array ,type (,index ,size) ,body)
+       (define-values (new-body body-type new-type-env)
+         (gast body (cadr type) (hash-set type-env index 'nat)))
+       (values `(array ,type (,index ,size) ,new-body)
+               type
+               new-type-env)]
       [`(,op (,i ,iv ,ev) ,body) #:when (set-member? (set 'array 'summate 'product) op)
        (define-values (new-body body-type new-type-env)
          (gast body '? (hash-set type-env i 'nat)))
@@ -184,7 +218,7 @@
                    ([s syms]
                     [v vals])
            (define-values (new-val val-type new-env) (gast v '? val-env))
-           (printf "let* s: ~a, v: ~a, new-val: ~a, val-type: ~a\n" s v new-val val-type)
+           ;; (printf "let* s: ~a, v: ~a, new-val: ~a, val-type: ~a\n" s v new-val val-type)
            (values (append new-vals (list new-val))
                    (append val-types (list val-type))
                    (hash-set new-env s val-type))))
@@ -226,36 +260,43 @@
        (define t (unify-type type 'nat))
        (values expr t type-env)]))
   (match expr
-    [`(function ,args ,body)
-     (define-values (new-body body-type type-env) (get-and-assign-types body '? (get-arg-types args)))
-     `(function ,args ,new-body)]))
+    [`(fn ,args ,ret-type ,body)
+     (define-values (new-body body-type type-env)
+       (get-and-assign-types body ret-type (get-arg-types args)))
+     `(fn ,args ,ret-type ,new-body)]))
 
 (define (reduce-to-folds body)
   (define rh reduce-to-folds)
-  (define (init-value op size)
+  (define (init-value op)
     (match op
       ['summate 0]
-      ['product 1]
-      ['array `(make-array-real ,size)]
-      [else (error "unknown op for init-value")]))
+      ['product 1]))
   (define (get-assign op result index body)
     (match op
       ['summate `(set! ,result (+ ,result ,body))]
-      ['product `(set! ,result (* ,result ,body))]
-      ['array `(set! (index ,result ,index) ,body)]))
+      ['product `(set! ,result (* ,result ,body))]))
+  (define (make-array t)
+    (symbol-append 'make-array- (cadr t)))
   (match body
+    [`(array ,type (,index ,size) ,body)
+     (define iv (gensym^ 'iv))
+     (define result (gensym^ 'r))
+     `(fold-loop (,index 0 ,size)
+                 (,result (,(make-array type) ,size) ,(get-type type))
+                 (let ((,iv ,(rh body) ,(cadr type)))
+                   (set! (index ,result ,index) ,iv)))]
     [`(,op (,index ,start ,end) ,body) #:when (set-member? internal-loop-ops op)
      (define result (gensym^ 'r))
      `(fold-loop (,index ,start ,end)
-                 (,result ,(init-value op end) ,(if (eq? op 'array) 'array-real-p 'real))
+                 (,result ,(init-value op) real)
                  ,(get-assign op result index (rh body)))]
     [`(if ,tst ,thn ,els)
      `(if ,(rh tst) ,(rh thn) ,(rh els))]
     [`(,l ((,args ,vals ,types) ...) ,body) #:when (set-member? (set 'let 'let*) l)
      `(,l ,(for/list ([arg args] [val vals] [type types])
               `(,arg ,(rh val) ,type)) ,(rh body))]
-    [`(function ,args ,body)
-     `(function ,args ,(rh body))]
+    [`(fn ,args ,ret-type ,body)
+     `(fn ,args ,ret-type ,(rh body))]
     [`(,rands ...)
      `(,@(map rh rands))]
     [else body]))
@@ -273,12 +314,17 @@
           ,result))]
     [`(if ,tst, thn ,els)
      `(if ,(rf tst) ,(rf thn) ,(rf els))]
-    [`(function ,args ,body)
-     `(function ,args ,(rf body))]
+    [`(fn ,args ,ret-type ,body)
+     `(fn ,args ,ret-type ,(rf body))]
     [`(,rands ...)
      `(,@(map rf rands))]
     [else body]))
 
+(define (get-type tast)
+  (match tast
+    [`(array ,t)
+     (symbol-append (symbol-append 'array- t) '-p)]
+    [else tast]))
 (define op-map (make-hash '((+ . jit-add)
                             (* . jit-mul)
                             (< . jit-lt?))))
@@ -320,29 +366,26 @@
        (check-and-assign `(,@(if (eq? rator 'set!) `(,rator)  `(#%app ,(jitfy rator)))
                            ,@(map (curryr ctj #f) rands)) assign-to)]
       [else (check-and-assign (jitfy body) assign-to)]))
-  (define (get-type tast)
-    (match tast
-      [`(array ,t)
-       (symbol-append (symbol-append 'array- t) '-p)]
-      [else tast]))
+
   (define arg-types (match body
-    [`(function ,args (let ((ret ,body ,type)) ret))
+    [`(fn ,args ,ret-type (let ((ret ,body ,type)) ret))
      (for/hash ([arg args])
        (values (car arg) (cadr arg)))]))
   (match body
-    [`(function ,args (let ((ret ,body ,type)) ret))
+    [`(fn ,args ,ret-type (let ((ret ,body ,t)) ret))
      `(module
           ,@(basic-defines)
           (define-function (f ,@(for/list ([arg args])
                                 `(,(car arg) : ,(get-type (cadr arg))))
-                            : ,type)
-            (let ((ret : ,type))
+                            : ,(get-type ret-type))
+            (let ((ret : ,(get-type ret-type)))
               (block
                ,(ctj body
                      'ret)
                (return ret)))))]))
 
-(define compilers (list reduce-function simplify-exp
+(define compilers (list reduce-function
+                        simplify-exp
 			uniquify 
                         do-anf
                         combine-lets
@@ -366,12 +409,15 @@
      (c prg)))
   (pretty-display prog-ast)
   (define env (compile-module prog-ast))
-  env)
+  env
+  
+  )
 
 (module+ test
   (require ffi/unsafe)
-  (define hello-src (read-file "examples/hello.hkr"))
-  (define nbg-src (read-file "examples/naive-bayes-gibbs.hkr"))
+  (define hello-src (read-file "examples/hello-full.hkr"))
+  (define nbg-src (read-file "examples/naive-bayes-gibbs-full.hkr"))
+  ;; (debug-program hello-src compilers)
   ;; (define hello-env (debug-program hello-src compilers))
   ;; (define (get-hello-f f)
   ;;   (jit-get-function (env-lookup f hello-env)))
@@ -382,5 +428,5 @@
   ;; (printf "test value: ~a\n"((get-hello-f 'f) test-array))
 
   
-  (printf (debug-program nbg-src compilers))
+  (debug-program nbg-src compilers)
   )
