@@ -1,0 +1,1 @@
+[(fn x real [(summate i [0 : nat] [(size [x : (array real)]) : nat] [(* [(index [x : (array real)] [i : nat]) : real][(prob2real [(recip [(nat2prob [(+ [(size [x : (array real)]) : nat][1 : nat]) : nat]) : prob]) : prob]) : real]) : real]) : real]) : ((array real) -> real)]
