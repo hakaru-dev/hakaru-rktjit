@@ -36,6 +36,18 @@
                   (set! (* ap (#%offset ,array-type size) : int) size)
                   (set! (* ap (#%offset ,array-type data) : ,type-p) data)
                   (return ap))))
+             (define-function
+               (,(string->symbol (format "empty-~a-array" type))
+                (size : int)
+                : ,array-type-p)
+               (let ((ap : ,array-type-p)
+                     (data : ,type-p))
+                 (block
+                  (set! data (#%app jit-malloc (#%app jit-mul (#%sizeof ,type) size)))
+                  (set! ap (#%app jit-malloc (#%sizeof ,array-type)))
+                  (set! (* ap (#%offset ,array-type size) : int) size)
+                  (set! (* ap (#%offset ,array-type data) : ,type-p) data)
+                  (return ap))))
              (define-function (,(string->symbol (format "size-~a" array-type))
                                (array-ptr : ,array-type-p) : int)
                (return (* array-ptr (#%offset ,array-type size) : int)))
@@ -48,7 +60,13 @@
              (define-function (,(string->symbol (format "recip-~a" type)) (v : ,type) : real)
                (return (#%app jit-div
                               (#%value 1.0 real)
-                              v)))))))))
+                              v)))
+             (define-function (,(string->symbol (format "set-array-~a-at-index!" type))
+                               (arr : ,array-type-p) (in : nat) (v : ,type) : void)
+               (let ((datap : ,type-p))
+                 (block
+                  (set! datap (* arr (#%offset ,array-type data) : ,type-p))
+                  (set! (* datap (#%app jit-mul (#%sizeof ,type) in) : ,type) v))))))))))
 
 (module+ test
   (pretty-display (basic-defines))
@@ -68,13 +86,14 @@
   (define make-array-real (get-f 'make-array-real))
   (define index-array-real (get-f 'index-array-real))
   (define size-real (get-f 'size-array-real))
-
+  (define set-array-real-at-index! (get-f 'set-array-real-at-index!))
 
   (define make-array-nat (get-f 'make-array-nat))
   (define index-array-nat (get-f 'index-array-nat))
   (define size-nat (get-f 'size-array-nat))
   
   (define tarr (make-array-real 5 test-real-array))
+  (set-array-real-at-index! tarr 0 3.0)
   (printf "real array, size: ~a, [0]: ~a, [1]: ~a,\n"
            (size-real tarr)
            (index-array-real tarr 0)

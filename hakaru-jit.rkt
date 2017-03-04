@@ -84,8 +84,9 @@
   (u exp '()))
 
 (define (simple? x)
-  (or (symbol? x) (number? x) ;; (and (not (set-member? internal-loop-ops (car x)))
-                              ;;      (andmap simple? x))
+  (or (symbol? x) (number? x)
+      (and (not (set-member? internal-loop-ops (car x)))
+           (andmap simple? x))
       ))
 
 (define (do-anf expr)
@@ -98,8 +99,7 @@
   (match expr
     [`(fn ,args ,ret-type ,body)
      `(fn ,args ,ret-type
-          (let1 (ret ,(do-anf body))
-                ret))]
+          ,(do-anf body))]
     [`(,op (,index ,start ,end) ,body)
      #:when (set-member? sum-prod-loops op)
      (define-values (start-sym start-wrap) (wrap-simplify start))
@@ -178,10 +178,10 @@
       ['prob2real (values 'real '(real))]
       ['recip (values 'real '(real))]
       ['nat2prob (values 'real '(nat))]
-      ['== (values '? '(?))]
-      ['and (values '? '(?))]
-      ['or (values '? '(?))]
-      ['< (values '? '(?))]
+      ['== (values 'nat '(? ?))]
+      ['and (values 'nat '(? ?))]
+      ['or (values 'nat '(? ?))]
+      ['< (values 'nat '(? ?))]
 
       ['size (values 'nat '((array ?)))]))
   (define (get-arg-types arglist)
@@ -265,60 +265,116 @@
        (get-and-assign-types body ret-type (get-arg-types args)))
      `(fn ,args ,ret-type ,new-body)]))
 
-(define (reduce-to-folds body)
-  (define rh reduce-to-folds)
-  (define (init-value op)
-    (match op
-      ['summate 0]
-      ['product 1]))
-  (define (get-assign op result index body)
-    (match op
-      ['summate `(set! ,result (+ ,result ,body))]
-      ['product `(set! ,result (* ,result ,body))]))
-  (define (make-array t)
-    (symbol-append 'make-array- (cadr t)))
-  (match body
-    [`(array ,type (,index ,size) ,body)
-     (define iv (gensym^ 'iv))
-     (define result (gensym^ 'r))
-     `(fold-loop (,index 0 ,size)
-                 (,result (,(make-array type) ,size) ,(get-type type))
-                 (let ((,iv ,(rh body) ,(cadr type)))
-                   (set! (index ,result ,index) ,iv)))]
-    [`(,op (,index ,start ,end) ,body) #:when (set-member? internal-loop-ops op)
-     (define result (gensym^ 'r))
-     `(fold-loop (,index ,start ,end)
-                 (,result ,(init-value op) real)
-                 ,(get-assign op result index (rh body)))]
-    [`(if ,tst ,thn ,els)
-     `(if ,(rh tst) ,(rh thn) ,(rh els))]
-    [`(,l ((,args ,vals ,types) ...) ,body) #:when (set-member? (set 'let 'let*) l)
-     `(,l ,(for/list ([arg args] [val vals] [type types])
-              `(,arg ,(rh val) ,type)) ,(rh body))]
-    [`(fn ,args ,ret-type ,body)
-     `(fn ,args ,ret-type ,(rh body))]
-    [`(,rands ...)
-     `(,@(map rh rands))]
-    [else body]))
+;; (define (reduce-to-folds body)
+;;   (define rh reduce-to-folds)
+;;   (define (init-value op)
+;;     (match op
+;;       ['summate 0]
+;;       ['product 1]))
+;;   (define (get-assign op result index body)
+;;     (match op
+;;       ['summate `(set! ,result (+ ,result ,body))]
+;;       ['product `(set! ,result (* ,result ,body))]))
+;;   (define (make-array t)
+;;     (symbol-append 'make-array- (cadr t)))
+;;   (match body
+;;     [`(array ,type (,index ,size) ,body)
+;;      (define iv (gensym^ 'iv))
+;;      (define result (gensym^ 'r))
+;;      `(fold-loop (,index 0 ,size)
+;;                  (,result (,(make-array type) ,size) ,(get-type type))
+;;                  (let ((,iv ,(rh body) ,(cadr type)))
+;;                    (set! (index ,result ,index) ,iv)))]
+;;     [`(,op (,index ,start ,end) ,body) #:when (set-member? internal-loop-ops op)
+;;      (define result (gensym^ 'r))
+;;      `(fold-loop (,index ,start ,end)
+;;                  (,result ,(init-value op) real)
+;;                  ,(get-assign op result index (rh body)))]
+;;     [`(if ,tst ,thn ,els)
+;;      `(if ,(rh tst) ,(rh thn) ,(rh els))]
+;;     [`(,l ((,args ,vals ,types) ...) ,body) #:when (set-member? (set 'let 'let*) l)
+;;      `(,l ,(for/list ([arg args] [val vals] [type types])
+;;               `(,arg ,(rh val) ,type)) ,(rh body))]
+;;     [`(fn ,args ,ret-type ,body)
+;;      `(fn ,args ,ret-type ,(rh body))]
+;;     [`(,rands ...)
+;;      `(,@(map rh rands))]
+;;     [else body]))
 
-(define (reduce-folds body)
-  (define rf reduce-folds)
-  (match body
-    [`(fold-loop (,index ,start ,end)
-                 (,result ,init-value ,result-type)
-                 ,body)
-     `(let ((,result ,init-value ,result-type))
-        (begin
-          (for ((,index ,start) (< ,index ,end) (+ ,index 1))
-            ,(rf body))
-          ,result))]
-    [`(if ,tst, thn ,els)
-     `(if ,(rf tst) ,(rf thn) ,(rf els))]
+;; (define (reduce-folds body)
+;;   (define rf reduce-folds)
+;;   (match body
+;;     [`(fold-loop (,index ,start ,end)
+;;                  (,result ,init-value ,result-type)
+;;                  ,body)
+;;      `(let ((,result ,init-value ,result-type))
+;;         (begin
+;;           (for ((,index ,start) (< ,index ,end) (+ ,index 1))
+;;             ,(rf body))
+;;           ,result))]
+;;     [`(if ,tst, thn ,els)
+;;      `(if ,(rf tst) ,(rf thn) ,(rf els))]
+;;     [`(fn ,args ,ret-type ,body)
+;;      `(fn ,args ,ret-type ,(rf body))]
+;;     [`(,rands ...)
+;;      `(,@(map rf rands))]
+;;     [else body]))
+
+(define (flatten expr)
+  (define (assign body to)
+    (match body
+      [`(,l ((,syms ,vals ,types) ...) ,b) #:when (set-member? (set 'let 'let*) l)
+       `(let ,(for/list [(s syms)
+                          (t types)]
+                 `(,s : ,t))
+          (block
+           ,@(for/list ([v vals]
+                        [s syms])
+               (assign v s))
+           ,(assign b to)))]
+      [`(summate (,i ,start ,end) ,b)
+       (define res (gensym^ 'sr))
+       (define t (gensym^ 'st))
+       `(let ((,res : real)
+              (,t : real))
+          (block
+           (set! ,res 0)
+           (for1 ((,i ,start (+ ,i 1) : nat) (< ,i ,end))
+                 (block
+                  ,(assign b t)
+                  (set! ,res (* ,res ,t))))
+           (set! ,to ,res)))]
+      [`(product (,i ,start ,end) ,b)
+       (define res (gensym^ 'pr))
+       (define t (gensym^ 'pt))
+       `(let ((,res : real)
+              (,t : real))
+          (block
+           (set! ,res 1)
+           (for1 ((,i ,start (+ ,i 1) : nat) (< ,i ,end))
+                 (block
+                  ,(assign b t)
+                  (set! ,res (* ,res ,t))))
+           (set! ,to ,res)))]
+      [`(array (array ,typ) (,i ,i-end) ,b)
+       (define ai (gensym^ 'a))
+       `(block
+         (set! ,to (,(string->symbol (format "empty-~a-array" typ))  ,i-end))
+         (for1 ((,i 0 (+ ,i 1) : nat) (< ,i ,i-end))
+               (let ((,ai : ,typ))
+                 (block
+                  ,(assign b ai)
+                  (,(string->symbol (format "set-array-~a-at-index!" typ)) ,to ,i ,ai)))))]
+      [`(if ,tst ,thn ,els)
+       `(if ,tst ,(assign thn to) ,(assign els to))]
+      [else `(set! ,to ,body)]))
+  (match expr
     [`(fn ,args ,ret-type ,body)
-     `(fn ,args ,ret-type ,(rf body))]
-    [`(,rands ...)
-     `(,@(map rf rands))]
-    [else body]))
+     `(fn ,args ,ret-type
+          (let ((ret : ,ret-type))
+            (block
+             ,(assign body 'ret)
+             (return ret))))]))
 
 (define (get-type tast)
   (match tast
@@ -327,62 +383,65 @@
     [else tast]))
 (define op-map (make-hash '((+ . jit-add)
                             (* . jit-mul)
-                            (< . jit-lt?))))
+                            (< . jit-lt?)
+                            (== . jit-eq?)
+                            (and . jit-and)
+                            (or . jit-or)
+                            (recip . recip-real)
+                            )))
 (define (compile-to-jit-lang body)
-  (define (check-and-assign body assign-to)
-    (if assign-to
-        `(set! ,assign-to ,(jitfy body))
-        body))
-  (define (jitfy expr)
+  (define (ce expr arg-types)
     (match expr
-      [(? number?) `(#%value ,expr nat)]
-      [else (hash-ref op-map expr expr)]))
-  (define (ctj body assign-to)
-    (match body
-      [`(let ((,vars ,vals ,types) ...) ,body)
-       `(let ,(map (λ (v t) `(,v : ,t)) vars types)
-          (block
-           ,@(map (λ (var val) (ctj val var)) vars vals)
-           ,(ctj body assign-to)))]
-      [`(begin ,exps ... ,end-exp)
-       `(block ,@(map (curryr ctj #f) exps)
-               ,(ctj end-exp assign-to))]
-      [`(for ((,index ,init-value) ,check ,next-value) ,body)
-       `(let ((,index : nat))
-          (block
-           ,(ctj init-value index)
-           (while ,(ctj check #f)
-             (block ,(ctj body assign-to)
-                    ,(ctj next-value index)))))]
-      [`(index ,arr ,i)
-       `(#%app ,(string->symbol (format "index-array-~a"
-                                        (cadr (hash-ref arg-types arr '(array real))))) ,arr ,i)]
+      [(? number?)
+       `(#%value ,expr nat)]
       [`(size ,arr)
-       `(#%app ,(string->symbol (format "size-array-~a"
-                                        (cadr (hash-ref arg-types arr '(array real))))) ,arr)]
-      [`(recip ,v)
-       `(#%app jit-div (#%value 1.0 real) ,(ctj v #f))]
+       (define arr-type (hash-ref arg-types arr))
+       `(#%app ,(symbol-append 'size-array- (cadr arr-type)) ,arr)]
+      [`(index ,arr ,i)
+       (define arr-type (hash-ref arg-types arr))
+       `(#%app ,(symbol-append 'index-array- (cadr arr-type)) ,arr ,(ce i arg-types))]
       [`(,rator ,rands ...)
-       (check-and-assign `(,@(if (eq? rator 'set!) `(,rator)  `(#%app ,(jitfy rator)))
-                           ,@(map (curryr ctj #f) rands)) assign-to)]
-      [else (check-and-assign (jitfy body) assign-to)]))
-
-  (define arg-types (match body
-    [`(fn ,args ,ret-type (let ((ret ,body ,type)) ret))
-     (for/hash ([arg args])
-       (values (car arg) (cadr arg)))]))
+       `(#%app ,(hash-ref op-map rator rator) ,@(map (curryr ce arg-types) rands))]
+      [(? symbol?)
+       expr]))
+  (define (cs body arg-types)
+    (match body
+      [`(let ((,args : ,tys) ...) ,body)
+       `(let ,(for/list ([arg args]
+                         [ty tys])
+                `(,arg : ,(get-type ty)))
+          ,(cs body arg-types))]
+      [`(block ,exps ...)
+       `(block ,@(map (curryr cs arg-types) exps))]
+      [`(for1 ((,i ,start ,next : ,ty) ,tst) ,body)
+       `(let ((,i : ,ty))
+          (block
+           (set! ,i ,(ce start arg-types))
+           (while ,(ce tst arg-types)
+             (block
+              ,(cs body arg-types)
+              (set! ,i ,(ce next arg-types))))))]
+      [`(if ,tst ,thn ,els)
+       `(if ,(ce tst arg-types)
+            ,(cs thn arg-types)
+            ,(cs els arg-types))]
+      [`(set! ,a ,e)
+       `(set! ,a ,(ce e arg-types))]
+      [`(set-array-prob-at-index! ,arr ,i ,v)
+       `(#%exp (#%app set-array-prob-at-index! ,arr ,(ce i arg-types) ,(ce v arg-types)))]
+      [`(return ,v)
+       `(return ,v)]
+      [else (error "unknown expression in compile-to-jit" body)]))
   (match body
-    [`(fn ,args ,ret-type (let ((ret ,body ,t)) ret))
+    [`(fn ,args ,ret-type ,body)
+     (define arg-types (for/hash ([arg args])
+                         (values (car arg) (cadr arg))))
      `(module
           ,@(basic-defines)
           (define-function (f ,@(for/list ([arg args])
                                 `(,(car arg) : ,(get-type (cadr arg))))
                             : ,(get-type ret-type))
-            (let ((ret : ,(get-type ret-type)))
-              (block
-               ,(ctj body
-                     'ret)
-               (return ret)))))]))
+            ,(cs body arg-types)))]))
 
 (define compilers (list reduce-function
                         simplify-exp
@@ -390,8 +449,9 @@
                         do-anf
                         combine-lets
                         assign-types
-                        reduce-to-folds
-                        reduce-folds
+                        flatten
+                        ;; reduce-to-folds
+                        ;; reduce-folds
                         compile-to-jit-lang
                         ))
 
@@ -403,15 +463,14 @@
                      (pretty-print-extend-style-table
                       (pretty-print-current-style-table)
                       '(block define-variables define-function assign while)
-                      '(begin let lambda set! do))])
+                      '(begin let lambda set! do))]
+                    [pretty-print-columns 100])
        (pretty-display prg))
      (printf "\n\napplying ~a\n" (object-name c))
      (c prg)))
   (pretty-display prog-ast)
   (define env (compile-module prog-ast))
-  env
-  
-  )
+  env)
 
 (module+ test
   (require ffi/unsafe)
@@ -425,8 +484,151 @@
   ;; (define test-array ((get-hello-f 'make-array-real)  4
   ;;                     (list->cblock `(80.0 20.1 30.2 40.4 ) real-type)))
 
+
   ;; (printf "test value: ~a\n"((get-hello-f 'f) test-array))
 
   
-  (debug-program nbg-src compilers)
+
+  (jit-dump-module  (debug-program nbg-src compilers) )
   )
+
+;; (compile-to-jit-lang(flatten '(fn
+;;                ((topic_prior (array prob))
+;;                 (word_prior (array prob))
+;;                 (z (array nat))
+;;                 (w (array nat))
+;;                 (doc (array nat))
+;;                 (docUpdate nat))
+;;              (array prob)
+;;              (let* ((s1 (size topic_prior) nat))
+;;                (array
+;;                 (array prob)
+;;                 (zNew1 s1)
+;;                 (let ((s2 (size topic_prior) nat))
+;;                   (product
+;;                    (k1 0 s2)
+;;                    (let ((s3 (size word_prior) nat))
+;;                      (product
+;;                       (i1 0 s3)
+;;                       (let* ((s68 (size w) nat)
+;;                              (s4
+;;                               (summate
+;;                                (j2 0 s68)
+;;                                (let* ((s74 (index doc j2) nat)
+;;                                       (s69 (== docUpdate s74) nat))
+;;                                  (if s69
+;;                                      (let* ((s73 (index w j2) nat)
+;;                                             (s71 (== s73 i1) nat)
+;;                                             (s72 (== zNew1 k1) nat)
+;;                                             (s70 (and s71 s72) nat))
+;;                                        (if s70 1 0))
+;;                                      0)))
+;;                               nat))
+;;                         (product
+;;                          (j1 0 s4)
+;;                          (let* ((s39 (size topic_prior) nat)
+;;                                 (s38
+;;                                  (product
+;;                                   (k2 0 s39)
+;;                                   (let* ((s58 (size w) nat)
+;;                                          (s40
+;;                                           (summate
+;;                                            (j8 0 s58)
+;;                                            (let* ((s67 (index doc j8) nat)
+;;                                                   (s59 (== docUpdate s67) nat))
+;;                                              (if s59
+;;                                                  (let* ((s61 (== zNew1 k2) nat)
+;;                                                         (s66 (index w j8) nat)
+;;                                                         (s63 (== s66 0) nat)
+;;                                                         (s65 (index w j8) nat)
+;;                                                         (s64 (< s65 0) nat)
+;;                                                         (s62 (or s63 s64) nat)
+;;                                                         (s60 (and s61 s62) nat))
+;;                                                    (if s60 1 0))
+;;                                                  0)))
+;;                                           nat))
+;;                                     (product
+;;                                      (j7 0 s40)
+;;                                      (let* ((s57 (size word_prior) nat)
+;;                                             (s41
+;;                                              (summate
+;;                                               (j10 0 s57)
+;;                                               (index word_prior j10))
+;;                                              prob)
+;;                                             (s42 (nat2prob j7) real)
+;;                                             (s45 (size w) nat)
+;;                                             (s44
+;;                                              (summate
+;;                                               (j9 0 s45)
+;;                                               (let* ((s56 (index doc j9) nat)
+;;                                                      (s46 (== docUpdate s56) nat))
+;;                                                 (if s46
+;;                                                     0
+;;                                                     (let* ((s55 (index doc j9) nat)
+;;                                                            (s54 (index z s55) nat)
+;;                                                            (s48 (== s54 k2) nat)
+;;                                                            (s53 (index w j9) nat)
+;;                                                            (s50 (== s53 0) nat)
+;;                                                            (s52 (index w j9) nat)
+;;                                                            (s51 (< s52 0) nat)
+;;                                                            (s49 (or s50 s51) nat)
+;;                                                            (s47 (and s48 s49) nat))
+;;                                                       (if s47 1 0)))))
+;;                                              nat)
+;;                                             (s43 (nat2prob s44) real))
+;;                                        (+ s41 s42 s43)))))
+;;                                  real)
+;;                                 (s5 (recip s38) real)
+;;                                 (s37 (size topic_prior) nat)
+;;                                 (s30
+;;                                  (summate (j6 0 s37) (index topic_prior j6))
+;;                                  prob)
+;;                                 (s33 (size z) nat)
+;;                                 (s32
+;;                                  (summate
+;;                                   (j5 0 s33)
+;;                                   (let ((s34 (== docUpdate j5) nat))
+;;                                     (if s34
+;;                                         0
+;;                                         (let* ((s36 (index z j5) nat)
+;;                                                (s35 (< 0 s36) nat))
+;;                                           (if s35 0 1)))))
+;;                                  nat)
+;;                                 (s31 (nat2prob s32) real)
+;;                                 (s29 (+ s30 s31) real)
+;;                                 (s6 (recip s29) real)
+;;                                 (s22 (index topic_prior zNew1) prob)
+;;                                 (s25 (size z) nat)
+;;                                 (s24
+;;                                  (summate
+;;                                   (j4 0 s25)
+;;                                   (let ((s26 (== docUpdate j4) nat))
+;;                                     (if s26
+;;                                         0
+;;                                         (let* ((s28 (index z j4) nat)
+;;                                                (s27 (== s28 zNew1) nat))
+;;                                           (if s27 1 0)))))
+;;                                  nat)
+;;                                 (s23 (nat2prob s24) real)
+;;                                 (s7 (+ s22 s23) real)
+;;                                 (s9 (index word_prior i1) prob)
+;;                                 (s10 (nat2prob j1) real)
+;;                                 (s13 (size w) nat)
+;;                                 (s12
+;;                                  (summate
+;;                                   (j3 0 s13)
+;;                                   (let* ((s21 (index doc j3) nat)
+;;                                          (s14 (== docUpdate s21) nat))
+;;                                     (if s14
+;;                                         0
+;;                                         (let* ((s20 (index w j3) nat)
+;;                                                (s16 (== s20 i1) nat)
+;;                                                (s19 (index doc j3) nat)
+;;                                                (s18 (index z s19) nat)
+;;                                                (s17 (== s18 k1) nat)
+;;                                                (s15 (and s16 s17) nat))
+;;                                           (if s15 1 0)))))
+;;                                  nat)
+;;                                 (s11 (nat2prob s12) real)
+;;                                 (s8 (+ s9 s10 s11) real))
+;;                            (* s5 s6 s7 s8)))))))))))))
