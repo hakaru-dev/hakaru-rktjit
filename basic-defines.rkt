@@ -37,6 +37,11 @@
                   (set! (* ap (#%offset ,array-type data) : ,type-p) data)
                   (return ap))))
              (define-function
+               (,(string->symbol (format "get-array-~a" type))
+                (s : ,array-type-p)
+                : ,type-p)
+               (return (* s (#%offset ,array-type data) : ,type-p)))
+             (define-function
                (,(string->symbol (format "empty-~a-array" type))
                 (size : int)
                 : ,array-type-p)

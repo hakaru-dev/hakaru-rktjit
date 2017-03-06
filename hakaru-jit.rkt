@@ -459,18 +459,17 @@
   (define prog-ast
    (for/fold ([prg prg])
              ([c cmplrs])
-     (parameterize ([pretty-print-current-style-table
-                     (pretty-print-extend-style-table
-                      (pretty-print-current-style-table)
-                      '(block define-variables define-function assign while)
-                      '(begin let lambda set! do))]
-                    [pretty-print-columns 100])
-       (pretty-display prg))
-     (printf "\n\napplying ~a\n" (object-name c))
+     ;; (parameterize ([pretty-print-current-style-table
+     ;;                 (pretty-print-extend-style-table
+     ;;                  (pretty-print-current-style-table)
+     ;;                  '(block define-variables define-function assign while)
+     ;;                  '(begin let lambda set! do))]
+     ;;                [pretty-print-columns 100])
+     ;;   (pretty-display prg))
+     ;; (printf "\n\napplying ~a\n" (object-name c))
      (c prg)))
-  (pretty-display prog-ast)
-  (define env (compile-module prog-ast))
-  env)
+  ;; (pretty-display prog-ast)
+  (compile-module prog-ast))
 
 (module+ test
   (require ffi/unsafe)
@@ -480,7 +479,6 @@
   ;; (define hello-env (debug-program hello-src compilers))
   ;; (define (get-hello-f f)
   ;;   (jit-get-function (env-lookup f hello-env)))
-  ;; (define real-type (jit-get-racket-type (env-lookup 'real hello-env)))
   ;; (define test-array ((get-hello-f 'make-array-real)  4
   ;;                     (list->cblock `(80.0 20.1 30.2 40.4 ) real-type)))
 
@@ -488,147 +486,24 @@
   ;; (printf "test value: ~a\n"((get-hello-f 'f) test-array))
 
   
+  (define nbg-env (debug-program nbg-src compilers))
+  ;; (jit-dump-module   nbg-env)
+  (define (get-nbg-f f)
+    (jit-get-function (env-lookup f nbg-env)))
+  (define prob-type (jit-get-racket-type (env-lookup 'prob nbg-env)))
+  (define nat-type (jit-get-racket-type (env-lookup 'nat nbg-env)))
 
-  (jit-dump-module  (debug-program nbg-src compilers) )
+  (define make-array-prob (get-nbg-f 'make-array-prob))
+  (define make-array-nat (get-nbg-f 'make-array-nat))
+
+  (define topic-prior (make-array-prob 100 (list->cblock '(0.014228 0.003821 0.030999 0.002363 0.024379 0.001317 0.002707 0.013426 0.000219 0.008970 0.012040 0.003862 0.006986 0.012392 0.004347 0.003219 0.011661 0.006158 0.011185 0.060091 0.008681 0.000573 0.019064 0.010391 0.005424 0.022017 0.015388 0.001420 0.023657 0.007121 0.003429 0.004026 0.005844 0.003225 0.045181 0.006403 0.018045 0.006239 0.008657 0.000347 0.002385 0.000023 0.005600 0.032088 0.005185 0.014991 0.003511 0.001131 0.004627 0.002341 0.013252 0.016136 0.017101 0.003137 0.003582 0.000282 0.000733 0.018463 0.004997 0.000185 0.029280 0.005629 0.018106 0.016644 0.013107 0.002684 0.019586 0.004801 0.020799 0.008960 0.013165 0.000553 0.000053 0.001443 0.000540 0.008137 0.005964 0.004829 0.005559 0.004122 0.000518 0.018653 0.022602 0.007208 0.007697 0.037427 0.002005 0.002432 0.012954 0.000968 0.001409 0.005069 0.019474 0.015708 0.001842 0.009659 0.009836 0.010813 0.029945 0.000568 ) prob-type)))
+  (define word-prior (make-array-prob 3 (list->cblock '(0.023754 0.277952 0.698294) prob-type)))
+  (define z (make-array-nat 20 (list->cblock '(1 0 2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 ) nat-type)))
+  (define w (make-array-nat 120 (list->cblock '(40 0 14 0 55 0 68 0 50 0 67 0 44 0 31 0 89 0 66 0 29 0 43 0 57 0 69 0 75 0 77 0 44 0 39 0 40 0 97 0 53 0 96 0 43 0 26 0 36 0 8 0 78 0 94 0 82 0 8 0 77 0 55 0 7 0 86 0 42 0 95 0 10 0 94 0 22 0 73 0 30 0 88 0 14 0 90 0 18 0 47 0 52 0 26 0 30 0 76 0 74 0 92 0 20 0 63 0 50 0 74 0 51 0 81 0 76 0 60 0 ) nat-type)))
+  (define doc (make-array-nat 120 (list->cblock '(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 ) nat-type)))
+  (define f (get-nbg-f 'f))
+  (define result_raw (time (f topic-prior word-prior z w doc 1)))
+  (define get-array-prob (get-nbg-f 'get-array-prob))
+  (define result (cblock->list (get-array-prob result_raw) prob-type 120))
+  (pretty-display result)
   )
-
-;; (compile-to-jit-lang(flatten '(fn
-;;                ((topic_prior (array prob))
-;;                 (word_prior (array prob))
-;;                 (z (array nat))
-;;                 (w (array nat))
-;;                 (doc (array nat))
-;;                 (docUpdate nat))
-;;              (array prob)
-;;              (let* ((s1 (size topic_prior) nat))
-;;                (array
-;;                 (array prob)
-;;                 (zNew1 s1)
-;;                 (let ((s2 (size topic_prior) nat))
-;;                   (product
-;;                    (k1 0 s2)
-;;                    (let ((s3 (size word_prior) nat))
-;;                      (product
-;;                       (i1 0 s3)
-;;                       (let* ((s68 (size w) nat)
-;;                              (s4
-;;                               (summate
-;;                                (j2 0 s68)
-;;                                (let* ((s74 (index doc j2) nat)
-;;                                       (s69 (== docUpdate s74) nat))
-;;                                  (if s69
-;;                                      (let* ((s73 (index w j2) nat)
-;;                                             (s71 (== s73 i1) nat)
-;;                                             (s72 (== zNew1 k1) nat)
-;;                                             (s70 (and s71 s72) nat))
-;;                                        (if s70 1 0))
-;;                                      0)))
-;;                               nat))
-;;                         (product
-;;                          (j1 0 s4)
-;;                          (let* ((s39 (size topic_prior) nat)
-;;                                 (s38
-;;                                  (product
-;;                                   (k2 0 s39)
-;;                                   (let* ((s58 (size w) nat)
-;;                                          (s40
-;;                                           (summate
-;;                                            (j8 0 s58)
-;;                                            (let* ((s67 (index doc j8) nat)
-;;                                                   (s59 (== docUpdate s67) nat))
-;;                                              (if s59
-;;                                                  (let* ((s61 (== zNew1 k2) nat)
-;;                                                         (s66 (index w j8) nat)
-;;                                                         (s63 (== s66 0) nat)
-;;                                                         (s65 (index w j8) nat)
-;;                                                         (s64 (< s65 0) nat)
-;;                                                         (s62 (or s63 s64) nat)
-;;                                                         (s60 (and s61 s62) nat))
-;;                                                    (if s60 1 0))
-;;                                                  0)))
-;;                                           nat))
-;;                                     (product
-;;                                      (j7 0 s40)
-;;                                      (let* ((s57 (size word_prior) nat)
-;;                                             (s41
-;;                                              (summate
-;;                                               (j10 0 s57)
-;;                                               (index word_prior j10))
-;;                                              prob)
-;;                                             (s42 (nat2prob j7) real)
-;;                                             (s45 (size w) nat)
-;;                                             (s44
-;;                                              (summate
-;;                                               (j9 0 s45)
-;;                                               (let* ((s56 (index doc j9) nat)
-;;                                                      (s46 (== docUpdate s56) nat))
-;;                                                 (if s46
-;;                                                     0
-;;                                                     (let* ((s55 (index doc j9) nat)
-;;                                                            (s54 (index z s55) nat)
-;;                                                            (s48 (== s54 k2) nat)
-;;                                                            (s53 (index w j9) nat)
-;;                                                            (s50 (== s53 0) nat)
-;;                                                            (s52 (index w j9) nat)
-;;                                                            (s51 (< s52 0) nat)
-;;                                                            (s49 (or s50 s51) nat)
-;;                                                            (s47 (and s48 s49) nat))
-;;                                                       (if s47 1 0)))))
-;;                                              nat)
-;;                                             (s43 (nat2prob s44) real))
-;;                                        (+ s41 s42 s43)))))
-;;                                  real)
-;;                                 (s5 (recip s38) real)
-;;                                 (s37 (size topic_prior) nat)
-;;                                 (s30
-;;                                  (summate (j6 0 s37) (index topic_prior j6))
-;;                                  prob)
-;;                                 (s33 (size z) nat)
-;;                                 (s32
-;;                                  (summate
-;;                                   (j5 0 s33)
-;;                                   (let ((s34 (== docUpdate j5) nat))
-;;                                     (if s34
-;;                                         0
-;;                                         (let* ((s36 (index z j5) nat)
-;;                                                (s35 (< 0 s36) nat))
-;;                                           (if s35 0 1)))))
-;;                                  nat)
-;;                                 (s31 (nat2prob s32) real)
-;;                                 (s29 (+ s30 s31) real)
-;;                                 (s6 (recip s29) real)
-;;                                 (s22 (index topic_prior zNew1) prob)
-;;                                 (s25 (size z) nat)
-;;                                 (s24
-;;                                  (summate
-;;                                   (j4 0 s25)
-;;                                   (let ((s26 (== docUpdate j4) nat))
-;;                                     (if s26
-;;                                         0
-;;                                         (let* ((s28 (index z j4) nat)
-;;                                                (s27 (== s28 zNew1) nat))
-;;                                           (if s27 1 0)))))
-;;                                  nat)
-;;                                 (s23 (nat2prob s24) real)
-;;                                 (s7 (+ s22 s23) real)
-;;                                 (s9 (index word_prior i1) prob)
-;;                                 (s10 (nat2prob j1) real)
-;;                                 (s13 (size w) nat)
-;;                                 (s12
-;;                                  (summate
-;;                                   (j3 0 s13)
-;;                                   (let* ((s21 (index doc j3) nat)
-;;                                          (s14 (== docUpdate s21) nat))
-;;                                     (if s14
-;;                                         0
-;;                                         (let* ((s20 (index w j3) nat)
-;;                                                (s16 (== s20 i1) nat)
-;;                                                (s19 (index doc j3) nat)
-;;                                                (s18 (index z s19) nat)
-;;                                                (s17 (== s18 k1) nat)
-;;                                                (s15 (and s16 s17) nat))
-;;                                           (if s15 1 0)))))
-;;                                  nat)
-;;                                 (s11 (nat2prob s12) real)
-;;                                 (s8 (+ s9 s10 s11) real))
-;;                            (* s5 s6 s7 s8)))))))))))))
