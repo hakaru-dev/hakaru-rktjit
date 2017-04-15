@@ -74,7 +74,7 @@
                                (index)))))
              (define-function (,(string->symbol (format "recip-~a" type)) (v : ,type) : real)
                (return (#%app jit-fdiv
-                              (#%fp-value 1.0 real)
+                              (#%fl-value 1.0 real)
                               (#%app jit-ui->fp v (#%type real)))))
              (define-function (,(string->symbol (format "set-array-~a-at-index!" type))
                                (arr : ,array-type-p) (in : nat) (v : ,type) : void)
