@@ -76,7 +76,7 @@
                (return (#%app jit-fdiv
                               (#%fl-value 1.0 real)
                               (#%app jit-ui->fp v (#%type real)))))
-             (define-function (,(string->symbol (format "set-array-~a-at-index!" type))
+             (define-function (,(string->symbol (format "set-array-~a-at-index" type))
                                (arr : ,array-type-p) (in : nat) (v : ,type) : void)
                (block (#%exp (#%app jit-store! v (#%gep
                                             (#%app jit-load
