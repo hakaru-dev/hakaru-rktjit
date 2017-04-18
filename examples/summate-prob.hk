@@ -1,0 +1,4 @@
+fn a array(prob):
+   fn b nat:
+      summate i from 0 to size(a):
+      	   a[i] + nat2prob(b)

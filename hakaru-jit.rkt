@@ -3,6 +3,7 @@
 (require "../racket-jit/jit.rkt")
 (require "../racket-jit/jit-utils.rkt")
 (require "basic-defines.rkt")
+(provide (all-defined-out))
 
 (define (read-file filename)
   (call-with-input-file filename
@@ -337,8 +338,12 @@
      (printf "\n\napplying ~a\n" (object-name c))
      (c prg)))
   (pretty-display prog-ast)
-  (compile-module prog-ast))
+  (define mod-env (initialize-jit (compile-module prog-ast)))
+  (jit-dump-module mod-env)
+  mod-env)
 
+(define (compile-src src)
+  (debug-program src compilers))
 (module+ test
   (require ffi/unsafe)
 
@@ -358,14 +363,12 @@
 
   ;; (printf "test value: ~a\n"((get-hello-f 'f) test-array))
 
-  (define nbgo-mod (debug-program nbgo-src compilers))
-  (jit-dump-module nbgo-mod)
-  (define nbgo-mod-jit (initialize-jit nbgo-mod))
-
+  (define nbgo-mod-jit (debug-program nbgo-src compilers))
+  ;; (jit-dump-module nbgo-mod-jit)
   (define nbgo-main (jit-get-function 'main nbgo-mod-jit))
 
-  (define prob-type (jit-get-racket-type (env-lookup 'prob nbgo-mod)))
-  (define nat-type (jit-get-racket-type (env-lookup 'nat nbgo-mod)))
+  (define prob-type (jit-get-racket-type (env-lookup 'prob nbgo-mod-jit)))
+  (define nat-type (jit-get-racket-type (env-lookup 'nat nbgo-mod-jit)))
 
   (define make-array-prob (jit-get-function 'make-array-prob nbgo-mod-jit))
   (define make-array-nat (jit-get-function 'make-array-nat nbgo-mod-jit))
