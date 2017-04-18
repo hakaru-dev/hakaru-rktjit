@@ -19,7 +19,7 @@
                 prob-type))
 (define arg1
   (make-array-prob 10 prob-array))
-(define arg2 0)
+(define arg2 1000)
 (pretty-display (main arg1 arg2))
 
 (define sp-ffi(ffi-lib "examples/libsumprob"))
