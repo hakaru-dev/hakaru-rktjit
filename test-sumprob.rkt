@@ -19,12 +19,13 @@
                 prob-type))
 (define arg1
   (make-array-prob 10 prob-array))
-(define arg2 1000)
-(pretty-display (main arg1 arg2))
+(define arg2 0)
+(printf "jit-output: ~a\n" (main arg1 arg2))
 
 (define sp-ffi(ffi-lib "examples/libsumprob"))
 
 (define-cstruct _ArrayProb ([size _int] [data _pointer]))
 (define c-arg1 (make-ArrayProb 10 prob-array))
 (define c-main (get-ffi-obj "fn_a" sp-ffi (_fun _ArrayProb nat-type -> prob-type)))
-(pretty-display (c-main c-arg1 arg2))
+
+(printf "c-output: ~a\n" (c-main c-arg1 arg2))

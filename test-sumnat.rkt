@@ -20,11 +20,11 @@
 (define arg1
   (make-array-prob 10 nat-array))
 (define arg2 10)
-(pretty-display (main arg1 arg2))
+(printf "jit-output: ~a\n" (main arg1 arg2))
 
 (define sp-ffi(ffi-lib "examples/libsumnat"))
 
 (define-cstruct _ArrayProb ([size _int] [data _pointer]))
 (define c-arg1 (make-ArrayProb 10 nat-array))
 (define c-main (get-ffi-obj "fn_a" sp-ffi (_fun _ArrayProb nat-type -> nat-type)))
-(pretty-display (c-main c-arg1 arg2))
+(printf "c-output: ~a\n" (c-main c-arg1 arg2))
