@@ -7,6 +7,7 @@
 (define mod-env (compile-src src))
 
 (define main (jit-get-function 'main mod-env))
+
 (define prob-type (jit-get-racket-type (env-lookup 'prob mod-env)))
 (define nat-type (jit-get-racket-type (env-lookup 'nat mod-env)))
 

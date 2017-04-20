@@ -4,6 +4,7 @@
 (require "../racket-jit/jit.rkt")
 
 (define prog-src (read-file "examples/nb-simp-opt.hkr"))
+
 (define mod-env (compile-src prog-src))
 
 (define main (jit-get-function 'main mod-env))
@@ -82,13 +83,15 @@
                                 nat-type))
 (define doc (make-array-nat 120 doc-array))
 (define doc-update 1)
+
 (define jit-result (main topic-prior word-prior z w doc doc-update))
+
 (define get-array-prob (jit-get-function 'get-array-prob mod-env))
 (define result (cblock->list (get-array-prob jit-result) prob-type 120))
 
 (printf "jit-output: ~a\n" result)
 
-(define sp-ffi(ffi-lib "examples/libnbsimp"))
+(define sp-ffi (ffi-lib "examples/libnbsimp"))
 
 (define-cstruct _ArrayProb ([size _int] [data _pointer]))
 (define-cstruct _ArrayNat ([size _int] [data _pointer]))
@@ -104,8 +107,8 @@
                (_fun _ArrayProb _ArrayProb _ArrayNat _ArrayNat _ArrayNat nat-type
                      -> _ArrayProb)))
 
-(printf "c-output: ~a\n"
-        (cblock->list
-         (ArrayProb-data
-          (c-main c-topic-prior c-word-prior c-z c-w c-doc c-doc-update))
-         prob-type 120))
+;; (printf "c-output: ~a\n"
+;;         (cblock->list
+;;          (ArrayProb-data
+;;           (c-main c-topic-prior c-word-prior c-z c-w c-doc c-doc-update))
+;;          prob-type 120))

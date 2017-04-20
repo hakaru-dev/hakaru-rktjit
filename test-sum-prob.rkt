@@ -4,9 +4,8 @@
 (require "hakaru-jit.rkt")
 (require "../racket-jit/jit.rkt")
 
-(define summate-prob-src (read-file "examples/summate-prob.hkr"))
+(define summate-prob-src (read-file "examples/sum-prob.hkr"))
 (define mod-env (compile-src summate-prob-src))
-
 (define (prob2real x) (+ (flexpm1 x) 1))
 (define (real2prob x) (fllog1p (- x 1)))
 (define (logsumexp2 a b)
@@ -20,24 +19,12 @@
 (define make-array-prob (jit-get-function 'make-array-prob mod-env))
 (define make-array-nat (jit-get-function 'make-array-nat mod-env))
 
-(define p-a '(5.0 1.0))
-
-(define prob-array
-  (list->cblock p-a
-                prob-type))
-(define prob-array-l
-  (list->cblock (map real2prob p-a)
-                prob-type))
-(define arg1
-  (make-array-prob (length p-a) prob-array))
-(define arg2 0)
+(define arg1 5.0)
+(define arg2 10)
 (printf "jit-output: ~a\n" (main arg1 arg2))
 
-(define sp-ffi (ffi-lib "examples/libsumprob"))
+(define sp-ffi(ffi-lib "examples/sum-prob"))
 
-(define-cstruct _ArrayProb ([size _int] [data _pointer]))
-(define c-arg1 (make-ArrayProb (length p-a) prob-array-l))
+(define c-main (get-ffi-obj "fn_a" sp-ffi (_fun prob-type nat-type -> prob-type)))
 
-(define c-main (get-ffi-obj "fn_a" sp-ffi (_fun _ArrayProb nat-type -> prob-type)))
-
-(printf "c-output: ~a\n" (prob2real (c-main c-arg1 arg2)))
+(printf "c-output: ~a\n" (prob2real (c-main (real2prob arg1) arg2)))

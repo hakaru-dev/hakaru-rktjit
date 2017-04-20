@@ -1,0 +1,3 @@
+fn a prob:
+   fn b nat:
+      a + nat2prob(b)

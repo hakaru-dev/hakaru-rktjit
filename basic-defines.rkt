@@ -6,7 +6,7 @@
 (define (basic-defines)
   `((define-type nat i32)
     (define-type int i32)
-    (define-type real f32)
+    (define-type real f64)
     (define-type prob real)
     (define-type nat-p (pointer nat))
     (define-type real-p (pointer real))
