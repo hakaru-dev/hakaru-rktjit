@@ -20,7 +20,7 @@
 (define make-array-prob (jit-get-function 'make-array-prob mod-env))
 (define make-array-nat (jit-get-function 'make-array-nat mod-env))
 
-(define p-a '(5.0 1.0))
+(define p-a '(5.0 10.0))
 
 (define prob-array
   (list->cblock p-a
@@ -39,5 +39,22 @@
 (define c-arg1 (make-ArrayProb (length p-a) prob-array-l))
 
 (define c-main (get-ffi-obj "fn_a" sp-ffi (_fun _ArrayProb nat-type -> prob-type)))
+(define c-out (c-main c-arg1 arg2))
+(printf "c-output: ~a, prob2real: ~a\n" c-out (prob2real c-out))
 
-(printf "c-output: ~a\n" (prob2real (c-main c-arg1 arg2)))
+#|
+>:l examples/summate-prob.hs
+>import Data.Number.LogFloat as LF
+>import Data.Vector.Unboxed as UV
+>import Data.Vector as V
+>prog (UV.fromList [(LF.logFloat 5.0), (LF.logFloat 10.0)]) 0
+--logFloat 15.0
+> prog (UV.fromList [(LF.logToLogFloat 1.609438), (LF.logToLogFloat 2.302585)]) 0
+--logFloat 14.999999507889102
+> prog (UV.fromList [(LF.logToLogFloat 1.6094379124341003), (LF.logToLogFloat 2.302585092994046)]) 0
+--logFloat 15.0
+> LF.logFromLogFloat 15.0
+2.70805020110221
+
+|#
+;Diagrams.Backend.CmdLine

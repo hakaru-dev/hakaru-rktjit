@@ -13,6 +13,7 @@ double logSumExp2(double _a, double _b)
 
 double fn_a(struct array_prob a_b, unsigned int b_c)
 {
+  printf ("a_b: [%f, %f], b_c: %u\n", (a_b.data)[0], (a_b.data)[1], b_c);
   double out_d;
   unsigned int _e;
   unsigned int _f;
