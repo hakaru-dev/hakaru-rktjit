@@ -1,7 +1,12 @@
 #lang racket
 
 (require sham/jit)
-(require "basic-defines.rkt")
+
+(require "reduce-curry.rkt")
+(require "parse-sexp.rkt")
+(require "flatten.rkt")
+(require "expand-lc.rkt")
+(require "basic-fluff.rkt")
 
 (provide (all-defined-out))
 
@@ -11,15 +16,12 @@
       (read in))))
 
 
-
-
-
-
-(define compilers (list reduce-function
-                        simplify-expr
-                        flatten-expr
-                        expand-spa
-                        add-fluff))
+(define passes
+  (list reduce-curry
+        parse-sexp
+        flatten-anf
+        expand-lc
+        add-fluff))
 
 (define (debug-program prg cmplrs)
   (define prog-ast
@@ -40,27 +42,14 @@
   mod-env)
 
 (define (compile-src src)
-  (debug-program src compilers))
+  (debug-program src passes))
 (module+ test
   (require ffi/unsafe)
 
-  (require "../disassemble/disassemble/main.rkt")
-  ;; (disassemble-ffi-function fun #:size 100)
-
-  (define hello-src (read-file "examples/hello-full.hkr"))
-  (define nbg-src (read-file "examples/naive-bayes-gibbs-full.hkr"))
-  (define nbgo-src (read-file "examples/naive-bayes-gibbs-opt.hkr"))
-  ;; (debug-program hello-src compilers)
-  ;; (define hello-env (debug-program hello-src compilers))
-  ;; (define (get-hello-f f)
-  ;;   (jit-get-function (env-lookup f hello-env)))
-  ;; (define test-array ((get-hello-f 'make-array-real)  4
-  ;;                     (list->cblock `(80.0 20.1 30.2 40.4 ) real-type)))
-
-
-  ;; (printf "test value: ~a\n"((get-hello-f 'f) test-array))
-
-  (define nbgo-mod-jit (debug-program nbgo-src compilers))
+  ;; (define hello-src (read-file "examples/hello-full.hkr"))
+  ;; (define nbg-src (read-file "examples/naive-bayes-gibbs-full.hkr"))
+  (define nbgo-src (read-file "../examples/naive-bayes-gibbs-opt.hkr"))
+  (define nbgo-mod-jit (compile-src nbgo-src))
   ;; (jit-dump-module nbgo-mod-jit)
   (define nbgo-main (jit-get-function 'main nbgo-mod-jit))
 
@@ -135,5 +124,4 @@
   (define result_raw (time (nbgo-main topic-prior word-prior z w doc 1)))
   (define get-array-prob (jit-get-function 'get-array-prob nbgo-mod-jit))
   (define result (cblock->list (get-array-prob result_raw) prob-type 120))
-  (pretty-display result)
-  )
+  (pretty-display result))

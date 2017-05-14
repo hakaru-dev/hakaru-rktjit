@@ -1,16 +1,10 @@
 #lang racket
 
+
 (require "ast.rkt")
+(require "utils.rkt")
 
-(provide simplify)
-
-(splicing-let ([gensym-hash (make-hash)])
-  (define (gensym^ sym [sep ""])
-    (define n (add1 (hash-ref gensym-hash sym 0)))
-    (hash-set! gensym-hash sym n)
-    (string->symbol (string-append (symbol->string sym)
-                                   sep
-                                   (number->string n)))))
+(provide parse-sexp)
 
 (define (sa e env)
     (match e
@@ -47,5 +41,5 @@
        (expr-val type s)]))
 
 ;;S-expression to ast struct
-(define (simplify expr)
+(define (parse-sexp expr)
   (sa expr (make-immutable-hash)))

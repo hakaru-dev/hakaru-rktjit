@@ -1,8 +1,9 @@
 #lang racket
 
 (require "ast.rkt")
+(require "utils.rkt")
 
-(provide expand)
+(provide expand-lc)
 
 (define (get-type tast)
   (match tast
@@ -50,7 +51,7 @@
     ['nat `(#%ui-value ,v nat)]
     ['prob `(#%fl-value ,(exact->inexact v) prob)]))
 
-(define (expand fnps)
+(define (expand-lc fnps)
   (define (ef b)
     (match b
       [(expr-app t rt rds)

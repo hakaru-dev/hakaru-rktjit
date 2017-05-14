@@ -1,8 +1,9 @@
 #lang racket
 
 (require "ast.rkt")
+(require "utils.rkt")
 
-(provide flatten)
+(provide flatten-anf)
 
 (define (find-free-vars expr)
   (match expr
@@ -42,7 +43,7 @@
     [(expr-var t s o)
      (seteqv expr)]))
 
-(define (flatten expr)
+(define (flatten-anf expr)
   (define fns (box '()))
   (define (add-to-funs fn-name fn-expr)
     (set-box! fns (cons (cons fn-name fn-expr) (unbox fns))))

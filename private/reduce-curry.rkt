@@ -1,8 +1,8 @@
 #lang racket
 
-(provide reduce-function)
+(provide reduce-curry)
 
-(define (reduce-function expr)
+(define (reduce-curry expr)
   (define (combine-functions prg [var-type-assoc null])
     (match prg
       [`((fn ,var ,type ,body) : ,t)
