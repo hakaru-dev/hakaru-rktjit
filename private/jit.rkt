@@ -4,6 +4,7 @@
 
 (require "reduce-curry.rkt")
 (require "parse-sexp.rkt")
+(require "log-float.rkt")
 (require "flatten.rkt")
 (require "expand-lc.rkt")
 (require "basic-fluff.rkt")
@@ -19,30 +20,38 @@
 (define passes
   (list reduce-curry
         parse-sexp
-        flatten-anf
-        expand-lc
-        add-fluff))
+        insert-log-float
+        ;; flatten-anf
+        ;; expand-lc
+        ;; add-fluff
+        ))
 
 (define (debug-program prg cmplrs)
   (define prog-ast
    (for/fold ([prg prg])
              ([c cmplrs])
-     (parameterize ([pretty-print-current-style-table
-                     (pretty-print-extend-style-table
-                      (pretty-print-current-style-table)
-                      '(block define-variables define-function assign while)
-                      '(begin let lambda set! do))]
-                    [pretty-print-columns 100])
-       (pretty-display prg))
+     (unless (member (object-name c) '(reduce-curry parse-sexp))
+       (parameterize ([pretty-print-current-style-table
+                       (pretty-print-extend-style-table
+                        (pretty-print-current-style-table)
+                        '(block define-variables define-function assign while)
+                        '(begin let lambda set! do))]
+                      [pretty-print-columns 100])
+         (pretty-display prg)))
      (printf "\n\napplying ~a\n" (object-name c))
      (c prg)))
   (pretty-display prog-ast)
+  (error 'stop)
   (define mod-env (initialize-jit (compile-module prog-ast)))
   (jit-dump-module mod-env)
   mod-env)
 
 (define (compile-src src)
   (debug-program src passes))
+;; (define nbgo-src (read-file "../examples/naive-bayes-gibbs-opt.hkr"))
+;; (define rc (reduce-curry nbgo-src))
+;; (define ps (parse-sexp rc))
+;; (define ilg (insert-log-float ps))
 (module+ test
   (require ffi/unsafe)
 

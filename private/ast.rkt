@@ -24,18 +24,14 @@
     [(expr-intr s)
      s]
     [(expr-val t v)
-     v]
-    [else e]))
+     v]))
 
 (struct expr-fun  (args ret-type body)
   #:methods gen:custom-write
   [(define write-proc
      (lambda (fn port mode) (fprintf port "~a" (print-expr fn))))])
 (struct expr-let  (type var val body))
-(struct expr-var  (type sym orig)
-  #:methods gen:custom-write
-  [(define write-proc
-     (lambda (v port mode) (fprintf port "~a" (expr-var-sym v))))])
+(struct expr-var  (type sym orig))
 (struct expr-arr  (type index size body))
 (struct expr-sum  (type index start end body))
 (struct expr-prd  (type index start end body))
@@ -49,3 +45,26 @@
 (define sum-prod-loops (set 'summate 'product))
 (define internal-loop-ops
   (set 'summate 'product 'array))
+
+(define (typeof ast)
+  (match ast
+    [(expr-fun args ret-type body)
+     'fn]
+    [(expr-if t tst thn els)
+     t]
+    [(expr-app t rt rds)
+     t]
+    [(expr-let t var val b)
+     t]
+    [(expr-sum t i start end b)
+     t]
+    [(expr-prd t i start end b)
+     t]
+    [(expr-arr t i end b)
+     t]
+    [(expr-val t v)
+     t]
+    [(expr-intr s)
+     '*]
+    [(expr-var t s o)
+     t]))
