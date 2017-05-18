@@ -5,6 +5,7 @@
 (require "reduce-curry.rkt")
 (require "parse-sexp.rkt")
 (require "log-float.rkt")
+(require "interpret.rkt")
 (require "flatten.rkt")
 (require "expand-lc.rkt")
 (require "basic-fluff.rkt")
@@ -17,13 +18,14 @@
       (read in))))
 
 
-(define passes
+(define (passes interpret-args)
   (list reduce-curry
         parse-sexp
         insert-log-float
-        ;; flatten-anf
-        ;; expand-lc
-        ;; add-fluff
+        (interpret interpret-args)
+        flatten-anf
+        expand-lc
+        add-fluff
         ))
 
 (define (debug-program prg cmplrs)
@@ -37,7 +39,9 @@
                         '(block define-variables define-function assign while)
                         '(begin let lambda set! do))]
                       [pretty-print-columns 100])
-         (pretty-display prg)))
+         (void)
+         (pretty-display prg)
+         ))
      (printf "\n\napplying ~a\n" (object-name c))
      (c prg)))
   (pretty-display prog-ast)
@@ -46,91 +50,83 @@
   (jit-dump-module mod-env)
   mod-env)
 
-(define (compile-src src)
-  (debug-program src passes))
-;; (define nbgo-src (read-file "../examples/naive-bayes-gibbs-opt.hkr"))
-;; (define rc (reduce-curry nbgo-src))
-;; (define ps (parse-sexp rc))
-;; (define ilg (insert-log-float ps))
 (module+ test
   (require ffi/unsafe)
-
-  ;; (define hello-src (read-file "examples/hello-full.hkr"))
-  ;; (define nbg-src (read-file "examples/naive-bayes-gibbs-full.hkr"))
+  (define topic-prior-vector
+    (vector-immutable
+     0.14228 0.03821 0.30999 0.02363 0.24379
+     0.01317 0.02707 0.13426 0.00219 0.08970
+     0.12040 0.03862 0.06986 0.12392 0.04347
+     0.03219 0.11661 0.06158 0.11185 0.60091
+     0.08681 0.00573 0.19064 0.10391 0.05424
+     0.22017 0.15388 0.01420 0.23657 0.07121
+     0.03429 0.04026 0.05844 0.03225 0.45181
+     0.06403 0.18045 0.06239 0.08657 0.00347
+     0.02385 0.00023 0.05600 0.32088 0.05185
+     0.14991 0.03511 0.01131 0.04627 0.02341
+     0.13252 0.16136 0.17101 0.03137 0.03582
+     0.00282 0.00733 0.18463 0.04997 0.00185
+     0.29280 0.05629 0.18106 0.16644 0.13107
+     0.02684 0.19586 0.04801 0.20799 0.08960
+     0.13165 0.00553 0.00053 0.01443 0.00540
+     0.08137 0.05964 0.04829 0.05559 0.04122
+     0.00518 0.18653 0.22602 0.07208 0.07697
+     0.37427 0.02005 0.02432 0.12954 0.00968
+     0.01409 0.05069 0.19474 0.15708 0.01842
+     0.09659 0.09836 0.10813 0.29945 0.00568))
+  (define word-prior-vector (vector-immutable 0.023754 0.277952 0.698294))
+  (define z-vector (vector-immutable 1 0 2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 ))
+  (define w-vector
+    (vector-immutable
+     40 0 14 0 55 0 68 0 50 0 67 0 44 0 31 0
+     89 0 66 0 29 0 43 0 57 0 69 0 75 0 77
+     0 44 0 39 0 40 0 97 0 53 0 96 0 43 0
+     26 0 36 0 8 0 78 0 94 0 82 0 8 0 77 0
+     55 0 7 0 86 0 42 0 95 0 10 0 94 0 22
+     0 73 0 30 0 88 0 14 0 90 0 18 0 47 0
+     52 0 26 0 30 0 76 0 74 0 92 0 20 0 63
+     0 50 0 74 0 51 0 81 0 76 0 60 0 ))
+  (define doc-vector
+    (vector-immutable
+     0 0 0 0 0 0 0 0 0 0 0 0 0 0
+     0 0 0 0 0 0 0 0 0 0 0 0 0 0
+     0 0 0 0 0 0 0 0 0 0 0 1 0 1
+     0 1 0 1 0 1 0 1 0 1 0 1 0 1
+     0 1 0 1 0 1 0 1 0 1 0 1 0 1
+     0 1 0 1 0 1 0 1 0 2 0 2 0 2
+     0 2 0 2 0 2 0 2 0 2 0 2 0 2
+     0 2 0 2 0 2 0 2 0 2 0 2 0 2
+     0 2 0 2 0 2 0 0))
+  (define doc-update 86)
   (define nbgo-src (read-file "../examples/naive-bayes-gibbs-opt.hkr"))
-  (define nbgo-mod-jit (compile-src nbgo-src))
+  (define nbgo-mod-jit
+    (debug-program nbgo-src
+                   (passes
+                    (list topic-prior-vector
+                          word-prior-vector
+                          z-vector
+                          w-vector
+                          doc-vector
+                          doc-update))))
   ;; (jit-dump-module nbgo-mod-jit)
-  (define nbgo-main (jit-get-function 'main nbgo-mod-jit))
 
+  (define nbgo-main (jit-get-function 'main nbgo-mod-jit))
   (define prob-type (jit-get-racket-type (env-lookup 'prob nbgo-mod-jit)))
   (define nat-type (jit-get-racket-type (env-lookup 'nat nbgo-mod-jit)))
-
   (define make-array-prob (jit-get-function 'make-array-prob nbgo-mod-jit))
   (define make-array-nat (jit-get-function 'make-array-nat nbgo-mod-jit))
 
-  (define topic-prior
-    (make-array-prob 100
-                     (list->cblock '(0.014228 0.003821 0.030999 0.002363
-                                              0.024379 0.001317 0.002707
-                                              0.013426 0.000219 0.008970
-                                              0.012040 0.003862 0.006986
-                                              0.012392 0.004347 0.003219
-                                              0.011661 0.006158 0.011185
-                                              0.060091 0.008681 0.000573
-                                              0.019064 0.010391 0.005424
-                                              0.022017 0.015388 0.001420
-                                              0.023657 0.007121 0.003429
-                                              0.004026 0.005844 0.003225
-                                              0.045181 0.006403 0.018045
-                                              0.006239 0.008657 0.000347
-                                              0.002385 0.000023 0.005600
-                                              0.032088 0.005185 0.014991
-                                              0.003511 0.001131 0.004627
-                                              0.002341 0.013252 0.016136
-                                              0.017101 0.003137 0.003582
-                                              0.000282 0.000733 0.018463
-                                              0.004997 0.000185 0.029280
-                                              0.005629 0.018106 0.016644
-                                              0.013107 0.002684 0.019586
-                                              0.004801 0.020799 0.008960
-                                              0.013165 0.000553 0.000053
-                                              0.001443 0.000540 0.008137
-                                              0.005964 0.004829 0.005559
-                                              0.004122 0.000518 0.018653
-                                              0.022602 0.007208 0.007697
-                                              0.037427 0.002005 0.002432
-                                              0.012954 0.000968 0.001409
-                                              0.005069 0.019474 0.015708
-                                              0.001842 0.009659 0.009836
-                                              0.010813 0.029945 0.000568)
-                                   prob-type)))
-  (define word-prior
-    (make-array-prob 3 (list->cblock '(0.023754 0.277952 0.698294) prob-type)))
-  (define z
-    (make-array-nat 20 (list->cblock '(1 0 2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 )
-                                     nat-type)))
-  (define w
-    (make-array-nat 120 (list->cblock '(40 0 14 0 55 0 68 0 50 0 67 0 44 0 31 0
-                                           89 0 66 0 29 0 43 0 57 0 69 0 75 0 77
-                                           0 44 0 39 0 40 0 97 0 53 0 96 0 43 0
-                                           26 0 36 0 8 0 78 0 94 0 82 0 8 0 77 0
-                                           55 0 7 0 86 0 42 0 95 0 10 0 94 0 22
-                                           0 73 0 30 0 88 0 14 0 90 0 18 0 47 0
-                                           52 0 26 0 30 0 76 0 74 0 92 0 20 0 63
-                                           0 50 0 74 0 51 0 81 0 76 0 60 0 )
-                                      nat-type)))
-  (define doc (make-array-nat 120 (list->cblock '(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                                                    0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                                                    0 0 0 0 0 0 0 0 0 0 0 1 0 1
-                                                    0 1 0 1 0 1 0 1 0 1 0 1 0 1
-                                                    0 1 0 1 0 1 0 1 0 1 0 1 0 1
-                                                    0 1 0 1 0 1 0 1 0 2 0 2 0 2
-                                                    0 2 0 2 0 2 0 2 0 2 0 2 0 2
-                                                    0 2 0 2 0 2 0 2 0 2 0 2 0 2
-                                                    0 2 0 2 0 2 0 )
-                                                nat-type)))
+
+  (define topic-prior (make-array-prob (vector-length topic-prior-vector) (vector->cblock topic-prior-vector prob-type)))
+  (define word-prior (make-array-prob (vector-length word-prior-vector) (vector->cblock word-prior-vector prob-type)))
+  (define z (make-array-nat (vector-length z-vector) (vector->cblock z-vector nat-type)))
+  (define w (make-array-nat (vector-length w-vector) (vector->cblock w-vector nat-type)))
+  (define doc (make-array-nat (vector-length doc-vector) (vector->cblock doc-vector nat-type)))
   ;; (define f (get-nbg-f 'f))
-  (define result_raw (time (nbgo-main topic-prior word-prior z w doc 1)))
+  (define result_raw (time (nbgo-main topic-prior word-prior z w doc doc-update)))
   (define get-array-prob (jit-get-function 'get-array-prob nbgo-mod-jit))
-  (define result (cblock->list (get-array-prob result_raw) prob-type 120))
+
+  (define result (cblock->vector (get-array-prob result_raw) prob-type (vector-length doc-vector)))
   (pretty-display result))
+
+;; [1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0]

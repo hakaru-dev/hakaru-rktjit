@@ -3,6 +3,8 @@
 (require "ast.rkt")
 (require "utils.rkt")
 
+(provide interpret)
+
 (define (prod-vector-of-type vec t)
   (define pf (if (equal? t 'prob)
                  +
@@ -18,6 +20,7 @@
   (for/fold ([sum (zero-of-type t)])
             ([v vec])
     (sf sum v)))
+
 (define intr-map
   (make-immutable-hash
    `((== . ,equal?)
@@ -27,13 +30,15 @@
      (or . ,(λ (a b) (or a b)))
      (index . ,vector-ref)
      (size . ,vector-length)
+     (nat2prob . ,(λ (a) (real2prob (* a 1.0))))
      (logspace-+ . ,logspace-add)
      (logspace-* . ,+)
      (+ . ,+)
-     (- . ,-)
-     )))
+     (- . ,-))))
+
 (define (intr-lookup sym)
   (hash-ref intr-map sym))
+
 (define (e ast env)
   (match ast
     [(expr-fun args ret-type body)
@@ -43,9 +48,9 @@
          (e thn env)
          (e els env))]
     [(expr-app t rt rds)
-     ((e rt env) (map (curryr e env) rds))]
+     (apply (e rt env) (map (curryr e env) rds))]
     [(expr-let t var val b)
-     (e b (hash-set env (expr-var-sym var) (e b)))]
+     (e b (hash-set env (expr-var-sym var) (e val env)))]
     [(expr-sum t i start end b)
      (sum-vector-of-type
       (for/vector ([iv (in-range (e start env)
