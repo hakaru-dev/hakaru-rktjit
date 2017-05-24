@@ -25,7 +25,50 @@
       (prob2real (v : real) : real) (return v))
     (define-function (#:attr AlwaysInline)
       (nat2prob (v : nat) : real) (return (#%app jit-ui->fp v (#%type real))))
-    
+    (define-function
+      (#:attr AlwaysInline)
+      (prob2real
+       (v : prob) : real)
+      (return (#%app (#%jit-intr "llvm.exp.f64") v)))
+    (define-function
+      (#:attr AlwaysInline)
+      (real2prob
+       (v : real) : prob)
+      (return (#%app (#%jit-intr "llvm.log.f64") v)))
+    (define-function
+      (#:attr AlwaysInline)
+      (add-nat
+       (v1 : nat) (v2 : nat) : nat)
+      (return (#%app jit-add-nuw v1 v2)))
+    (define-function
+      (#:attr AlwaysInline)
+      (add-real
+       (v1 : real) (v2 : real) : real)
+      (return (#%app jit-fadd)))
+    (define-function
+      (#:attr AlwaysInline)
+      (add-prob
+       (v1 : prob) (v2 : prob) : prob)
+      (return (#%app add-real
+                     (#%app prob2real v1)
+                     (#%app prob2real v2))))
+    (define-function
+      (#:attr AlwaysInline)
+      (mul-nat
+       (v1 : nat) (v2 : nat) : nat)
+      (return (#%app jit-mul-nuw v1 v2)))
+
+    (define-function
+      (#:attr AlwaysInline)
+      (mul-real
+       (v1 : real) (v2 : real) : real)
+      (return (#%app jit-fmul v1 v2)))
+    (define-function
+      (#:attr AlwaysInline)
+      (mul-prob
+       (v1 : prob) (v2 : prob) : prob)
+      (return (#%app jit-fadd v1 v2)))
+
     ,@(append*
        (for/list ([type '(nat real prob)])
          (let ((array-type (string->symbol (format "array-~a" type)))
@@ -39,8 +82,8 @@
                 (data : ,type-p)
                 : ,array-type-p)
                (let ((ap : ,array-type-p (#%app jit-malloc (#%type ,array-type)))
-                     (ap-size* : nat-p (#%gep ap ((#%value 0 nat) (#%value 0 nat))))
-                     (ap-data* : ,type-pp (#%gep ap ((#%value 0 nat) (#%value 1 nat)))))
+                     (ap-size* : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat))))
+                     (ap-data* : ,type-pp (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
                  (block
                   (#%exp (#%app jit-store! size ap-size*))
                   (#%exp (#%app jit-store! data ap-data*))
@@ -50,7 +93,7 @@
                (,(string->symbol (format "get-array-~a" type))
                 (s : ,array-type-p)
                 : ,type-p)
-               (let ((atp : ,type-p (#%gep s ((#%value 0 nat) (#%value 1 nat)))))
+               (let ((atp : ,type-p (#%gep s ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
                  (return (#%app jit-load atp))))
              (define-function
                (#:attr AlwaysInline)
@@ -59,8 +102,8 @@
                 : ,array-type-p)
                (let ((ap : ,array-type-p (#%app jit-malloc (#%type ,array-type)))
                      (data : ,type-p (#%app jit-arr-malloc (#%type ,type) size))
-                     (atp : ,type-pp (#%gep ap ((#%value 0 nat) (#%value 1 nat))))
-                     (sizep : nat-p (#%gep ap ((#%value 0 nat) (#%value 0 nat)))))
+                     (atp : ,type-pp (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat))))
+                     (sizep : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat)))))
                  (block
                   (#%exp (#%app jit-store! size sizep))
                   (#%exp (#%app jit-store! data atp))
@@ -69,7 +112,7 @@
                (#:attr AlwaysInline)
                (,(string->symbol (format "size-~a" array-type))
                 (array-ptr : ,array-type-p) : i32)
-               (return (#%app jit-load (#%gep array-ptr ((#%value 0 int) (#%value 0 int))))))
+               (return (#%app jit-load (#%gep array-ptr ((#%ui-value 0 nat) (#%ui-value 0 nat))))))
 
              (define-function
                (#:attr AlwaysInline)
@@ -79,7 +122,7 @@
                               (#%gep
                                (#%app jit-load
                                       (#%gep array-ptr
-                                             ((#%value 0 int) (#%value 1 int))))
+                                             ((#%ui-value 0 nat) (#%ui-value 1 nat))))
                                (index)))))
              (define-function
                (#:attr AlwaysInline)
@@ -91,12 +134,13 @@
                (#:attr AlwaysInline)
                (,(string->symbol (format "set-array-~a-at-index" type))
                 (arr : ,array-type-p) (in : nat) (v : ,type) : void)
-               (block (#%exp (#%app jit-store! v (#%gep
-                                            (#%app jit-load
-                                                   (#%gep arr
-                                                          ((#%value 0 int) (#%value 1 int))))
-                                            (in))))
-                     (return-void)))))))))
+               (block (#%exp (#%app jit-store! v
+                                    (#%gep
+                                     (#%app jit-load
+                                            (#%gep arr
+                                                   ((#%ui-value 0 nat) (#%ui-value 1 nat))))
+                                     (in))))
+                      (return-void)))))))))
 
 (module+ test
   (require rackunit)

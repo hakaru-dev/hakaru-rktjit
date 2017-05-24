@@ -24,9 +24,8 @@
         parse-sexp
         flatten-anf        
         ;; (interpret interpret-args)
-
         expand-to-lc
-        ;; add-fluff
+        add-fluff
         ))
 
 (define (debug-program prg cmplrs)
