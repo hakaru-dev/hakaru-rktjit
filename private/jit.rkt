@@ -9,6 +9,7 @@
 (require "flatten.rkt")
 (require "expand-lc.rkt")
 (require "basic-fluff.rkt")
+(require "ast.rkt")
 
 (provide (all-defined-out))
 
@@ -21,11 +22,11 @@
 (define (passes interpret-args)
   (list reduce-curry
         parse-sexp
-        insert-log-float
-        (interpret interpret-args)
-        flatten-anf
-        expand-lc
-        add-fluff
+        flatten-anf        
+        ;; (interpret interpret-args)
+
+        expand-to-lc
+        ;; add-fluff
         ))
 
 (define (debug-program prg cmplrs)
@@ -39,12 +40,11 @@
                         '(block define-variables define-function assign while)
                         '(begin let lambda set! do))]
                       [pretty-print-columns 100])
-         (void)
-         (pretty-display prg)
+         (pretty-display (print-expr prg))
          ))
      (printf "\n\napplying ~a\n" (object-name c))
      (c prg)))
-  (pretty-display prog-ast)
+  (pretty-display (print-expr prog-ast))
   (error 'stop)
   (define mod-env (initialize-jit (compile-module prog-ast)))
   (jit-dump-module mod-env)
@@ -98,7 +98,7 @@
      0 2 0 2 0 2 0 2 0 2 0 2 0 2
      0 2 0 2 0 2 0 0))
   (define doc-update 86)
-  (define nbgo-src (read-file "../examples/naive-bayes-gibbs-opt.hkr"))
+  (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
   (define nbgo-mod-jit
     (debug-program nbgo-src
                    (passes
@@ -117,11 +117,16 @@
   (define make-array-nat (jit-get-function 'make-array-nat nbgo-mod-jit))
 
 
-  (define topic-prior (make-array-prob (vector-length topic-prior-vector) (vector->cblock topic-prior-vector prob-type)))
-  (define word-prior (make-array-prob (vector-length word-prior-vector) (vector->cblock word-prior-vector prob-type)))
-  (define z (make-array-nat (vector-length z-vector) (vector->cblock z-vector nat-type)))
-  (define w (make-array-nat (vector-length w-vector) (vector->cblock w-vector nat-type)))
-  (define doc (make-array-nat (vector-length doc-vector) (vector->cblock doc-vector nat-type)))
+  (define topic-prior
+    (make-array-prob (vector-length topic-prior-vector) (vector->cblock topic-prior-vector prob-type)))
+  (define word-prior
+    (make-array-prob (vector-length word-prior-vector) (vector->cblock word-prior-vector prob-type)))
+  (define z
+    (make-array-nat (vector-length z-vector) (vector->cblock z-vector nat-type)))
+  (define w
+    (make-array-nat (vector-length w-vector) (vector->cblock w-vector nat-type)))
+  (define doc
+    (make-array-nat (vector-length doc-vector) (vector->cblock doc-vector nat-type)))
   ;; (define f (get-nbg-f 'f))
   (define result_raw (time (nbgo-main topic-prior word-prior z w doc doc-update)))
   (define get-array-prob (jit-get-function 'get-array-prob nbgo-mod-jit))

@@ -5,10 +5,13 @@
 (define (print-expr e)
   (define pe print-expr)
   (match e
+    [(expr-mod main fns)
+     `((main ,(pe main))
+       ,@(for/list [(fn fns)]
+           `(,(car fn) ,(pe (cdr fn)))))]
     [(expr-fun args ret-type body)
      `(function ,(map pe args) ,(pe body))]
-    [(expr-var type sym orig)
-     orig]
+    [(expr-var type sym orig) orig]
     [(expr-arr type index size body)
      `(array ,(pe index) ,(pe size) ,(pe body))]
     [(expr-sum type index start end body)
@@ -21,15 +24,12 @@
      `(,(pe rator) ,@(map pe rands))]
     [(expr-let type var val body)
      `(let (,(pe var) ,(pe val)) ,(pe body))]
-    [(expr-intr s)
-     s]
-    [(expr-val t v)
-     v]))
+    [(expr-intr s) s]
+    [(expr-val t v) v]
+    [else `(unknown ,e)]))
 
-(struct expr-fun  (args ret-type body)
-  #:methods gen:custom-write
-  [(define write-proc
-     (lambda (fn port mode) (fprintf port "~a" (print-expr fn))))])
+(struct expr-mod  (main fns))
+(struct expr-fun  (args ret-type body))
 (struct expr-let  (type var val body))
 (struct expr-var  (type sym orig))
 (struct expr-arr  (type index size body))
