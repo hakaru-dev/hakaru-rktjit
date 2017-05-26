@@ -1,4 +1,6 @@
 #lang racket
+
+(require sham/private/ast)
 (require "basic-defines.rkt")
 
 (provide add-fluff)
@@ -7,4 +9,4 @@
   `(#%module
     (#:pass AlwaysInliner)
     ,@(basic-defines)
-    ,@fns))
+    ,@(map ast->sexp (ast-module-defs fns))))

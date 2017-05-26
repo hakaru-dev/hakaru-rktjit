@@ -22,52 +22,67 @@
     (define-type array-nat (struct (size : i32) (data : nat-p)))
     (define-type array-nat-p (pointer array-nat))
     (define-function (#:attr AlwaysInline)
-      (prob2real (v : real) : real) (return v))
-    (define-function (#:attr AlwaysInline)
       (nat2prob (v : nat) : real) (return (#%app jit-ui->fp v (#%type real))))
     (define-function
       (#:attr AlwaysInline)
       (prob2real
        (v : prob) : real)
-      (return (#%app (#%jit-intr "llvm.exp.f64") v)))
+      (return (#%app (#%jit-intr llvm.exp.f64 prob) v)))
     (define-function
       (#:attr AlwaysInline)
       (real2prob
        (v : real) : prob)
-      (return (#%app (#%jit-intr "llvm.log.f64") v)))
+      (return (#%app (#%jit-intr llvm.log.f64 prob) v)))
     (define-function
       (#:attr AlwaysInline)
-      (add-nat
+      (add-2-nat
        (v1 : nat) (v2 : nat) : nat)
       (return (#%app jit-add-nuw v1 v2)))
     (define-function
       (#:attr AlwaysInline)
-      (add-real
+      (add-2-real
        (v1 : real) (v2 : real) : real)
-      (return (#%app jit-fadd)))
+      (return (#%app jit-fadd v1 v2)))
     (define-function
       (#:attr AlwaysInline)
-      (add-prob
+      (add-3-real
+       (v1 : real) (v2 : real) (v3 : real) : real)
+      (return (#%app jit-fadd (#%app jit-fadd v1 v2) v3)))
+    (define-function
+      (#:attr AlwaysInline)
+      (add-2-prob
        (v1 : prob) (v2 : prob) : prob)
-      (return (#%app add-real
+      (return (#%app add-2-real
                      (#%app prob2real v1)
                      (#%app prob2real v2))))
     (define-function
       (#:attr AlwaysInline)
-      (mul-nat
-       (v1 : nat) (v2 : nat) : nat)
-      (return (#%app jit-mul-nuw v1 v2)))
-
+      (add-3-prob
+       (v1 : prob) (v2 : prob) (v3 : prob) : prob)
+      (return (#%app add-3-real
+                     (#%app prob2real v1)
+                     (#%app prob2real v2)
+                     (#%app prob2real v3))))
     (define-function
       (#:attr AlwaysInline)
-      (mul-real
+      (mul-2-nat
+       (v1 : nat) (v2 : nat) : nat)
+      (return (#%app jit-mul-nuw v1 v2)))
+    (define-function
+      (#:attr AlwaysInline)
+      (mul-2-real
        (v1 : real) (v2 : real) : real)
       (return (#%app jit-fmul v1 v2)))
     (define-function
       (#:attr AlwaysInline)
-      (mul-prob
+      (mul-2-prob
        (v1 : prob) (v2 : prob) : prob)
       (return (#%app jit-fadd v1 v2)))
+    (define-function
+      (#:attr AlwaysInline)
+      (mul-4-prob
+       (v1 : prob) (v2 : prob) (v3 : prob) (v4 : prob) : prob)
+      (return (#%app jit-fadd v4 (#%app jit-fadd v3 (#%app jit-fadd v1 v2)))))
 
     ,@(append*
        (for/list ([type '(nat real prob)])
@@ -110,13 +125,13 @@
                   (return ap))))
              (define-function
                (#:attr AlwaysInline)
-               (,(string->symbol (format "size-~a" array-type))
+               (,(string->symbol (format "size-~a-p" array-type))
                 (array-ptr : ,array-type-p) : i32)
                (return (#%app jit-load (#%gep array-ptr ((#%ui-value 0 nat) (#%ui-value 0 nat))))))
 
              (define-function
                (#:attr AlwaysInline)
-               (,(string->symbol (format "index-~a" array-type))
+               (,(string->symbol (format "index-~a-p" array-type))
                 (array-ptr : ,array-type-p) (index : i32) : ,type)
                (return (#%app jit-load
                               (#%gep
@@ -132,7 +147,7 @@
                               (#%app jit-ui->fp v (#%type real)))))
              (define-function
                (#:attr AlwaysInline)
-               (,(string->symbol (format "set-array-~a-at-index" type))
+               (,(string->symbol (format "set-array-~a-at-index!" type))
                 (arr : ,array-type-p) (in : nat) (v : ,type) : void)
                (block (#%exp (#%app jit-store! v
                                     (#%gep
@@ -160,8 +175,8 @@
 
 
   (define make-array-real (get-f 'make-array-real))
-  (define index-array-real (get-f 'index-array-real))
-  (define size-real (get-f 'size-array-real))
+  (define index-array-real (get-f 'index-array-real-p))
+  (define size-real (get-f 'size-array-real-p))
   (define set-array-real-at-index! (get-f 'set-array-real-at-index!))
 
   (define empty-array-nat (get-f 'empty-array-nat))
@@ -178,7 +193,6 @@
   (define tnat (make-array-nat 5 test-nat-array))
   (check-eq? (size-nat tnat) 5)
   (check-eq? (index-array-nat tnat 4) 42)
-
   (printf "prob2real: ~a\n" (prob2real 1.5))
   (printf "nat2prob: ~a\n" (nat2prob 3))
   (printf "recip: ~a\n" (recip-real 2.0))

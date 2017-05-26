@@ -25,6 +25,7 @@
     [(expr-let type var val body)
      `(let (,(pe var) ,(pe val)) ,(pe body))]
     [(expr-intr s) s]
+    [(expr-intrf s) s]
     [(expr-val t v) v]
     [else `(unknown ,e)]))
 
@@ -39,7 +40,7 @@
 (struct expr-app  (type rator rands))
 (struct expr-val  (type v))
 (struct expr-intr (sym))
-
+(struct expr-intrf (sym))
 (define internal-ops
   (apply set '(size index recip nat2prob prob2real + * == and < or not)))
 (define sum-prod-loops (set 'summate 'product))
@@ -66,5 +67,7 @@
      t]
     [(expr-intr s)
      '*]
+    [(expr-intrf s)
+     '!]
     [(expr-var t s o)
      t]))

@@ -5,19 +5,19 @@
 (require "ast.rkt")
 (require "utils.rkt")
 
-(provide expand-lc)
+(provide expand-to-lc)
 
 (define (get-type tast)
   (match tast
     [`(array ,t)
      (symbol-append (symbol-append 'array- t) '-p)]
     [else tast]))
-
+(define (array-type t)
+  (match t
+    [`(array ,t) t]))
 (define op-map
   (make-hash
-   '((+ . jit-add-nuw)
-     (* . jit-mul-nuw)
-     (< . jit-icmp-ult)
+   '((< . jit-icmp-ult)
      (== . jit-icmp-eq)
      (and . jit-and)
      (or . jit-or)
@@ -27,89 +27,104 @@
 (define (get-value v type)
   (match type
     ['nat (ast-exp-ui-value v 'nat)]
-    ['prob (ast-exp-fl-value (exact->inexact v) 'prob)]))
+    ['prob (ast-exp-app 'real2prob
+                        (list (ast-exp-fl-value (exact->inexact v) 'real)))]
+    ['real (ast-exp-fl-value (exact->inexact v) 'real)]))
 
 (define (nat-value n)
   (get-value n 'nat))
 
 (define (expr-type e)
-  (match e
-    [(expr-app t _ _) t]
-    [(expr-var t _ _) t]
-    [(expr-val t _)   t]))
+  (typeof e))
 
-(define (get-rator-sym rator-sym rands)
-  (define r-type (get-type (expr-type (car rands))))
-  (match rator-sym
-    ['index (symbol-append 'index- r-type)]
-    ['size(symbol-append 'size- r-type)]
-    ['+ (symbol-append 'add- r-type)]
-    ['* (symbol-append 'mul- r-type)]
-    [else (hash-ref op-map rator-sym rator-sym)]))
+(define (get-rator-sym rator rands)
+  (match rator
+    [(expr-intrf s) s]
+    [(expr-intr s)
+     (define r-type (get-type (expr-type (car rands))))
+     (match s
+       ['index (symbol-append 'index- r-type)]
+       ['size(symbol-append 'size- r-type)]
+       ['+ (string->symbol (format "add-~a-~a" (length rands) r-type))]
+       ['* (string->symbol (format "mul-~a-~a" (length rands) r-type))]
+       [else (hash-ref op-map s s)])]))
 
-(define (fold-stmt body body-type index index-init index-end assign-to fn)
-  (define i (ef index))
-  (define ti (expr-var-type index))
+(define (initial-value type)
+  (match type
+    ['prob (get-value 0.0 'prob)]
+    ['nat  (get-value 0   'nat)]
+    ['real (get-value 0.0 'real)]
+    [`(array ,t) (get-value 0 'nat)]))
+
+(define (empty-array type size)
+  (ast-exp-app (string->symbol (format "empty-array-~a" (cadr type))) (list (expand-exp size))))
+
+(define (fold-stmt body body-type ret-type init-value index index-init index-end assign-to fn)
+  (define i index)
+  (define ti 'nat)
   (define tmp (gensym^ 'tmp))
   (define tmpi (gensym^ 'tmpi))
   (ast-stmt-let
-   tmp body-type (initial-value body-type)
+   tmp (get-type ret-type) init-value
    (ast-stmt-let
-    i ti index-init
+    i (get-type ti) index-init
     (ast-stmt-block
-     (ast-stmt-while
-      (list (ef i) tmp)
-      (list (expr-var-type i) (get-type t))
-      (ast-exp-app 'jit-icmp-ult i index-end)
-      (ast-stmt-let
-       tmpi t (get-value 0 t)
-       (ast-stmt-block
-        (list
-         (expand-fnb b tmpi)
-         (fn tmp tmpi)
-         (ast-stmt-set!
-          i
-          (ast-exp-app 'jit-add-nuw i (nat-value 1)))))))
-     (ast-stmt-set! assign-to tmp)))))
+     (list
+      (ast-stmt-while
+       (list i tmp)
+       (list 'nat (get-type body-type))
+       (ast-exp-app 'jit-icmp-ult (list i index-end))
+       (ast-stmt-let
+        tmpi (get-type body-type) (get-value 0 body-type)
+        (ast-stmt-block
+         (list
+          (expand-fnb body tmpi)
+          (fn tmp tmpi)
+          (ast-stmt-set!
+           i
+           (ast-exp-app 'jit-add-nuw (list i (nat-value 1))))))))
+      (ast-stmt-set! assign-to tmp))))))
 
 (define (fold-fn fn)
   (λ (tmp tmpi)
-    (ast-stmt-set! tmp (ast-exp-app fn tmp tmpi))))
+    (ast-stmt-set! tmp (ast-exp-app fn (list tmp tmpi)))))
 
 (define (expand-fnb b to)
   (match b
-    [(expr-sum t i start end b)
-     (fold-stmt b t (ef i) (ef start) (ef end) to
-                (fold-fn (symbol-append 'add- t)))]
     [(expr-let type var val b)
      (ast-stmt-let
-      (ef var) (expr-var-type var) (ef val)
+      (expand-exp var) (get-type (expr-var-type var)) (expand-exp val)
       (expand-fnb b to))]
+    [(expr-sum t i start end b)
+     (fold-stmt
+      b t t (initial-value t) (expand-exp i) (expand-exp start) (expand-exp end) to
+      (fold-fn (symbol-append 'add-2- t)))]
     [(expr-prd t i start end b)
      (fold-stmt
-      b t (ef i) (ef start) (ef end) to
-      (fold-fn (symbol-append 'mul- t)))]
+      b t t (initial-value t) (expand-exp i) (expand-exp start) (expand-exp end) to
+      (fold-fn (symbol-append 'mul-2- t)))]
     [(expr-arr t i end b)
      (fold-stmt
-      b t (ef i) (ast-exp-ui-value 0 'nat) (ef end) to
+      b (array-type t) t (empty-array t end)
+      (expand-exp i) (ast-exp-ui-value 0 'nat) (expand-exp end) to
       (λ (tmp tmpi)
         (ast-stmt-exp
          (ast-exp-app
-          (string->symbol (format "set-array-~a-at-index" (cadr t)))
-          tmp (ef i) tmpi))))]
+          (string->symbol (format "set-array-~a-at-index!" (cadr t)))
+          (list tmp (expand-exp i) tmpi)))))]
     [(expr-if t tst thn els)
-     (ast-stmt-if (ef tst)
+     (ast-stmt-if (expand-exp tst)
                   (expand-fnb thn to)
                   (expand-fnb els to))]
     [(expr-app t rt rds)
-     (ast-stmt-set! to (ef b))]
+     (ast-stmt-set! to (expand-exp b))]
     [(expr-val t v)
-     (ast-stmt-set! to (ef b))]))
+     (ast-stmt-set! to (expand-exp b))]))
 
-(define (ef b)
+(define (expand-exp b)
   (match b
     [(expr-app t rt rds)
-     (ast-exp-app (get-rator-sym (ef rt) rds) (map ef rds))]
+     (ast-exp-app (get-rator-sym rt rds) (map expand-exp rds))]
     [(expr-var t sym o)
      (ast-exp-var sym)]
     [(expr-intr sym)
@@ -118,20 +133,35 @@
      (get-value v t)]
     [else b]))
 
-(define (expand-lc fnps)
-  (for/list ([fnp fnps])
-    (define fn-name (car fnp))
-    (define fn (cdr fnp))
-    (define ret (ast-exp-var (gensym^ 'ret)))
-    (match fn
+(define (expand-to-lc mod)
+  (ast-module
+   (cons
+    (match (expr-mod-main mod)
       [(expr-fun args ret-type b)
+       (define ret (ast-exp-var (gensym^ 'ret)))
        (ast-function-def
-        fn-name '() '(AlwaysInline)
-        (map ef args) (map (curry get-type expr-var-type) args)
+        'main '() '(AlwaysInline)
+        (map expand-exp args) (map (compose get-type expr-var-type) args)
         (get-type ret-type)
         (ast-stmt-let
          ret (get-type ret-type) (initial-value ret-type) ;;allocates twice for array
          (ast-stmt-block
           (list
            (expand-fnb b ret)
-           (ast-stmt-ret ret)))))])))
+           (ast-stmt-ret ret)))))]) 
+    (for/list ([fnp (expr-mod-fns mod)])
+      (define fn-name (car fnp))
+      (define fn (cdr fnp))
+      (define ret (ast-exp-var (gensym^ 'ret)))
+      (match fn
+        [(expr-fun args ret-type b)
+         (ast-function-def
+          fn-name '() '(AlwaysInline)
+          (map expand-exp args) (map (compose get-type expr-var-type) args)
+          (get-type ret-type)
+          (ast-stmt-let
+           ret (get-type ret-type) (initial-value ret-type) ;;allocates twice for array
+           (ast-stmt-block
+            (list
+             (expand-fnb b ret)
+             (ast-stmt-ret ret)))))])))))

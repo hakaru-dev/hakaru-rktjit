@@ -16,8 +16,10 @@
                  [(arg args)
                   (ae aes)]
          (hash-set env (car arg) ae)))
-     (expr-fun aes ret-type
-               (sa body arg-env))]
+     (expr-mod
+      (expr-fun aes ret-type
+                (sa body arg-env))
+      '())]
     [`((let (,var ,val ,type) ,body) : ,t)
      (define ve (expr-var type var var))
      (define vale (sa val env))
