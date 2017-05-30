@@ -30,7 +30,7 @@
      (or . ,(λ (a b) (or a b)))
      (index . ,vector-ref)
      (size . ,vector-length)
-     (nat2prob . ,(λ (a) (real2prob (* a 1.0))))
+     (nat2prob . ,(λ (a) (real->prob (* a 1.0))))
      (logspace-+ . ,logspace-add)
      (logspace-* . ,+)
      (+ . ,+)

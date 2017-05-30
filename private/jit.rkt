@@ -24,7 +24,7 @@
 (define (passes interpret-args)
   (list (cons reduce-curry pretty-display)
         (cons parse-sexp (compose pretty-display print-expr))
-        (cons flatten-anf (compose pretty-display print-expr))
+        ;; (cons flatten-anf (compose pretty-display print-expr))
         ;; (interpret interpret-args)
         (cons expand-to-lc (compose pretty-display print-ast))
         (cons add-fluff pretty-display)
@@ -38,7 +38,8 @@
      (define printer (cdr c))
      (printf "\n\napplying ~a\n" (object-name compiler))
      (let ([p (compiler prg)])
-       (unless (member (object-name compiler) '(reduce-curry flatten-anf add-fluff))
+       (unless (member (object-name compiler) '(reduce-curry; flatten-anf add-fluff
+                                                ))
          (parameterize ([pretty-print-current-style-table
                          (pretty-print-extend-style-table
                           (pretty-print-current-style-table)
@@ -54,7 +55,8 @@
   ;; (jit-dump-module mod-env)
   mod-env)
 
-
+(define (compile-src src)
+  (debug-program src (passes '())))
 (module+ test
   (require ffi/unsafe)
   (define topic-prior
@@ -116,7 +118,7 @@
      0 2 0 2 0 2 0 2 0 2 0 2 0 2
      0 2 0 2 0 2 0))
   (define doc-update 90)
-  (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
+  (define nbgo-src (read-file "../hkr/nb_simp_opt.hkr"))
   (define nbgo-mod-jit
     (debug-program nbgo-src
                    (passes

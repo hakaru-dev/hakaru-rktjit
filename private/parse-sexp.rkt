@@ -45,7 +45,8 @@
     [(? symbol?) #:when (set-member? internal-ops e)
      (expr-intr e)]
     [`(,s : ,type) #:when (number? s)
-     (expr-val type s)]))
+     (expr-val type s)]
+    [else (error (format "match: no matching clause for ~a" e))]))
 
 ;;S-expression to ast struct
 (define (parse-sexp expr)

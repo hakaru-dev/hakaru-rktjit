@@ -55,7 +55,11 @@
     ['nat  (get-value 0   'nat)]
     ['real (get-value 0.0 'real)]
     [`(array ,t) (get-value 0 'nat)]))
-
+(define (value v type)
+  (match type
+    ['prob (get-value (exact->inexact v) 'prob)]
+    ['nat  (get-value (truncate (inexact->exact v)) 'nat)]
+    ['real (get-value (exact->inexact v) 'real)]))
 (define (empty-array type size)
   (ast-exp-app (string->symbol (format "empty-array-~a" (cadr type))) (list (expand-exp size))))
 
@@ -97,11 +101,11 @@
       (expand-fnb b to))]
     [(expr-sum t i start end b)
      (fold-stmt
-      b t t (initial-value t) (expand-exp i) (expand-exp start) (expand-exp end) to
+      b t t (value 0 t) (expand-exp i) (expand-exp start) (expand-exp end) to
       (fold-fn (symbol-append 'add-2- t)))]
     [(expr-prd t i start end b)
      (fold-stmt
-      b t t (initial-value t) (expand-exp i) (expand-exp start) (expand-exp end) to
+      b t t (value 1 t) (expand-exp i) (expand-exp start) (expand-exp end) to
       (fold-fn (symbol-append 'mul-2- t)))]
     [(expr-arr t i end b)
      (fold-stmt
@@ -119,7 +123,9 @@
     [(expr-app t rt rds)
      (ast-stmt-set! to (expand-exp b))]
     [(expr-val t v)
-     (ast-stmt-set! to (expand-exp b))]))
+     (ast-stmt-set! to (expand-exp b))]
+    [(expr-var type sym orig)
+     sym]))
 
 (define (expand-exp b)
   (match b

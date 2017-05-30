@@ -7,8 +7,8 @@
 (provide gensym^
          symbol-append
          map-ast
-         real2prob
-         prob2real
+         real->prob
+         prob->real
          logsumexp2
          logspace-add
          one-of-type
@@ -54,21 +54,22 @@
   (m ast))
 
 
-(require math/flonum)
-(define (prob2real x) (+ (flexpm1 x) 1))
-(define (real2prob x) (fllog1p (- x 1)))
+(define (prob->real x) (exp x))
+(define (real->prob x) (log x))
+(define (nat->prob x) (real->prob (exact->inexact x)))
+
 (define (logsumexp2 a b)
   (if (> a b)
-      (+ a (fllog1p (+ (flexpm1 (- b a)) 1)))
-      (+ b (fllog1p (+ (flexpm1 (- a b)) 1)))))
+      (+ a (log (exp (- b a))))
+      (+ b (log (exp (- a b))))))
 
 (define (one-of-type t)
   (if (equal? t 'prob)
-      (real2prob 1.0)
+      (real->prob 1.0)
       1.0))
 (define (zero-of-type t)
   (if (equal? t 'prob)
-      (real2prob 0.0)
+      (real->prob 0.0)
       0.0))
 
-(define logspace-add (λ args (real2prob (apply + (map prob2real args)))))
+(define logspace-add (λ args (real->prob (apply + (map prob->real args)))))

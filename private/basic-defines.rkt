@@ -22,7 +22,8 @@
     (define-type array-nat (struct (size : i32) (data : nat-p)))
     (define-type array-nat-p (pointer array-nat))
     (define-function (#:attr AlwaysInline)
-      (nat2prob (v : nat) : real) (return (#%app jit-ui->fp v (#%type real))))
+      (nat2prob (v : nat) : prob) (return (#%app real2prob
+                                                 (#%app jit-ui->fp v (#%type real)))))
     (define-function
       (#:attr AlwaysInline)
       (prob2real
