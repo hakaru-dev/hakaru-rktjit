@@ -1,0 +1,1 @@
+[(fn a prob [(product (i [0 : nat] [(size [a : (array prob)]) : nat]) [(index [a : (array prob)] [i : nat]) : prob]) : prob]) : ((array prob) -> prob)]

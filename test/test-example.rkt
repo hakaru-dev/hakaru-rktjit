@@ -29,6 +29,8 @@
 (define get-array-prob (jit-get-function 'get-array-prob mod-env))
 (define get-array-nat (jit-get-function 'get-array-nat mod-env))
 
+(define size-array-prob (jit-get-function 'size-array-prob-p mod-env))
+(define size-array-nat (jit-get-function 'size-array-nat-p mod-env))
 (define (get-prob-vector cs)
   (cblock->vector (get-array-prob cs) prob-type (size-array-prob cs)))
 (define (get-nat-vector cs)

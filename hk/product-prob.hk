@@ -1,0 +1,3 @@
+fn a array(prob):
+  product i from 0 to size(a):
+     a[i]

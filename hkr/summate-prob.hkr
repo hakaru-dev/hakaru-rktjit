@@ -1,0 +1,1 @@
+[(fn a (nat -> prob) [(fn b prob [(summate (i [0 : nat] [(size [a : (array prob)]) : nat]) [(+ [(index [a : (array prob)] [i : nat]) : prob][(nat2prob [b : nat]) : prob]) : prob]) : prob]) : (nat -> prob)]) : ((array prob) -> (nat -> prob))]
