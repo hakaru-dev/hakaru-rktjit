@@ -10,7 +10,8 @@
     [(_ me)
      #`(begin
          #,@(for/list ([t '(nat prob real)])
-              (with-syntax ([type (format-id stx "~a-type" t)]
+              (with-syntax ([ts (format-id stx "~a" t)]
+                            [type (format-id stx "~a-type" t)]
                             [make-array (format-id stx "make-array-~a" t)]
                             [make-c-array (format-id stx "make-c-array-~a" t)]
                             [mac-v (format-id stx "~a-vector" t)]
@@ -19,7 +20,7 @@
                             [size-array-p (format-id stx "size-array-~a-p" t)]
                             [get-vector (format-id stx "get-~a-vector" t)])
                 #`(begin
-                    (define type (jit-get-racket-type (env-lookup 'prob me)))
+                    (define type (jit-get-racket-type (env-lookup (quote ts) me)))
                     (define make-array (jit-get-function (quote make-array) me))
                     (define (make-c-array mac-v)
                       (make-array (vector-length mac-v)

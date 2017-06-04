@@ -67,6 +67,7 @@
       (add-3-real
        (v1 : real) (v2 : real) (v3 : real) : real)
       (return (#%app jit-fadd (#%app jit-fadd v1 v2) v3)))
+
     (define-function
       (#:attr AlwaysInline)
       (add-2-prob
@@ -75,6 +76,10 @@
                      (#%app add-2-real
                       (#%app prob2real v1)
                       (#%app prob2real v2)))))
+
+
+
+
     (define-function
       (#:attr AlwaysInline)
       (add-3-prob
@@ -162,7 +167,7 @@
                                (index)))))
              (define-function
                (#:attr AlwaysInline)
-               (,(string->symbol (format "set-array-~a-at-index!" type))
+               (,(string->symbol (format "set-array-~a-at-index" type))
                 (arr : ,array-type-p) (in : nat) (v : ,type) : void)
                (block (#%exp (#%app jit-store! v
                                     (#%gep
@@ -237,7 +242,7 @@
   (define make-array-nat (get-f 'make-array-nat))
   (define index-array-nat (get-f 'index-array-nat-p))
   (define size-nat (get-f 'size-array-nat-p))
-  (define set-array-nat-at-index! (get-f 'set-array-nat-at-index!))
+  (define set-array-nat-at-index! (get-f 'set-array-nat-at-index))
   (define empty-array-nat (get-f 'empty-array-nat))
 
   (define tiarr (make-array-nat (length ti) test-nat-array))
@@ -254,7 +259,7 @@
   (define make-array-real (get-f 'make-array-real))
   (define index-array-real (get-f 'index-array-real-p))
   (define size-real (get-f 'size-array-real-p))
-  (define set-array-real-at-index! (get-f 'set-array-real-at-index!))
+  (define set-array-real-at-index! (get-f 'set-array-real-at-index))
   (define empty-array-real (get-f 'empty-array-real))
 
   (define trarr (make-array-real (length ti) test-real-array))
@@ -271,7 +276,7 @@
   (define make-array-prob (get-f 'make-array-prob))
   (define index-array-prob (get-f 'index-array-prob-p))
   (define size-prob (get-f 'size-array-prob-p))
-  (define set-array-prob-at-index! (get-f 'set-array-prob-at-index!))
+  (define set-array-prob-at-index! (get-f 'set-array-prob-at-index))
   (define empty-array-prob (get-f 'empty-array-prob))  
 
   (define tparr (make-array-prob (length ti) test-prob-array))

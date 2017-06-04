@@ -12,6 +12,9 @@
          logsumexp2
          logspace-add
          one-of-type
+         read-vector-from-csv
+         write-vector-to-csv
+         replicate-vector
          zero-of-type)
 
 (splicing-let ([gensym-hash (make-hash)])
@@ -73,3 +76,15 @@
       0.0))
 
 (define logspace-add (λ args (real->prob (apply + (map prob->real args)))))
+
+(define (replicate-vector n i)
+  (build-vector n (const i)))
+
+(define (read-vector-from-csv fname)
+  (call-with-input-file fname
+    (lambda (in)
+      (for/vector [(s (in-lines in))]
+        (string->number s)))))
+
+(define (write-vector-to-csv fname)
+  (void))

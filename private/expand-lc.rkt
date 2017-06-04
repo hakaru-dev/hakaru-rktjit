@@ -92,40 +92,69 @@
 (define (fold-fn fn)
   (λ (tmp tmpi)
     (ast-stmt-set! tmp (ast-exp-app fn (list tmp tmpi)))))
+(define (wrap-with-exp var type val body)
+  (ast-stmt-let
+   var type '#%void
+   (ast-stmt-block
+    (list
+     (expand-fnb val var)
+     body))))
+
+(define (get-var-ast v)
+  (match v
+    [(expr-var t sym o)
+     (ast-exp-var sym)]
+    [(expr-intr sym)
+     (ast-exp-var sym)]))
 
 (define (expand-fnb b to)
   (match b
     [(expr-let type var val b)
+     (define var-ast (get-var-ast var))
      (ast-stmt-let
-      (expand-exp var) (get-type (expr-var-type var)) (expand-exp val)
-      (expand-fnb b to))]
+      var-ast (get-type (expr-var-type var)) '#%void 
+      (ast-stmt-block
+       (list
+        (expand-fnb val var-ast)
+        (expand-fnb b to))))]
     [(expr-sum t i start end b)
-     (fold-stmt
-      b t t (value 0 t) (expand-exp i) (expand-exp start) (expand-exp end) to
-      (fold-fn (symbol-append 'add-2- t)))]
+     (define se (ast-exp-var (gensym^ 'se)))
+     (wrap-with-exp
+      se 'nat end
+      (fold-stmt
+       b t t (value 0 t) (get-var-ast i) (expand-exp start) se to
+       (fold-fn (symbol-append 'add-2- t))))]
     [(expr-prd t i start end b)
-     (fold-stmt
-      b t t (value 1 t) (expand-exp i) (expand-exp start) (expand-exp end) to
-      (fold-fn (symbol-append 'mul-2- t)))]
+     (define pe (ast-exp-var (gensym^ 'pe)))
+     (wrap-with-exp
+      pe 'nat end
+      (fold-stmt
+       b t t (value 1 t) (expand-exp i) (expand-exp start) pe to
+       (fold-fn (symbol-append 'mul-2- t))))]
     [(expr-arr t i end b)
-     (fold-stmt
-      b (array-type t) t (empty-array t end)
-      (expand-exp i) (ast-exp-ui-value 0 'nat) (expand-exp end) to
-      (λ (tmp tmpi)
-        (ast-stmt-exp
-         (ast-exp-app
-          (string->symbol (format "set-array-~a-at-index!" (cadr t)))
-          (list tmp (expand-exp i) tmpi)))))]
+     (define ae (ast-exp-var (gensym^ 'ae)))
+     (wrap-with-exp
+      ae 'nat end
+      (fold-stmt
+       b (array-type t) t (empty-array t ae)
+       (expand-exp i) (ast-exp-ui-value 0 'nat) ae to
+       (λ (tmp tmpi)
+         (ast-stmt-exp
+          (ast-exp-app
+           (string->symbol (format "set-array-~a-at-index" (cadr t)))
+           (list tmp (expand-exp i) tmpi))))))]
     [(expr-if t tst thn els)
-     (ast-stmt-if (expand-exp tst)
-                  (expand-fnb thn to)
-                  (expand-fnb els to))]
+     (define ife (ast-exp-var (gensym^ 'ift)))
+     (wrap-with-exp ife (expr-type (get-type tst)) tst
+                    (ast-stmt-if ife (expand-fnb thn to) (expand-fnb els to)))]
     [(expr-app t rt rds)
-     (ast-stmt-set! to (expand-exp b))]
-    [(expr-val t v)
-     (ast-stmt-set! to (expand-exp b))]
-    [(expr-var type sym orig)
-     sym]))
+     (define rands-ast (for/list ([rd rds]) (ast-exp-var (gensym^ 'rd))))
+     (for/fold [(body (ast-stmt-set! to (ast-exp-app (get-rator-sym rt rds) rands-ast)))]
+               [(r rands-ast)
+                (rd rds)]
+       (wrap-with-exp r (get-type (expr-type rd)) rd  body))]
+    [(expr-val t v) (ast-stmt-set! to (get-value v t))]
+    [(expr-var type sym orig) (ast-stmt-set! to sym)]))
 
 (define (expand-exp b)
   (match b

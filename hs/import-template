@@ -1,0 +1,9 @@
+
+import qualified Data.Time.Clock as C
+import qualified System.Environment as SE
+import qualified Data.Number.LogFloat as LF
+import qualified Data.Vector.Unboxed as UV
+import qualified Data.Text.IO as TIO
+import qualified Data.Text as T
+import qualified Data.Text.Read as TR
+

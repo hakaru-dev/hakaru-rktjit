@@ -14,6 +14,8 @@
 (require rackunit)
 
 (check-=
+
  (prob->real (main (make-c-array-prob small99)))
+
  (foldl * 1 (vector->list  (vector-map prob->real small99)))
  0.0000001)
