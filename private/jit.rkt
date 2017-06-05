@@ -26,8 +26,8 @@
         (cons parse-sexp (compose pretty-display print-expr))
         (cons flatten-anf (compose pretty-display print-expr))
         ;; (interpret interpret-args)
-        ;; (cons expand-to-lc (compose pretty-display print-ast))
-        ;; (cons add-fluff pretty-display)
+        (cons expand-to-lc (compose pretty-display print-ast))
+        (cons add-fluff pretty-display)
         ))
 
 (define (debug-program prg cmplrs)
@@ -38,8 +38,8 @@
      (define printer (cdr c))
      (printf "\n\napplying ~a\n" (object-name compiler))
      (let ([p (compiler prg)])
-       (unless (member (object-name compiler) '(reduce-curry parse-exp; flatten-anf add-fluff
-                                                ))
+       (unless (member (object-name compiler)
+                       '(reduce-curry parse-exp flatten-anf expand-to-lc  add-fluff))
          (parameterize ([pretty-print-current-style-table
                          (pretty-print-extend-style-table
                           (pretty-print-current-style-table)
@@ -48,7 +48,6 @@
                         [pretty-print-columns 100])
            (printer p)))
        p)))
-  (error 'stop)
   (define module-env (compile-module prog-ast))
   (jit-optimize-module module-env #:opt-level 3)
   (jit-dump-module module-env)
@@ -183,9 +182,9 @@
 
   (define arg1 (build-vector 20 (const 1.0)))
   (define arg2 (build-vector 7022 (const 1.0)))
-  (define arg3 (read-from-csv "../arg3.csv")) ;;size 400   ;; values 0-20
-  (define arg4 (read-from-csv "../arg4.csv")) ;;size 47049 ;; values 0-7022
-  (define arg5 (read-from-csv "../arg5.csv")) ;;size 47049 ;; values 0-400
+  (define arg3 (read-from-csv "../test/input/big-arg3.csv")) ;;size 40x0   ;; values 0-20
+  (define arg4 (read-from-csv "../test/input/big-arg4.csv")) ;;size 47049 ;; values 0-7022
+  (define arg5 (read-from-csv "../test/input/big-arg5.csv")) ;;size 47049 ;; values 0-400
   (define arg6 0) ;; value 0-400
   (define big_res (call-main arg1 arg2 arg3 arg4 arg5 arg6))
   (pretty-print (vector-map exp (get-racket-value big_res))))
