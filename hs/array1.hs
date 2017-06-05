@@ -64,6 +64,7 @@ prog =
 main :: IO ()
 main = do
   twds <- SE.getArgs
+  print twds
   let [tps, wps, vf, wf, df, du, ouf] = twds
   v_st <- TIO.readFile vf
   words_st <- TIO.readFile wf
