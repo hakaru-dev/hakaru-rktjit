@@ -26,8 +26,8 @@
         (cons parse-sexp (compose pretty-display print-expr))
         (cons flatten-anf (compose pretty-display print-expr))
         ;; (interpret interpret-args)
-        (cons expand-to-lc (compose pretty-display print-ast))
-        (cons add-fluff pretty-display)
+        ;; (cons expand-to-lc (compose pretty-display print-ast))
+        ;; (cons add-fluff pretty-display)
         ))
 
 (define (debug-program prg cmplrs)
@@ -48,6 +48,7 @@
                         [pretty-print-columns 100])
            (printer p)))
        p)))
+  (error 'stop)
   (define module-env (compile-module prog-ast))
   (jit-optimize-module module-env #:opt-level 3)
   (jit-dump-module module-env)
