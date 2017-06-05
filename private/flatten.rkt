@@ -5,7 +5,24 @@
 (require racket/trace)
 (provide flatten-anf)
 
+#|
+ Does anf and let hoisting in single pass using sorting
+  for dependency graph ordering, so might be slow but
+  does the job for normal hakaru examples.
 
+ ffv: find-free-variables : recursively finds free variables,
+      no memoization so slow.
+
+ efv: sort of information for let, var -> expr, with expr having
+      fvars free-variables, fvars: (seteqv <free-variables>)
+ ufb: struct used to pass around information while doing anf
+      expr: output expression,
+      efvp: list of efv objects which are still left to be placed.
+ uf: returns a ufb record which is the output of anf and remaining
+     expressions with the variable name and free variables.
+ sort-efvp: sorts a list of efv based on dependency order, uses the
+            free-variable set and the variable bound in efv.
+|#
 
 (define-struct efv (var expr fvars) #:prefab)
 ;; efvp ::= (list? efv)

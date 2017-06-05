@@ -188,5 +188,3 @@
   (define arg6 0) ;; value 0-400
   (define big_res (call-main arg1 arg2 arg3 arg4 arg5 arg6))
   (pretty-print (vector-map exp (get-racket-value big_res))))
-
-;; [1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0]
