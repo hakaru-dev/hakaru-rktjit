@@ -3,11 +3,14 @@
 export PATH=$PATH:~/.cabal/bin/
 
 hk=$1
-tps=$2
-wps=$3
-siz=$4
-du=$5
+siz=$2
+inp=`cat ./test/input/$siz`
+tps=$inp[(w)1]
+wps=$inp[(w)2]
+echo "docUpdate range 0-"$inp[(w)3]
+du=$3
 
+echo "running with args: $tps $wps $siz $du"
 runhs () {
     ./test/hs/$hk $tps $wps ./test/input/$siz-arg3.csv ./test/input/$siz-arg4.csv ./test/input/$siz-arg5.csv $du ./test/output/$siz.csv
 }
