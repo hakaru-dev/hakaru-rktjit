@@ -11,7 +11,7 @@
            `(,(car fn) ,(pe (cdr fn)))))]
     [(expr-fun args ret-type body)
      `(function ,(map pe args) ,(pe body))]
-    [(expr-var type sym orig) orig]
+    [(expr-var type sym orig) sym]
     [(expr-arr type index size body)
      `(array ,(pe index) ,(pe size) ,(pe body))]
     [(expr-sum type index start end body)

@@ -38,7 +38,7 @@
      (define printer (cdr c))
      (printf "\n\napplying ~a\n" (object-name compiler))
      (let ([p (compiler prg)])
-       (unless (member (object-name compiler) '(reduce-curry; flatten-anf add-fluff
+       (unless (member (object-name compiler) '(reduce-curry parse-exp; flatten-anf add-fluff
                                                 ))
          (parameterize ([pretty-print-current-style-table
                          (pretty-print-extend-style-table

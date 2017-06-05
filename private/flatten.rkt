@@ -56,14 +56,21 @@
      #f]))
 
 (define (get-ufb-without uf var)
-  (define-values (esb efvp)
-    (for/fold ([b (ufb-expr uf)]
-               [efvs  '()])
-              ([ef (ufb-efvp uf)])
-      (if (set-member? (efv-fvars ef) var)
-          (values (expr-let (typeof (efv-expr ef)) (efv-var ef) (efv-expr ef) b) efvs)
-          (values b (cons ef efvs)))))
-  (ufb esb efvp))
+  (define-values (nb nefvs) (force-lets (ufb-expr uf) (ufb-efvp uf) (seteqv var)))
+  (ufb nb nefvs))
+
+(define (force-lets b efvs vars)
+  (if (empty? efvs)
+      (values b efvs)
+      (let ([frst (car efvs)])
+        (if (set-empty? (set-intersect (efv-fvars frst) vars))
+            (let-values ([(nb nefvs) (force-lets b (cdr efvs) vars)])
+              (values nb (cons frst nefvs)))
+            (let-values ([(nb nefvs) (force-lets b (cdr efvs) (set-add vars (efv-var frst)))])
+              (values (expr-let (typeof (efv-expr frst))
+                                (efv-var frst)
+                                (efv-expr frst) nb)
+                      nefvs))))))
 
 (define (check-and-add expr efvp)
   (if (is-complex? expr)
@@ -83,29 +90,33 @@
 (define (uf body)
   (match body
     [(expr-let type var val b)
-     (define nb (get-ufb-without (uf b) var))
+     (define nb (uf b))
      (define-values (nval nefvp) (check-and-add val (ufb-efvp nb)))
      (ufb (expr-let type var nval (ufb-expr nb)) nefvp)]
     [(expr-sum t i start end b)
      (define es (new-var t (gensym^ 'sm)))
-     (define nb (get-ufb-without (uf b) i))
+     (define nb (uf b))
      (define esb (ufb-expr nb))
-     ;; we can always take the complex part of end expression out
      (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
-     (define nefv (efv es (expr-sum t i start nend (ufb-expr nb)) (find-free-vars esb)))
+     (define ns (expr-sum t i start nend esb))
+     (define nefv (efv es ns (find-free-vars ns)))
      (ufb es (cons nefv nefvp))]
     [(expr-prd t i start end b)
      (define ps (new-var t (gensym^ 'pr)))
      (define nb (get-ufb-without (uf b) i))
-     (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
      (define esb (ufb-expr nb))
-     (ufb ps (cons (efv ps (expr-prd t i start nend esb) (find-free-vars esb)) nefvp))]
+     (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
+     (define ns (expr-prd t i start nend esb))
+     (define nefv (efv ps ns (find-free-vars ns)))
+     (ufb ps (cons nefv nefvp))]
     [(expr-arr t i end b)
      (define as (new-var t (gensym^ 'ar)))
      (define nb (get-ufb-without (uf b) i))
-     (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
      (define esb (ufb-expr nb))
-     (ufb as (cons (efv as (expr-arr t i nend esb) (find-free-vars esb)) nefvp))]
+     (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
+     (define ns (expr-arr t i nend esb))
+     (define nefv (efv as ns (find-free-vars ns)))
+     (ufb as (cons nefv nefvp))]
     [(expr-if t tst thn els)
      (define tufb (uf tst))
      (ufb (expr-if t (ufb-expr tufb) (combine-ufb (uf thn)) (combine-ufb (uf els)))
