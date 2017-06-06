@@ -5,12 +5,12 @@ fn topic_prior array(prob):
       fn doc array(nat):
         fn docUpdate nat:
           array zNew of size(topic_prior):
-	    (nat2prob((summate i_b from 0 to size(z): 
+	   (nat2prob((summate i_b from 0 to size(z): 
                                           (match (i_b == docUpdate): 
                                             true: 0
                                             false: 
-                                             (match (zNew == z[i_b]): 
-                                               true: 1
-                                               false: 0))))
+                                             (match (z[i_b] < 0): 
+                                               true: 0
+                                               false: 1))))
                                 + 
-                               topic_prior[zNew])
+                               (summate i_b from 0 to size(topic_prior): topic_prior[i_b]))

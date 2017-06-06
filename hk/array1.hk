@@ -25,4 +25,3 @@ fn topic_prior array(prob):
                     nat2prob(j)
                      +
                     word_prior[i_a]))))
-

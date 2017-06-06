@@ -22,6 +22,6 @@
 (define docs (make-c-array-nat (read-vector-from-csv (get-argument 4))))
 (define docUpdate (string->number (get-argument 5)))
 (define result-raw (time (main topic-prior word-prior v words docs docUpdate)))
-(define result-vector (cblock->vector (get-array-prob result-raw) (size-array-prob result-raw) prob-type))
+(define result-vector (cblock->vector (get-array-prob result-raw) prob-type (size-array-prob result-raw)))
 (write-vector-to-csv result-vector)
 (pretty-display result-vector)

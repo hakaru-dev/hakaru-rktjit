@@ -26,16 +26,34 @@ prog =
   lam $ \ docUpdate5 ->
   (array (size topic_prior0) $
          \ zNew6 ->
-         nat2prob (summate (nat_ 0)
-                           (size z2)
-                           (\ i_b7 ->
-                            case_ (i_b7 == docUpdate5)
-                                  [branch ptrue (nat_ 0),
-                                   branch pfalse
-                                          (case_ (zNew6 == z2 ! i_b7)
-                                                 [branch ptrue (nat_ 1),
-                                                  branch pfalse (nat_ 0)])])) +
-         topic_prior0 ! zNew6)
+         product (nat_ 0)
+                 (size topic_prior0)
+                 (\ i7 ->
+                  product (nat_ 0)
+                          (summate (nat_ 0)
+                                   (size w3)
+                                   (\ i_b9 ->
+                                    case_ (docUpdate5 == doc4 ! i_b9)
+                                          [branch ptrue
+                                                  (case_ (not (w3 ! i_b9 < nat_ 0) && i7 == zNew6)
+                                                         [branch ptrue (nat_ 1),
+                                                          branch pfalse (nat_ 0)]),
+                                           branch pfalse (nat_ 0)]))
+                          (\ i_a8 ->
+                           nat2prob (summate (nat_ 0)
+                                             (size w3)
+                                             (\ i_b10 ->
+                                              case_ (doc4 ! i_b10 == docUpdate5)
+                                                    [branch ptrue (nat_ 0),
+                                                     branch pfalse
+                                                            (case_ (not (w3 ! i_b10 < nat_ 0) &&
+                                                                    i7 == z2 ! (doc4 ! i_b10))
+                                                                   [branch ptrue (nat_ 1),
+                                                                    branch pfalse (nat_ 0)])])) +
+                           nat2prob i_a8 +
+                           summate (nat_ 0)
+                                   (size word_prior1)
+                                   (\ i_b11 -> word_prior1 ! i_b11))))
 main :: IO ()
 main = do
   twds <- SE.getArgs

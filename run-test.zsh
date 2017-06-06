@@ -21,3 +21,5 @@ runrkt () {
 
 runhs
 runrkt
+echo "haskell output:"
+cat ./test/output/$siz.csv

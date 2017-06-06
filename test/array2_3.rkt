@@ -7,7 +7,7 @@
 (require "../private/jit-utils.rkt")
 (require "example-vectors.rkt")
 
-(define src (read-file "hkr/array2.hkr"))
+(define src (read-file "hkr/array2_3.hkr"))
 (define mod-env (parameterize ([debug-pass #f])
                   (compile-src src)))
 (hakaru-defines mod-env)

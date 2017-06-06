@@ -1,0 +1,8 @@
+fn topic_prior array(prob):
+  fn word_prior array(prob):
+    fn z array(nat):
+     fn w array(nat): 
+      fn doc array(nat):
+        fn docUpdate nat:
+          array zNew of size(topic_prior):
+            nat2prob(1) / nat2prob(2)

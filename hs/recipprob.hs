@@ -25,17 +25,7 @@ prog =
   lam $ \ doc4 ->
   lam $ \ docUpdate5 ->
   (array (size topic_prior0) $
-         \ zNew6 ->
-         nat2prob (summate (nat_ 0)
-                           (size z2)
-                           (\ i_b7 ->
-                            case_ (i_b7 == docUpdate5)
-                                  [branch ptrue (nat_ 0),
-                                   branch pfalse
-                                          (case_ (zNew6 == z2 ! i_b7)
-                                                 [branch ptrue (nat_ 1),
-                                                  branch pfalse (nat_ 0)])])) +
-         topic_prior0 ! zNew6)
+         \ zNew6 -> nat2prob (nat_ 1) * recip (nat2prob (nat_ 2)))
 main :: IO ()
 main = do
   twds <- SE.getArgs
