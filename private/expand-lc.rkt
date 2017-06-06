@@ -21,7 +21,6 @@
      (== . jit-icmp-eq)
      (and . jit-and)
      (or . jit-or)
-     (recip . recip-real)
      (not . jit-not))))
 
 (define (get-value v type)
@@ -44,7 +43,8 @@
      (define r-type (get-type (expr-type (car rands))))
      (match s
        ['index (symbol-append 'index- r-type)]
-       ['size(symbol-append 'size- r-type)]
+       ['size (symbol-append 'size- r-type)]
+       ['recip (symbol-append 'recip- r-type)]
        ['+ (string->symbol (format "add-~a-~a" (length rands) r-type))]
        ['* (string->symbol (format "mul-~a-~a" (length rands) r-type))]
        [else (hash-ref op-map s s)])]))
