@@ -23,12 +23,11 @@
 
 (define (passes interpret-args)
   (list (cons reduce-curry pretty-display)
-        (cons parse-sexp (compose pretty-display print-expr))
+        (cons parse-sexp  (compose pretty-display print-expr))
         (cons flatten-anf (compose pretty-display print-expr))
         ;; (interpret interpret-args)
         (cons expand-to-lc (compose pretty-display print-ast))
-        (cons add-fluff pretty-display)
-        ))
+        (cons add-fluff pretty-display)))
 
 (define (debug-program prg cmplrs)
   (define prog-ast
@@ -39,8 +38,9 @@
      (printf "\n\napplying ~a\n" (object-name compiler))
      (let ([p (compiler prg)])
        (unless (member (object-name compiler)
-                       '(reduce-curry parse-exp ;flatten-anf
-                                      ;expand-to-lc  add-fluff
+                       '(;reduce-curry
+                         parse-exp ;flatten-anf
+                                      expand-to-lc  add-fluff
                                       ))
          (parameterize ([pretty-print-current-style-table
                          (pretty-print-extend-style-table
@@ -52,7 +52,8 @@
        p)))
   (define module-env (compile-module prog-ast))
   (jit-optimize-module module-env #:opt-level 3)
-  (jit-dump-module module-env)
+  ;; (jit-dump-module module-env)
+  (jit-dump-function module-env 'main)
   (define mod-env (initialize-jit module-env #:opt-level 3))
   ;; (jit-dump-module mod-env)
   mod-env)
@@ -61,7 +62,7 @@
 (define (compile-src src)
   (define prog
     (for/fold ([prg src])
-              ([c (list reduce-curry   parse-sexp expand-to-lc add-fluff)]
+              ([c (list reduce-curry  parse-sexp expand-to-lc add-fluff)]
                [p (list pretty-display
                         (compose pretty-display print-expr)
                         (compose pretty-display print-ast)
@@ -79,13 +80,14 @@
 (module+ test
   (require ffi/unsafe)
   (require "jit-utils.rkt")
-  (define nbgo-src (read-file "../hkr/recipprob.hkr"))
+  ;; (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
+  (define nbgo-src (read-file "../../test.hk"))
   (define nbgo-mod-jit
     (debug-program nbgo-src
                    (passes
                     '())))
   ;; (jit-dump-module nbgo-mod-jit)
-
+  (jit-write-bitcode nbgo-mod-jit "test.bc")
   (define main (jit-get-function 'main nbgo-mod-jit))
   (hakaru-defines nbgo-mod-jit)
   (define read-from-csv (compose make-c-array-nat read-vector-from-csv))

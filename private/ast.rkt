@@ -43,7 +43,7 @@
     [(reducer-fanout a b) `(fanout ,(pr a) ,(pr b))]
     [(reducer-add i) `(add ,(pe i))]
     [(reducer-nop) `(nop)]
-    [(reducer-index i e b) `(index ,(pe i) ,(pe e) (pr b))]))
+    [(reducer-index i e b) `(index ,(pe i) ,(pe e) ,(pr b))]))
 (define (pp pat)
   (match pat
     [(pat-var) 'var]
@@ -111,4 +111,6 @@
     [(expr-intrf s)
      '!]
     [(expr-var t s o)
+     t]
+    [(expr-bucket t s e b)
      t]))
