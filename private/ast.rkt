@@ -68,19 +68,26 @@
 (struct expr-val  (type v) #:prefab)
 (struct expr-intr (sym) #:prefab)
 (struct expr-intrf (sym) #:prefab)
+(define (f-or e) (λ fs (for/or ([f fs])
+                         (fs e))))
+(define expr? (λ (e) ((f-or e) expr-mod? expr-fun? expr-let? expr-var? expr-arr?
+                         expr-sum? expr-prd? expr-bucket? expr-branch?
+                         expr-match? expr-bind? expr-if? expr-app? expr-val?
+                         expr-intr? expr-intrf?)))
 
 (struct reducer-split (e a b) #:prefab)
 (struct reducer-fanout (a b) #:prefab)
 (struct reducer-add (i) #:prefab)
 (struct reducer-nop () #:prefab)
 (struct reducer-index (i e b) #:prefab)
-
+(define reducer? (λ (r) ((f-or r) reducer-split? reducer-fanout? reducer-add?
+                            reducer-nop? reducer-index?)))
 (struct pat-true ())
 (struct pat-false ())
 (struct pat-pair (p))
 (struct pat-var ())
 (struct pat-ident ())
-
+(define pat? (λ (p) ((f-or p) pat-true? pat-false? pat-pair? pat-var? pat-ident?)))
 (define internal-ops
   (apply set '(size index recip nat2prob prob2real + * == and < or not
                     categorical)))
@@ -114,3 +121,37 @@
      t]
     [(expr-bucket t s e b)
      t]))
+
+(define-syntax (expr/pass stx)
+  (syntax-case stx ()
+      [(_ mps ...)
+       #'(λ (e)
+           (letrec
+               ((f (λ (e)
+                     (match (match e mps ... [else e])
+                       [(expr-mod main fns)
+                        (expr-mod (f main) (map f fns))]
+                       [(expr-fun args ret-type body)
+                        (expr-fun args ret-type (f body))]
+                       [(expr-let type var val body)
+                        (expr-let type var (f val) (f body))]
+                       [(expr-arr t i s b)
+                        (expr-arr t (f i) (f s) (f b))]
+                       [(expr-sum t i s e b)
+                        (expr-sum t (f i) (f s) (f e) (f b))]
+                       [(expr-prd t i s e b)
+                        (expr-prd t (f i) (f s) (f e) (f b))]
+                       [(expr-bucket t s e r)
+                        (expr-bucket t (f s) (f e) r)]
+                       [(expr-branch pat body)
+                        (expr-branch pat (f body))]
+                       [(expr-match t tst brs)
+                        (expr-match t (f tst) (map f brs))]
+                       [(expr-bind v b)
+                        (expr-bind v (f b))]
+                       [(expr-if t tst thn els)
+                        (expr-if t (f tst) (f thn) (f els))]
+                       [(expr-app t ra rs)
+                        (expr-app t (f ra) (map f rs))]
+                       [else e]))))
+             (f e)))]))
