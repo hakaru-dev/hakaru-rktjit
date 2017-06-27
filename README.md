@@ -18,8 +18,10 @@ git clone git@github.com:rjnw/hakaru-rktjit.git
 cd ./hakaru-rktjit
 ```
 # if no haskell and racket file in ./test directory
-`./build-test.zsh <file name without hk from hk directory>`
-`./run-test.zsh <test-name> {small,med,big} <docUpdate>`
+```
+./build-test.zsh <file name without hk from hk directory>
+./run-test.zsh <test-name> {small,med,big} <docUpdate>
+```
 
 `run-test.zsh` will run both haskell and racket code with same inputs.
 Right now every test need to have same function signature as
