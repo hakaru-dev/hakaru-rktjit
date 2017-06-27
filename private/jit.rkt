@@ -12,6 +12,9 @@
 (require "basic-fluff.rkt")
 (require "ast.rkt")
 (require "utils.rkt")
+(require "simplify-match.rkt")
+(require "simplify-lets.rkt")
+(require "remove-lets.rkt")
 
 (provide (all-defined-out))
 
@@ -20,11 +23,18 @@
     (lambda (in)
       (read in))))
 
-
+(define pp-expr (compose pretty-display print-expr))
 (define (passes interpret-args)
   (list (cons reduce-curry pretty-display)
-        (cons parse-sexp  (compose pretty-display print-expr))
-        (cons flatten-anf (compose pretty-display print-expr))
+
+        (cons parse-sexp         pp-expr)
+        (cons flatten-anf        pp-expr)
+        (cons simplify-match     pp-expr)
+
+        (cons remove-unit-lets   pp-expr)
+        (cons remove-empty-lets  pp-expr)
+        (cons simplify-lets      pp-expr)
+        (cons remove-unused-lets pp-expr)
         ;; (interpret interpret-args)
         (cons expand-to-lc (compose pretty-display print-ast))
         (cons add-fluff pretty-display)))
@@ -40,6 +50,7 @@
        (unless (member (object-name compiler)
                        '(;reduce-curry
                          parse-exp ;flatten-anf
+                         ;; simplify-match
                                       expand-to-lc  add-fluff
                                       ))
          (parameterize ([pretty-print-current-style-table
