@@ -12,6 +12,11 @@ du=$3
 
 echo "running with args: $tps $wps $siz $du"
 runhs () {
+    if [[ ! -a ./test/hs/$hk ]]; then
+	echo "executable not found compiling again"
+	ghc -v0 -O3 "hs/"$hk".hs" -o "test/hs/"$hk
+    fi
+       
     ./test/hs/$hk $tps $wps ./test/input/$siz-arg3.csv ./test/input/$siz-arg4.csv ./test/input/$siz-arg5.csv $du ./test/output/$siz.csv
 }
 
