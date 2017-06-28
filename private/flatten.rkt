@@ -55,10 +55,42 @@
   ;; (printf "sort after: ~a\n" (map (compose print-fvars efv-fvars) ret))
   ret)
 
+;; (define (combine-expr-old expr efvp)
+;;   (for/fold ([b expr])
+;;             ([ef (reverse efvp)])
+;;     (expr-let (typeof (efv-expr ef)) (efv-var ef) (efv-expr ef) b)))
+
 (define (combine-expr expr efvp)
+  (define (partition to out)
+    (if (empty? to)
+        out
+        (partition
+         (cdr to)
+         (if (empty? out)
+             `((,(car to)))
+             (begin
+               (let*
+                   ([curr (car to)]
+                    [tout (car out)]
+                    [rout (cdr out)]
+                    [top-fvars (apply set-union (cons (apply seteqv (map efv-var tout))
+                                                      (map efv-fvars tout)))])
+                 ;; (printf "top-fvars: ~a\n" (map (λ (e) (print-expr e)) (set->list top-fvars)))
+                 (if (and (set-empty? (set-intersect (efv-fvars (car to)) top-fvars))
+                          (not (set-member? top-fvars (efv-var curr))))
+                     `((,curr . ,tout) . ,rout)
+                     `((,curr) . ,out))))))))
+  ;; (printf "efvp: ~a\n" (map (λ (e) (cons (print-expr (efv-var e))
+  ;;                                        (list (map print-expr (set->list (efv-fvars e)))))) efvp))
   (for/fold ([b expr])
-            ([ef (reverse efvp)])
-    (expr-let (typeof (efv-expr ef)) (efv-var ef) (efv-expr ef) b)))
+            ([ef (reverse (partition (reverse efvp) '()))])
+    ;; (printf "ef: ~a\n" (map (λ (e) (print-expr (efv-var e))) ef))
+    (if (eq? (length ef) 1)
+        (expr-let (typeof (efv-expr (car ef))) (efv-var (car ef)) (efv-expr (car ef)) b)
+        (expr-lets (map (λ (e) (typeof (efv-expr e))) ef)
+                   (map (λ (e) (efv-var e)) ef)
+                   (map (λ (e) (efv-expr e)) ef)
+                   b))))
 
 (define (combine-ufb u)
   (combine-expr (ufb-expr u) (sort-efvp (ufb-efvp u))))

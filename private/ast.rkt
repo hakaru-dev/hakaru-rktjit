@@ -32,6 +32,10 @@
      `(,(pe rator) ,@(map pe rands))]
     [(expr-let type var val body)
      `(let (,(pe var) ,(pe val)) ,(pe body))]
+    [(expr-lets types vars vals body)
+     `(let (,@(for/list ( [var vars] [val vals])
+                `(,(pe var) ,(pe val))))
+        ,(pe body))]
     [(expr-intr s) s]
     [(expr-intrf s) s]
     [(expr-val t v) v]
@@ -55,6 +59,7 @@
 (struct expr-mod  (main fns) #:prefab)
 (struct expr-fun  (args ret-type body) #:prefab)
 (struct expr-let  (type var val body) #:prefab)
+(struct expr-lets (types var vals body) #:prefab)
 (struct expr-var  (type sym orig) #:prefab)
 (struct expr-arr  (type index size body) #:prefab)
 (struct expr-sum  (type index start end body) #:prefab)
@@ -77,9 +82,9 @@
 
 (struct reducer-split (e a b) #:prefab)
 (struct reducer-fanout (a b) #:prefab)
-(struct reducer-add (i) #:prefab)
+(struct reducer-add (e) #:prefab)
 (struct reducer-nop () #:prefab)
-(struct reducer-index (i e b) #:prefab)
+(struct reducer-index (n i a) #:prefab)
 (define reducer? (λ (r) ((f-or r) reducer-split? reducer-fanout? reducer-add?
                             reducer-nop? reducer-index?)))
 (struct pat-true () #:prefab)
@@ -133,33 +138,7 @@
            (letrec
                ((f (λ (e)
                      (define ne (match e mps ... [else e]))
-                     (fill-expr-pass f ne)
-                       ;; [(expr-mod main fns)
-                       ;;  (expr-mod (f main) (map f fns))]
-                       ;; [(expr-fun args ret-type body)
-                       ;;  (expr-fun args ret-type (f body))]
-                       ;; [(expr-let type var val body)
-                       ;;  (expr-let type var (f val) (f body))]
-                       ;; [(expr-arr t i s b)
-                       ;;  (expr-arr t (f i) (f s) (f b))]
-                       ;; [(expr-sum t i s e b)
-                       ;;  (expr-sum t (f i) (f s) (f e) (f b))]
-                       ;; [(expr-prd t i s e b)
-                       ;;  (expr-prd t (f i) (f s) (f e) (f b))]
-                       ;; [(expr-bucket t s e r)
-                       ;;  (expr-bucket t (f s) (f e) r)]
-                       ;; [(expr-branch pat body)
-                       ;;  (expr-branch pat (f body))]
-                       ;; [(expr-match t tst brs)
-                       ;;  (expr-match t (f tst) (map f brs))]
-                       ;; [(expr-bind v b)
-                       ;;  (expr-bind v (f b))]
-                       ;; [(expr-if t tst thn els)
-                       ;;  (expr-if t (f tst) (f thn) (f els))]
-                       ;; [(expr-app t ra rs)
-                       ;;  (expr-app t (f ra) (map f rs))]
-                       ;; [else e]
-                       )))
+                     (fill-expr-pass f ne))))
              (f e)))]))
 
 (define-syntax (fill-expr-pass stx)
@@ -173,6 +152,8 @@
           (expr-fun args ret-type (f body))]
          [(expr-let type var val body)
           (expr-let type var (f val) (f body))]
+         [(expr-lets types vars vals body)
+          (expr-lets types vars (map f vals) (f body))]
          [(expr-arr t i s b)
           (expr-arr t (f i) (f s) (f b))]
          [(expr-sum t i s e b)
