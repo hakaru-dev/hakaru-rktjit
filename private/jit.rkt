@@ -15,7 +15,7 @@
 (require "simplify-match.rkt")
 (require "simplify-lets.rkt")
 (require "remove-lets.rkt")
-
+(require "do-bucket.rkt")
 (provide (all-defined-out))
 
 (define (read-file filename)
@@ -35,6 +35,7 @@
         (cons remove-empty-lets  pp-expr)
         (cons simplify-lets      pp-expr)
         (cons remove-unused-lets pp-expr)
+        (cons bucket->for        pp-expr)
         ;; (interpret interpret-args)
         (cons expand-to-lc (compose pretty-display print-ast))
         (cons add-fluff pretty-display)))
@@ -51,8 +52,7 @@
                        '(;reduce-curry
                          parse-exp ;flatten-anf
                          ;; simplify-match
-                                      expand-to-lc  add-fluff
-                                      ))
+                         expand-to-lc  add-fluff))
          (parameterize ([pretty-print-current-style-table
                          (pretty-print-extend-style-table
                           (pretty-print-current-style-table)

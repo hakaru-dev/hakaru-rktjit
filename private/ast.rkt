@@ -11,7 +11,8 @@
            `(,(car fn) ,(pe (cdr fn)))))]
     [(expr-fun args ret-type body)
      `(function ,(map pe args) ,(pe body))]
-    [(expr-var type sym orig) sym]
+    [(expr-var type sym orig) sym;(string->symbol (format "~a|~a" sym orig))
+     ]
     [(expr-arr type index size body)
      `(array ,(pe index) ,(pe size) ,(pe body))]
     [(expr-sum type index start end body)
@@ -55,6 +56,22 @@
     [(pat-false) 'false]
     [(pat-pair p) `(pair ,(map pp p))]
     [(pat-ident) 'rec]))
+(define (ps stmt)
+  (match stmt
+    [(stmt-if tst thn els)
+     `(if-stmt ,(pe tst)
+               ,(ps thn)
+               ,(ps els))]
+    [(stmt-for i start end body)
+     `(for (,(pe i) ,(pe start) ,(pe end))
+        ,(ps body))]
+    [(stmt-block stmts)
+     `(block-stmt
+       ,@(map ps stmts))]
+    [(stmt-assign var val)
+     `(set! ,(pe var) ,(pe val))]
+    [(stmt-void)
+     '<void>]))
 
 (struct expr-mod  (main fns) #:prefab)
 (struct expr-fun  (args ret-type body) #:prefab)
@@ -73,6 +90,8 @@
 (struct expr-val  (type v) #:prefab)
 (struct expr-intr (sym) #:prefab)
 (struct expr-intrf (sym) #:prefab)
+(struct expr-block (stmts body) #:prefab)
+
 (define (f-or e) (λ fs (for/or ([f fs])
                          (fs e))))
 (define expr? (λ (e) ((f-or e) expr-mod? expr-fun? expr-let? expr-var? expr-arr?
@@ -93,6 +112,12 @@
 (struct pat-var () #:prefab)
 (struct pat-ident () #:prefab)
 (define pat? (λ (p) ((f-or p) pat-true? pat-false? pat-pair? pat-var? pat-ident?)))
+
+(struct stmt-if (tst thn els) #:prefab)
+(struct stmt-for (i start end body) #:prefab)
+(struct stmt-block (stmts) #:prefab)
+(struct stmt-assign (var val) #:prefab)
+(struct stmt-void () #:prefab)
 (define internal-ops
   (apply set '(size index recip nat2prob prob2real + * == and < or not
                     categorical)))
@@ -174,71 +199,71 @@
           (expr-app t (f ra) (map f rs))]
          [else e])]))
 
-(define-syntax (expr/pass/state stx) ;TODO, FIXME
-  (syntax-case stx ()
-      [(_ st initial mps ...)
-       #'(λ (e)
-           (letrec
-               ((f (λ (e s)
-                     (values
-                      (match e
-                        [(expr-mod main fns)
-                         (define-values (main^ _) (f main s))
-                         (define fns^ (map (λ (fn) (call-with-values (λ () (f fn))
-                                                                     (λ (e s) e)))
-                                           fns))
-                         (expr-mod main^ fns^)]
-                        [(expr-fun args ret-type body)
-                         (define-values (body^ _) (f body s))
-                         (expr-fun args ret-type body^)]
-                        [(expr-let type var val body)
-                         (define-values (val^ _) (f val s))
-                         (define-values (body^ _) (f body s))
-                         (expr-let type var val^ body^)]
-                        [(expr-arr t i start b)
-                         (define-values (i^ _) (f i s))
-                         (define-values (start^ _) (f start s))
-                         (define-values (b^ _) (f b s))
-                         (expr-arr t i^ start^ b^)]
-                        [(expr-sum t i start end b)
-                         (define-values (i^ _) (f i s))
-                         (define-values (start^ _) (f start s))
-                         (define-values (end^ _) (f end s))
-                         (define-values (b^ _) (f b s))
-                         (expr-sum t i^ start^ end^ b^)]
-                        [(expr-prd t i start end b)
-                         (define-values (i^ _) (f i s))
-                         (define-values (start^ _) (f start s))
-                         (define-values (end^ _) (f end s))
-                         (define-values (b^ _) (f b s))
-                         (expr-prd t i^ start^ end^ b^)]
-                        [(expr-bucket t siz e r)
-                         (define-values (siz^ _) (f siz s))
-                         (define-values (e^ _) (f e s))
-                         (expr-bucket t siz^ e^ r)]
-                        [(expr-branch pat body)
-                         (define-values (body^ _) (f body s))
-                         (expr-branch pat body^)]
-                        [(expr-match t tst brs)
-                         (define-values (tst^ _) (f tst s))
-                         (define brs^ (map (λ (br) (call-with-values (λ () (f br))
-                                                                     (λ (e s) e)))
-                                           brs))
-                         (expr-match t tst^ brs^)]
-                        [(expr-bind v b)
-                         (define-values (b^ _) (f b s))
-                         (expr-bind v b^)]
-                        [(expr-if t tst thn els)
-                         (define-values (tst^ _) (f tst s))
-                         (define-values (thn^ _) (f thn s))
-                         (define-values (els^ _) (f els s))
-                         (expr-if t tst^ thn^ els^)]
-                        [(expr-app t ra rs)
-                         (define-values (ra^ _) (f ra s))
-                         (define rs^ (map (λ (rs) (call-with-values (λ () (f rs))
-                                                                     (λ (e s) e)))
-                                           rs))
-                         (expr-app t ra^ rs^)]
-                        [else e])
-                      st))))
-             (f^ initial e)))]))
+;; (define-syntax (expr/pass/state stx) ;TODO, FIXME
+;;   (syntax-case stx ()
+;;       [(_ st initial mps ...)
+;;        #'(λ (e)
+;;            (letrec
+;;                ((f (λ (e s)
+;;                      (values
+;;                       (match e
+;;                         [(expr-mod main fns)
+;;                          (define-values (main^ _) (f main s))
+;;                          (define fns^ (map (λ (fn) (call-with-values (λ () (f fn))
+;;                                                                      (λ (e s) e)))
+;;                                            fns))
+;;                          (expr-mod main^ fns^)]
+;;                         [(expr-fun args ret-type body)
+;;                          (define-values (body^ _) (f body s))
+;;                          (expr-fun args ret-type body^)]
+;;                         [(expr-let type var val body)
+;;                          (define-values (val^ _) (f val s))
+;;                          (define-values (body^ _) (f body s))
+;;                          (expr-let type var val^ body^)]
+;;                         [(expr-arr t i start b)
+;;                          (define-values (i^ _) (f i s))
+;;                          (define-values (start^ _) (f start s))
+;;                          (define-values (b^ _) (f b s))
+;;                          (expr-arr t i^ start^ b^)]
+;;                         [(expr-sum t i start end b)
+;;                          (define-values (i^ _) (f i s))
+;;                          (define-values (start^ _) (f start s))
+;;                          (define-values (end^ _) (f end s))
+;;                          (define-values (b^ _) (f b s))
+;;                          (expr-sum t i^ start^ end^ b^)]
+;;                         [(expr-prd t i start end b)
+;;                          (define-values (i^ _) (f i s))
+;;                          (define-values (start^ _) (f start s))
+;;                          (define-values (end^ _) (f end s))
+;;                          (define-values (b^ _) (f b s))
+;;                          (expr-prd t i^ start^ end^ b^)]
+;;                         [(expr-bucket t siz e r)
+;;                          (define-values (siz^ _) (f siz s))
+;;                          (define-values (e^ _) (f e s))
+;;                          (expr-bucket t siz^ e^ r)]
+;;                         [(expr-branch pat body)
+;;                          (define-values (body^ _) (f body s))
+;;                          (expr-branch pat body^)]
+;;                         [(expr-match t tst brs)
+;;                          (define-values (tst^ _) (f tst s))
+;;                          (define brs^ (map (λ (br) (call-with-values (λ () (f br))
+;;                                                                      (λ (e s) e)))
+;;                                            brs))
+;;                          (expr-match t tst^ brs^)]
+;;                         [(expr-bind v b)
+;;                          (define-values (b^ _) (f b s))
+;;                          (expr-bind v b^)]
+;;                         [(expr-if t tst thn els)
+;;                          (define-values (tst^ _) (f tst s))
+;;                          (define-values (thn^ _) (f thn s))
+;;                          (define-values (els^ _) (f els s))
+;;                          (expr-if t tst^ thn^ els^)]
+;;                         [(expr-app t ra rs)
+;;                          (define-values (ra^ _) (f ra s))
+;;                          (define rs^ (map (λ (rs) (call-with-values (λ () (f rs))
+;;                                                                      (λ (e s) e)))
+;;                                            rs))
+;;                          (expr-app t ra^ rs^)]
+;;                         [else e])
+;;                       st))))
+;;              (f^ initial e)))]))
