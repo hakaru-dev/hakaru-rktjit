@@ -3,9 +3,12 @@
 (provide simplify-match)
 
 (define simplify-match
-  (expr/pass
-   [(expr-match t tst brs)
-    (if (eq? (typeof tst) 'bool) (toif t tst brs) (extract-pair t tst brs))]))
+  (create-rpass
+   (expr [(expr-match t tst brs)
+          (if (eq? (typeof tst) 'bool) (toif t tst brs) (extract-pair t tst brs))])
+   (reducer)
+   (stmt)
+   (pat)))
 
 (define (toif t tst brs)
   (define-values (tb fb)

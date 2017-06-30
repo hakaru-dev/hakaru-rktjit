@@ -3,8 +3,8 @@
 (provide (all-defined-out))
 
 (require racket/generic)
-(define map-symbol identity)
-(define mapr-symbol identity)
+(define map-symbol (λ (e r s p e^) e^))
+(define mapr-symbol(λ (e r s p e^) e^))
 
 ;;GRAMMAR-INFO
 #|
@@ -50,627 +50,676 @@
 
 ;AG
 (begin
-  (begin
-    (struct expr ())
-    (define-generics
+   (begin
+     (struct expr ())
+     (define-generics
       exprg
-      (map-expr f-terminal f-expr f-reducer f-stmt f-pat exprg)
-      (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat exprg))
-    (struct
+      (map-expr f-expr f-reducer f-stmt f-pat exprg)
+      (mapr-expr f-expr f-reducer f-stmt f-pat exprg))
+     (struct
       expr-mod
       expr
       (main fns)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-mod main fns) (f-expr e^))
          (expr-mod
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat main)
-          (map (curry map-expr f-terminal f-expr f-reducer f-stmt f-pat) fns)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (super-map-expr f-expr f-reducer f-stmt f-pat main)
+          (map (curry super-map-expr f-expr f-reducer f-stmt f-pat) fns)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-mod main fns) e^)
          (f-expr
           (expr-mod
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat main)
-           (map
-            (curry mapr-expr f-terminal f-expr f-reducer f-stmt f-pat)
-            fns))))))
-    (struct
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat main)
+           (map (curry super-mapr-expr f-expr f-reducer f-stmt f-pat) fns))))))
+     (struct
       expr-fun
       expr
       (args ret-type body)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-fun args ret-type body) (f-expr e^))
          (expr-fun
-          (map (curry map-expr f-terminal f-expr f-reducer f-stmt f-pat) args)
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat ret-type)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat body)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map (curry super-map-expr f-expr f-reducer f-stmt f-pat) args)
+          (map-symbol f-expr f-reducer f-stmt f-pat ret-type)
+          (super-map-expr f-expr f-reducer f-stmt f-pat body)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-fun args ret-type body) e^)
          (f-expr
           (expr-fun
-           (map
-            (curry mapr-expr f-terminal f-expr f-reducer f-stmt f-pat)
-            args)
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat ret-type)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat body))))))
-    (struct
+           (map (curry super-mapr-expr f-expr f-reducer f-stmt f-pat) args)
+           (mapr-symbol f-expr f-reducer f-stmt f-pat ret-type)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat body))))))
+     (struct
       expr-let
       expr
       (type var val body)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-let type var val body) (f-expr e^))
          (expr-let
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat var)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat val)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat body)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (super-map-expr f-expr f-reducer f-stmt f-pat var)
+          (super-map-expr f-expr f-reducer f-stmt f-pat val)
+          (super-map-expr f-expr f-reducer f-stmt f-pat body)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-let type var val body) e^)
          (f-expr
           (expr-let
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat var)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat val)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat body))))))
-    (struct
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat var)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat val)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat body))))))
+     (struct
       expr-lets
       expr
       (types vars vals body)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-lets types vars vals body) (f-expr e^))
          (expr-lets
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat types)
-          (map (curry map-expr f-terminal f-expr f-reducer f-stmt f-pat) vars)
-          (map (curry map-expr f-terminal f-expr f-reducer f-stmt f-pat) vals)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat body)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat types)
+          (map (curry super-map-expr f-expr f-reducer f-stmt f-pat) vars)
+          (map (curry super-map-expr f-expr f-reducer f-stmt f-pat) vals)
+          (super-map-expr f-expr f-reducer f-stmt f-pat body)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-lets types vars vals body) e^)
          (f-expr
           (expr-lets
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat types)
-           (map
-            (curry mapr-expr f-terminal f-expr f-reducer f-stmt f-pat)
-            vars)
-           (map
-            (curry mapr-expr f-terminal f-expr f-reducer f-stmt f-pat)
-            vals)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat body))))))
-    (struct
+           (mapr-symbol f-expr f-reducer f-stmt f-pat types)
+           (map (curry super-mapr-expr f-expr f-reducer f-stmt f-pat) vars)
+           (map (curry super-mapr-expr f-expr f-reducer f-stmt f-pat) vals)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat body))))))
+     (struct
       expr-var
       expr
       (type sym orig)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-var type sym orig) (f-expr e^))
          (expr-var
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat sym)
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat orig)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (map-symbol f-expr f-reducer f-stmt f-pat sym)
+          (map-symbol f-expr f-reducer f-stmt f-pat orig)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-var type sym orig) e^)
          (f-expr
           (expr-var
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat sym)
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat orig))))))
-    (struct
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (mapr-symbol f-expr f-reducer f-stmt f-pat sym)
+           (mapr-symbol f-expr f-reducer f-stmt f-pat orig))))))
+     (struct
       expr-arr
       expr
       (type index size body)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-arr type index size body) (f-expr e^))
          (expr-arr
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat index)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat size)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat body)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (super-map-expr f-expr f-reducer f-stmt f-pat index)
+          (super-map-expr f-expr f-reducer f-stmt f-pat size)
+          (super-map-expr f-expr f-reducer f-stmt f-pat body)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-arr type index size body) e^)
          (f-expr
           (expr-arr
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat index)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat size)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat body))))))
-    (struct
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat index)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat size)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat body))))))
+     (struct
       expr-sum
       expr
       (type index start end body)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-sum type index start end body) (f-expr e^))
          (expr-sum
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat index)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat start)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat end)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat body)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (super-map-expr f-expr f-reducer f-stmt f-pat index)
+          (super-map-expr f-expr f-reducer f-stmt f-pat start)
+          (super-map-expr f-expr f-reducer f-stmt f-pat end)
+          (super-map-expr f-expr f-reducer f-stmt f-pat body)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-sum type index start end body) e^)
          (f-expr
           (expr-sum
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat index)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat start)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat end)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat body))))))
-    (struct
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat index)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat start)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat end)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat body))))))
+     (struct
       expr-prd
       expr
       (type index start end body)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-prd type index start end body) (f-expr e^))
          (expr-prd
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat index)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat start)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat end)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat body)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (super-map-expr f-expr f-reducer f-stmt f-pat index)
+          (super-map-expr f-expr f-reducer f-stmt f-pat start)
+          (super-map-expr f-expr f-reducer f-stmt f-pat end)
+          (super-map-expr f-expr f-reducer f-stmt f-pat body)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-prd type index start end body) e^)
          (f-expr
           (expr-prd
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat index)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat start)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat end)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat body))))))
-    (struct
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat index)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat start)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat end)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat body))))))
+     (struct
       expr-bucket
       expr
       (type start end reducer)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-bucket type start end reducer) (f-expr e^))
          (expr-bucket
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat start)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat end)
-          (map-reducer f-terminal f-expr f-reducer f-stmt f-pat reducer)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (super-map-expr f-expr f-reducer f-stmt f-pat start)
+          (super-map-expr f-expr f-reducer f-stmt f-pat end)
+          (map-reducer f-expr f-reducer f-stmt f-pat reducer)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-bucket type start end reducer) e^)
          (f-expr
           (expr-bucket
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat start)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat end)
-           (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat reducer))))))
-    (struct
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat start)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat end)
+           (mapr-reducer f-expr f-reducer f-stmt f-pat reducer))))))
+     (struct
       expr-branch
       expr
       (pat body)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-branch pat body) (f-expr e^))
          (expr-branch
-          (map-pat f-terminal f-expr f-reducer f-stmt f-pat pat)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat body)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-pat f-expr f-reducer f-stmt f-pat pat)
+          (super-map-expr f-expr f-reducer f-stmt f-pat body)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-branch pat body) e^)
          (f-expr
           (expr-branch
-           (mapr-pat f-terminal f-expr f-reducer f-stmt f-pat pat)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat body))))))
-    (struct
+           (mapr-pat f-expr f-reducer f-stmt f-pat pat)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat body))))))
+     (struct
       expr-match
       expr
       (type tst branches)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-match type tst branches) (f-expr e^))
          (expr-match
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat tst)
-          (map
-           (curry map-expr f-terminal f-expr f-reducer f-stmt f-pat)
-           branches)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (super-map-expr f-expr f-reducer f-stmt f-pat tst)
+          (map (curry super-map-expr f-expr f-reducer f-stmt f-pat) branches)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-match type tst branches) e^)
          (f-expr
           (expr-match
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat tst)
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat tst)
            (map
-            (curry mapr-expr f-terminal f-expr f-reducer f-stmt f-pat)
+            (curry super-mapr-expr f-expr f-reducer f-stmt f-pat)
             branches))))))
-    (struct
+     (struct
       expr-bind
       expr
       (var body)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-bind var body) (f-expr e^))
          (expr-bind
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat var)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat body)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (super-map-expr f-expr f-reducer f-stmt f-pat var)
+          (super-map-expr f-expr f-reducer f-stmt f-pat body)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-bind var body) e^)
          (f-expr
           (expr-bind
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat var)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat body))))))
-    (struct
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat var)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat body))))))
+     (struct
       expr-if
       expr
       (type tst thn els)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-if type tst thn els) (f-expr e^))
          (expr-if
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat tst)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat thn)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat els)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (super-map-expr f-expr f-reducer f-stmt f-pat tst)
+          (super-map-expr f-expr f-reducer f-stmt f-pat thn)
+          (super-map-expr f-expr f-reducer f-stmt f-pat els)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-if type tst thn els) e^)
          (f-expr
           (expr-if
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat tst)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat thn)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat els))))))
-    (struct
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat tst)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat thn)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat els))))))
+     (struct
       expr-app
       expr
       (type rator rands)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-app type rator rands) (f-expr e^))
          (expr-app
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat rator)
-          (map
-           (curry map-expr f-terminal f-expr f-reducer f-stmt f-pat)
-           rands)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (super-map-expr f-expr f-reducer f-stmt f-pat rator)
+          (map (curry super-map-expr f-expr f-reducer f-stmt f-pat) rands)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-app type rator rands) e^)
          (f-expr
           (expr-app
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat rator)
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat rator)
            (map
-            (curry mapr-expr f-terminal f-expr f-reducer f-stmt f-pat)
+            (curry super-mapr-expr f-expr f-reducer f-stmt f-pat)
             rands))))))
-    (struct
+     (struct
       expr-val
       expr
       (type v)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-val type v) (f-expr e^))
          (expr-val
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat v)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (map-symbol f-expr f-reducer f-stmt f-pat v)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-val type v) e^)
          (f-expr
           (expr-val
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat v))))))
-    (struct
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (mapr-symbol f-expr f-reducer f-stmt f-pat v))))))
+     (struct
       expr-intr
       expr
       (sym)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-intr sym) (f-expr e^))
-         (expr-intr (map-symbol f-terminal f-expr f-reducer f-stmt f-pat sym)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+         (expr-intr (map-symbol f-expr f-reducer f-stmt f-pat sym)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-intr sym) e^)
          (f-expr
-          (expr-intr
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat sym))))))
-    (struct
+          (expr-intr (mapr-symbol f-expr f-reducer f-stmt f-pat sym))))))
+     (struct
       expr-intrf
       expr
       (sym)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-intrf sym) (f-expr e^))
-         (expr-intrf
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat sym)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+         (expr-intrf (map-symbol f-expr f-reducer f-stmt f-pat sym)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-intrf sym) e^)
          (f-expr
-          (expr-intrf
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat sym))))))
-    (struct
+          (expr-intrf (mapr-symbol f-expr f-reducer f-stmt f-pat sym))))))
+     (struct
       expr-block
       expr
       (type stmt body)
       #:methods
       gen:exprg
-      ((define (map-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-expr map-expr)
+       (define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-block type stmt body) (f-expr e^))
          (expr-block
-          (map-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-          (map-stmt f-terminal f-expr f-reducer f-stmt f-pat stmt)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat body)))
-       (define (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-symbol f-expr f-reducer f-stmt f-pat type)
+          (map-stmt f-expr f-reducer f-stmt f-pat stmt)
+          (super-map-expr f-expr f-reducer f-stmt f-pat body)))
+       (define/generic super-mapr-expr mapr-expr)
+       (define (mapr-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-block type stmt body) e^)
          (f-expr
           (expr-block
-           (mapr-symbol f-terminal f-expr f-reducer f-stmt f-pat type)
-           (mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat stmt)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat body)))))))
-  (begin
-    (struct reducer ())
-    (define-generics
+           (mapr-symbol f-expr f-reducer f-stmt f-pat type)
+           (mapr-stmt f-expr f-reducer f-stmt f-pat stmt)
+           (super-mapr-expr f-expr f-reducer f-stmt f-pat body)))))))
+   (begin
+     (struct reducer ())
+     (define-generics
       reducerg
-      (map-reducer f-terminal f-expr f-reducer f-stmt f-pat reducerg)
-      (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat reducerg))
-    (struct
+      (map-reducer f-expr f-reducer f-stmt f-pat reducerg)
+      (mapr-reducer f-expr f-reducer f-stmt f-pat reducerg))
+     (struct
       reducer-split
       reducer
       (e a b)
       #:methods
       gen:reducerg
-      ((define (map-reducer f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-reducer map-reducer)
+       (define (map-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-split e a b) (f-reducer e^))
          (reducer-split
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat e)
-          (map-reducer f-terminal f-expr f-reducer f-stmt f-pat a)
-          (map-reducer f-terminal f-expr f-reducer f-stmt f-pat b)))
-       (define (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-expr f-expr f-reducer f-stmt f-pat e)
+          (super-map-reducer f-expr f-reducer f-stmt f-pat a)
+          (super-map-reducer f-expr f-reducer f-stmt f-pat b)))
+       (define/generic super-mapr-reducer mapr-reducer)
+       (define (mapr-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-split e a b) e^)
          (f-reducer
           (reducer-split
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e)
-           (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat a)
-           (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat b))))))
-    (struct
+           (mapr-expr f-expr f-reducer f-stmt f-pat e)
+           (super-mapr-reducer f-expr f-reducer f-stmt f-pat a)
+           (super-mapr-reducer f-expr f-reducer f-stmt f-pat b))))))
+     (struct
       reducer-fanout
       reducer
       (a b)
       #:methods
       gen:reducerg
-      ((define (map-reducer f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-reducer map-reducer)
+       (define (map-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-fanout a b) (f-reducer e^))
          (reducer-fanout
-          (map-reducer f-terminal f-expr f-reducer f-stmt f-pat a)
-          (map-reducer f-terminal f-expr f-reducer f-stmt f-pat b)))
-       (define (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (super-map-reducer f-expr f-reducer f-stmt f-pat a)
+          (super-map-reducer f-expr f-reducer f-stmt f-pat b)))
+       (define/generic super-mapr-reducer mapr-reducer)
+       (define (mapr-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-fanout a b) e^)
          (f-reducer
           (reducer-fanout
-           (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat a)
-           (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat b))))))
-    (struct
+           (super-mapr-reducer f-expr f-reducer f-stmt f-pat a)
+           (super-mapr-reducer f-expr f-reducer f-stmt f-pat b))))))
+     (struct
       reducer-add
       reducer
       (e)
       #:methods
       gen:reducerg
-      ((define (map-reducer f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-reducer map-reducer)
+       (define (map-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-add e) (f-reducer e^))
-         (reducer-add (map-expr f-terminal f-expr f-reducer f-stmt f-pat e)))
-       (define (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat e^)
+         (reducer-add (map-expr f-expr f-reducer f-stmt f-pat e)))
+       (define/generic super-mapr-reducer mapr-reducer)
+       (define (mapr-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-add e) e^)
          (f-reducer
-          (reducer-add
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e))))))
-    (struct
+          (reducer-add (mapr-expr f-expr f-reducer f-stmt f-pat e))))))
+     (struct
       reducer-nop
       reducer
       ()
       #:methods
       gen:reducerg
-      ((define (map-reducer f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-reducer map-reducer)
+       (define (map-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-nop) (f-reducer e^))
          (reducer-nop))
-       (define (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat e^)
+       (define/generic super-mapr-reducer mapr-reducer)
+       (define (mapr-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-nop) e^)
          (f-reducer (reducer-nop)))))
-    (struct
+     (struct
       reducer-index
       reducer
       (n i a)
       #:methods
       gen:reducerg
-      ((define (map-reducer f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-reducer map-reducer)
+       (define (map-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-index n i a) (f-reducer e^))
          (reducer-index
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat n)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat i)
-          (map-reducer f-terminal f-expr f-reducer f-stmt f-pat a)))
-       (define (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-expr f-expr f-reducer f-stmt f-pat n)
+          (map-expr f-expr f-reducer f-stmt f-pat i)
+          (super-map-reducer f-expr f-reducer f-stmt f-pat a)))
+       (define/generic super-mapr-reducer mapr-reducer)
+       (define (mapr-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-index n i a) e^)
          (f-reducer
           (reducer-index
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat n)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat i)
-           (mapr-reducer f-terminal f-expr f-reducer f-stmt f-pat a)))))))
-  (begin
-    (struct stmt ())
-    (define-generics
+           (mapr-expr f-expr f-reducer f-stmt f-pat n)
+           (mapr-expr f-expr f-reducer f-stmt f-pat i)
+           (super-mapr-reducer f-expr f-reducer f-stmt f-pat a)))))))
+   (begin
+     (struct stmt ())
+     (define-generics
       stmtg
-      (map-stmt f-terminal f-expr f-reducer f-stmt f-pat stmtg)
-      (mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat stmtg))
-    (struct
+      (map-stmt f-expr f-reducer f-stmt f-pat stmtg)
+      (mapr-stmt f-expr f-reducer f-stmt f-pat stmtg))
+     (struct
       stmt-if
       stmt
       (tst thn els)
       #:methods
       gen:stmtg
-      ((define (map-stmt f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-stmt map-stmt)
+       (define (map-stmt f-expr f-reducer f-stmt f-pat e^)
          (match-define (stmt-if tst thn els) (f-stmt e^))
          (stmt-if
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat tst)
-          (map-stmt f-terminal f-expr f-reducer f-stmt f-pat thn)
-          (map-stmt f-terminal f-expr f-reducer f-stmt f-pat els)))
-       (define (mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-expr f-expr f-reducer f-stmt f-pat tst)
+          (super-map-stmt f-expr f-reducer f-stmt f-pat thn)
+          (super-map-stmt f-expr f-reducer f-stmt f-pat els)))
+       (define/generic super-mapr-stmt mapr-stmt)
+       (define (mapr-stmt f-expr f-reducer f-stmt f-pat e^)
          (match-define (stmt-if tst thn els) e^)
          (f-stmt
           (stmt-if
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat tst)
-           (mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat thn)
-           (mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat els))))))
-    (struct
+           (mapr-expr f-expr f-reducer f-stmt f-pat tst)
+           (super-mapr-stmt f-expr f-reducer f-stmt f-pat thn)
+           (super-mapr-stmt f-expr f-reducer f-stmt f-pat els))))))
+     (struct
       stmt-for
       stmt
       (i start end body)
       #:methods
       gen:stmtg
-      ((define (map-stmt f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-stmt map-stmt)
+       (define (map-stmt f-expr f-reducer f-stmt f-pat e^)
          (match-define (stmt-for i start end body) (f-stmt e^))
          (stmt-for
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat i)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat start)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat end)
-          (map-stmt f-terminal f-expr f-reducer f-stmt f-pat body)))
-       (define (mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-expr f-expr f-reducer f-stmt f-pat i)
+          (map-expr f-expr f-reducer f-stmt f-pat start)
+          (map-expr f-expr f-reducer f-stmt f-pat end)
+          (super-map-stmt f-expr f-reducer f-stmt f-pat body)))
+       (define/generic super-mapr-stmt mapr-stmt)
+       (define (mapr-stmt f-expr f-reducer f-stmt f-pat e^)
          (match-define (stmt-for i start end body) e^)
          (f-stmt
           (stmt-for
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat i)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat start)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat end)
-           (mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat body))))))
-    (struct
+           (mapr-expr f-expr f-reducer f-stmt f-pat i)
+           (mapr-expr f-expr f-reducer f-stmt f-pat start)
+           (mapr-expr f-expr f-reducer f-stmt f-pat end)
+           (super-mapr-stmt f-expr f-reducer f-stmt f-pat body))))))
+     (struct
       stmt-block
       stmt
       (stmts)
       #:methods
       gen:stmtg
-      ((define (map-stmt f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-stmt map-stmt)
+       (define (map-stmt f-expr f-reducer f-stmt f-pat e^)
          (match-define (stmt-block stmts) (f-stmt e^))
          (stmt-block
-          (map
-           (curry map-stmt f-terminal f-expr f-reducer f-stmt f-pat)
-           stmts)))
-       (define (mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map (curry super-map-stmt f-expr f-reducer f-stmt f-pat) stmts)))
+       (define/generic super-mapr-stmt mapr-stmt)
+       (define (mapr-stmt f-expr f-reducer f-stmt f-pat e^)
          (match-define (stmt-block stmts) e^)
          (f-stmt
           (stmt-block
            (map
-            (curry mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat)
+            (curry super-mapr-stmt f-expr f-reducer f-stmt f-pat)
             stmts))))))
-    (struct
+     (struct
       stmt-assign
       stmt
       (var val)
       #:methods
       gen:stmtg
-      ((define (map-stmt f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-stmt map-stmt)
+       (define (map-stmt f-expr f-reducer f-stmt f-pat e^)
          (match-define (stmt-assign var val) (f-stmt e^))
          (stmt-assign
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat var)
-          (map-expr f-terminal f-expr f-reducer f-stmt f-pat val)))
-       (define (mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (map-expr f-expr f-reducer f-stmt f-pat var)
+          (map-expr f-expr f-reducer f-stmt f-pat val)))
+       (define/generic super-mapr-stmt mapr-stmt)
+       (define (mapr-stmt f-expr f-reducer f-stmt f-pat e^)
          (match-define (stmt-assign var val) e^)
          (f-stmt
           (stmt-assign
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat var)
-           (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat val))))))
-    (struct
+           (mapr-expr f-expr f-reducer f-stmt f-pat var)
+           (mapr-expr f-expr f-reducer f-stmt f-pat val))))))
+     (struct
       stmt-void
       stmt
       ()
       #:methods
       gen:stmtg
-      ((define (map-stmt f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-stmt map-stmt)
+       (define (map-stmt f-expr f-reducer f-stmt f-pat e^)
          (match-define (stmt-void) (f-stmt e^))
          (stmt-void))
-       (define (mapr-stmt f-terminal f-expr f-reducer f-stmt f-pat e^)
+       (define/generic super-mapr-stmt mapr-stmt)
+       (define (mapr-stmt f-expr f-reducer f-stmt f-pat e^)
          (match-define (stmt-void) e^)
          (f-stmt (stmt-void))))))
-  (begin
-    (struct pat ())
-    (define-generics
+   (begin
+     (struct pat ())
+     (define-generics
       patg
-      (map-pat f-terminal f-expr f-reducer f-stmt f-pat patg)
-      (mapr-pat f-terminal f-expr f-reducer f-stmt f-pat patg))
-    (struct
+      (map-pat f-expr f-reducer f-stmt f-pat patg)
+      (mapr-pat f-expr f-reducer f-stmt f-pat patg))
+     (struct
       pat-true
       pat
       ()
       #:methods
       gen:patg
-      ((define (map-pat f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-pat map-pat)
+       (define (map-pat f-expr f-reducer f-stmt f-pat e^)
          (match-define (pat-true) (f-pat e^))
          (pat-true))
-       (define (mapr-pat f-terminal f-expr f-reducer f-stmt f-pat e^)
+       (define/generic super-mapr-pat mapr-pat)
+       (define (mapr-pat f-expr f-reducer f-stmt f-pat e^)
          (match-define (pat-true) e^)
          (f-pat (pat-true)))))
-    (struct
+     (struct
       pat-false
       pat
       ()
       #:methods
       gen:patg
-      ((define (map-pat f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-pat map-pat)
+       (define (map-pat f-expr f-reducer f-stmt f-pat e^)
          (match-define (pat-false) (f-pat e^))
          (pat-false))
-       (define (mapr-pat f-terminal f-expr f-reducer f-stmt f-pat e^)
+       (define/generic super-mapr-pat mapr-pat)
+       (define (mapr-pat f-expr f-reducer f-stmt f-pat e^)
          (match-define (pat-false) e^)
          (f-pat (pat-false)))))
-    (struct
+     (struct
       pat-pair
       pat
       (a b)
       #:methods
       gen:patg
-      ((define (map-pat f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-pat map-pat)
+       (define (map-pat f-expr f-reducer f-stmt f-pat e^)
          (match-define (pat-pair a b) (f-pat e^))
          (pat-pair
-          (map-pat f-terminal f-expr f-reducer f-stmt f-pat a)
-          (map-pat f-terminal f-expr f-reducer f-stmt f-pat b)))
-       (define (mapr-pat f-terminal f-expr f-reducer f-stmt f-pat e^)
+          (super-map-pat f-expr f-reducer f-stmt f-pat a)
+          (super-map-pat f-expr f-reducer f-stmt f-pat b)))
+       (define/generic super-mapr-pat mapr-pat)
+       (define (mapr-pat f-expr f-reducer f-stmt f-pat e^)
          (match-define (pat-pair a b) e^)
          (f-pat
           (pat-pair
-           (mapr-pat f-terminal f-expr f-reducer f-stmt f-pat a)
-           (mapr-pat f-terminal f-expr f-reducer f-stmt f-pat b))))))
-    (struct
+           (super-mapr-pat f-expr f-reducer f-stmt f-pat a)
+           (super-mapr-pat f-expr f-reducer f-stmt f-pat b))))))
+     (struct
       pat-var
       pat
       ()
       #:methods
       gen:patg
-      ((define (map-pat f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-pat map-pat)
+       (define (map-pat f-expr f-reducer f-stmt f-pat e^)
          (match-define (pat-var) (f-pat e^))
          (pat-var))
-       (define (mapr-pat f-terminal f-expr f-reducer f-stmt f-pat e^)
+       (define/generic super-mapr-pat mapr-pat)
+       (define (mapr-pat f-expr f-reducer f-stmt f-pat e^)
          (match-define (pat-var) e^)
          (f-pat (pat-var)))))
-    (struct
+     (struct
       pat-ident
       pat
       ()
       #:methods
       gen:patg
-      ((define (map-pat f-terminal f-expr f-reducer f-stmt f-pat e^)
+      ((define/generic super-map-pat map-pat)
+       (define (map-pat f-expr f-reducer f-stmt f-pat e^)
          (match-define (pat-ident) (f-pat e^))
          (pat-ident))
-       (define (mapr-pat f-terminal f-expr f-reducer f-stmt f-pat e^)
+       (define/generic super-mapr-pat mapr-pat)
+       (define (mapr-pat f-expr f-reducer f-stmt f-pat e^)
          (match-define (pat-ident) e^)
          (f-pat (pat-ident)))))))
 
 (define-syntax (create-pass stx)
   (syntax-case stx (expr reducer stmt pat)
-    [((expr mat-expr ...)
+    ((_
+      (expr mat-expr ...)
       (reducer mat-reducer ...)
       (stmt mat-stmt ...)
       (pat mat-pat ...))
@@ -678,10 +727,11 @@
                 (f-reducer (λ (e) (match e mat-reducer ... (else e))))
                 (f-stmt (λ (e) (match e mat-stmt ... (else e))))
                 (f-pat (λ (e) (match e mat-pat ... (else e)))))
-         (map-expr f-terminal f-expr f-reducer f-stmt f-pat e))]))
+         (λ (e) (map-expr f-expr f-reducer f-stmt f-pat e))))))
 (define-syntax (create-rpass stx)
   (syntax-case stx (expr reducer stmt pat)
-    [((expr mat-expr ...)
+    ((_
+      (expr mat-expr ...)
       (reducer mat-reducer ...)
       (stmt mat-stmt ...)
       (pat mat-pat ...))
@@ -689,7 +739,7 @@
                 (f-reducer (λ (e) (match e mat-reducer ... (else e))))
                 (f-stmt (λ (e) (match e mat-stmt ... (else e))))
                 (f-pat (λ (e) (match e mat-pat ... (else e)))))
-         (mapr-expr f-terminal f-expr f-reducer f-stmt f-pat e))]))
+         (λ (e) (mapr-expr f-expr f-reducer f-stmt f-pat e))))))
 ;AG-END
 
 (define internal-ops
@@ -756,6 +806,7 @@
     [(expr-val t v) v]
     [else `(? ,e)]))
 (define print-expr pe)
+(define display-expr (compose pretty-display print-expr))
 (define (pr red)
   (match red
     [(reducer-split e a b) `(split ,(pe e) ,(pr a) ,(pr b))]
@@ -764,6 +815,7 @@
     [(reducer-nop) `(nop)]
     [(reducer-index i e b) `(index ,(pe i) ,(pe e) ,(pr b))]))
 (define print-reducer pr)
+(define display-reducer (compose pretty-display print-reducer))
 (define (pp pat)
   (match pat
     [(pat-var) 'var]
@@ -772,6 +824,7 @@
     [(pat-pair a b) `(pair ,(pp a) ,(pp b))]
     [(pat-ident) 'rec]))
 (define print-pattern pp)
+(define display-pattern (compose pretty-display print-pattern))
 (define (ps stmt)
   (match stmt
     [(stmt-if tst thn els) `(if-stmt ,(pe tst) ,(ps thn) ,(ps els))]
@@ -780,6 +833,7 @@
     [(stmt-assign var val) `(set! ,(pe var) ,(pe val))]
     [(stmt-void) '<void>]))
 (define print-stmt ps)
+(define display-stmt (compose pretty-display print-stmt))
 
 (define-syntax (expr/pass stx)
   (syntax-case stx ()
