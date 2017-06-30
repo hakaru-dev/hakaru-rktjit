@@ -17,7 +17,9 @@
 (define (extract-pair t tst brs)
   (unless (and (eq? (length brs) 1)
                (eq? (car (typeof tst)) 'pair)
-               (equal? (expr-branch-pat (car brs)) (pat-pair (list (pat-var) (pat-var)))))
+               (pat-pair? (expr-branch-pat (car brs)))
+               (pat-var? (pat-pair-a (expr-branch-pat (car brs))))
+               (pat-var? (pat-pair-b (expr-branch-pat (car brs)))))
     (error "matching over pair with multiple branches or complex pattern." brs))
 
   (printf "match pair")

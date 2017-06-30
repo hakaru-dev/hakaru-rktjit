@@ -89,7 +89,7 @@
   (match pat
     [`(datum true ,_)  (pat-true)]
     [`(datum false ,_) (pat-false)]
-    [`(datum pair ,c)  (pat-pair (pc c))]))
+    [`(datum pair ,c)  (match-define (list a b) (pc c)) (pat-pair a b)]))
 
 ;;S-expression to ast struct
 (define (parse-sexp expr)
