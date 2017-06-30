@@ -24,15 +24,15 @@
 (define (find-free-variables expr)
   (define ffv^ find-free-variables)
   (match expr
-    [(expr-let t (expr-var tv s o) val b) (set-union (ffv^ val) (set-remove (ffv^ b) s))]
+    [(expr-let t s val b) (set-union (ffv^ val) (set-remove (ffv^ b) s))]
     [(expr-lets ts vars vals b)
      (set-subtract (apply set-union (cons (ffv^ b) (map ffv^ vals)))
-                   (apply seteqv (map expr-var-sym vars)))]
-    [(expr-sum t (expr-var tv i o) start end b)
+                   (apply set vars))]
+    [(expr-sum t i start end b)
      (set-union (ffv^ start) (ffv^ end) (set-remove (ffv^ b) i))]
-    [(expr-prd t (expr-var tv i o) start end b)
+    [(expr-prd t i start end b)
      (set-union (ffv^ start) (ffv^ end) (set-remove (ffv^ b) i))]
-    [(expr-arr t (expr-var tv i o) end b)
+    [(expr-arr t i end b)
      (set-union (ffv^ end) (set-remove (ffv^ b) i))]
     [(expr-bucket t s e r)
      (set-union (ffv^ s) (ffv^ e) (ffv^ r))]
@@ -42,24 +42,23 @@
     [(expr-if t tst thn els) (set-union (ffv^ tst) (ffv^ thn) (ffv^ els))]
     [(expr-app t rator rands) (apply set-union (map ffv^ rands))]
     [(expr-block t st bd) (set-union (ffv^ st) (ffv^ bd))]
-    [(expr-val t v) (seteqv)]
-    [(expr-intr sym) (seteqv)]
-    [(expr-intrf sym) (seteqv)]
-    [(expr-var t s o) (seteqv s)]
-    [(expr-bind (expr-var t s o) e) (set-remove (ffv^ e) s)]
+    [(expr-val t v) (set)]
+    [(expr-intr sym) (set)]
+    [(expr-intrf sym) (set)]
+    [(expr-var t s o) (set expr)]
+    [(expr-bind s e) (set-remove (ffv^ e) s)]
 
     [(reducer-split e a b) (set-union (ffv^ e) (ffv^ a) (ffv^ b))]
     [(reducer-fanout a b) (set-union (ffv^ a) (ffv^ b))]
     [(reducer-add i) (set-union (ffv^ i))]
-    [(reducer-nop) (seteqv)]
+    [(reducer-nop) (set)]
     [(reducer-index i e b) (set-union (ffv^ i) (ffv^ e) (ffv^ b))]
 
     [(stmt-if tst thn els) (set-union (ffv^ tst) (ffv^ thn) (ffv^ els))]
-    [(stmt-for (expr-var tv i o) start end body)
+    [(stmt-for i start end body)
      (set-union (ffv^ start) (ffv^ end) (set-remove (ffv^ body) i))]
     [(stmt-block stmts)
      (apply set-union (map ffv^ stmts))]
 
-    [(stmt-void) (seteqv)]
-    [(stmt-assign to val) (set-union (ffv^ to) (ffv^ val))]
-))
+    [(stmt-void) (set)]
+    [(stmt-assign to val) (set-union (ffv^ to) (ffv^ val))]))

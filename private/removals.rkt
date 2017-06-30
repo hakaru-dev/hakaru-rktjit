@@ -11,7 +11,9 @@
    (expr
     [(expr-let t var val body)
      (if (equal? (typeof val) 'unit)
-         body
+         (begin
+           (printf "removing: ~a as unit\n" (pe var))
+           body)
          (expr-let t var val body))])
    (reducer)
    (stmt)
@@ -21,11 +23,9 @@
   (create-rpass
    (expr
     [(expr-let t var val body)
-     (if (eq? var body)
-         (begin
-           (printf "removing: ~a from: ~a\n" var (print-expr body))
-           val)
-         (expr-let t var val body))])
+     #:when (equal? var body)
+     (printf "replacing ~a with ~a\n" (pe var) (pe val))
+     val])
    (reducer)
    (stmt)
    (pat)))
@@ -35,11 +35,11 @@
    (expr
     [(expr-let t var val body)
      (define bff (find-free-variables body))
-     (if (set-member? bff (expr-var-sym var))
+     (if (set-member? bff var)
+         (expr-let t var val body)
          (begin
            (printf "removing: ~a\n" (pe var))
-           (expr-let t var val body))
-         body)])
+           body))])
    (reducer)
    (stmt)
    (pat)))

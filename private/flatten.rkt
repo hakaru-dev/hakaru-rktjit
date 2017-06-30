@@ -32,7 +32,7 @@
 (define (get-ufb-without uf var)
   (define sefvp (sort-efvp (ufb-efvp uf)))
   (define-values (free bind)
-    (splitf-at sefvp (λ (ef) (not (set-member? (efv-fvars ef) (expr-var-sym var))))))
+    (splitf-at sefvp (λ (ef) (not (set-member? (efv-fvars ef) var)))))
   ;; (printf "get-ufb-witout var: ~a\n" (expr-var-sym var))
   ;; (printf "free: ~a\nbind: ~a\n"
   ;;         (map (compose print-fvars efv-fvars) free)
@@ -51,7 +51,7 @@
     (sort efvp
           (λ (efv1 efv2)
             (or (set-empty? (set-subtract (efv-fvars efv1) (efv-fvars efv2)))
-                (set-member? (efv-fvars efv2) (expr-var-sym (efv-var efv1)))))))
+                (set-member? (efv-fvars efv2) (efv-var efv1))))))
   ;; (printf "sort after: ~a\n" (map (compose print-fvars efv-fvars) ret))
   ret)
 
@@ -73,11 +73,11 @@
                    ([curr (car to)]
                     [tout (car out)]
                     [rout (cdr out)]
-                    [top-fvars (apply set-union (cons (apply seteqv (map efv-var tout))
+                    [top-fvars (apply set-union (cons (apply set (map efv-var tout))
                                                       (map efv-fvars tout)))])
                  ;; (printf "top-fvars: ~a\n" (map (λ (e) (print-expr e)) (set->list top-fvars)))
                  (if (and (set-empty? (set-intersect (efv-fvars (car to)) top-fvars))
-                          (not (set-member? top-fvars (expr-var-sym (efv-var curr)))))
+                          (not (set-member? top-fvars (efv-var curr))))
                      `((,curr . ,tout) . ,rout)
                      `((,curr) . ,out))))))))
   ;; (printf "efvp: ~a\n" (map (λ (e) (cons (print-expr (efv-var e))
@@ -102,7 +102,7 @@
 (define (flatten-anf expr)
   (define args (expr-fun-args (expr-mod-main expr)))
   (define (ffv expr)
-    (set-subtract (find-free-variables expr) (list->seteqv (map expr-var-sym args))))
+    (set-subtract (find-free-variables expr) (list->set args)))
   (define (check-and-add expr efvp)
     (if (is-complex? expr)
         (let ([eufb (uf expr)])
