@@ -8,11 +8,11 @@
    [(expr-let t v val body)
     (if (expr-var? val)
         (begin
-          (printf "replacing: ~a with: ~a\n" (print-expr v) (print-expr val))
+          (printf "replacing: ~a with ~a\n" (print-expr v) (print-expr val))
           (sl body (hash-set env v val)))
         (expr-let t v (sl val env) (sl body env)))]
    [v #:when (hash-has-key? env v)
-      (printf "replaced from env: ~a with: ~a\n" (print-expr v) (print-expr (hash-ref env v)))
+      (printf "\treplaced: ~a with ~a\n" (print-expr v) (print-expr (hash-ref env v)))
       (hash-ref env v)]))
 
 (define (simplify-lets e)

@@ -22,9 +22,10 @@
     (define ind (expr-var 'nat (gensym^ (symbol-append (expr-var-sym result) 'i)) '_))
     (printf "doing bucket:\n \ttype: ~a, size: ~a\n" t (print-expr end))
     (printf "\treducer: " ) (pretty-display (pr reducer))
-    (pretty-display (ps (do-reducer ind (list ind) result t reducer)))
+    (define red-stmt (stmt-for ind start end (do-reducer ind (list ind) result t reducer)))
+    (pretty-display (ps red-stmt))
     (newline)
-    (expr-bucket t start end reducer))
+    (expr-block '? red-stmt result))
 
 (define (do-reducer i binds result t reducer)
   (printf "do-reducer\t binds: ~a\n" (map pe binds))

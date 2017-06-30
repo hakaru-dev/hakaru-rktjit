@@ -147,6 +147,12 @@
       expr
       (type sym orig)
       #:methods
+      gen:equal+hash
+      ((define (equal-proc v1 v2 _)
+         (equal? (expr-var-sym v1) (expr-var-sym v2)))
+       (define (hash-proc v _) (equal-hash-code (expr-var-sym v)))
+       (define (hash2-proc v _) (equal-secondary-hash-code (expr-var-sym v))))
+      #:methods
       gen:exprg
       ((define/generic super-map-expr map-expr)
        (define (map-expr f-expr f-reducer f-stmt f-pat e^)
