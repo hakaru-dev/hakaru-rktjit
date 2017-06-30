@@ -1,6 +1,7 @@
 #lang racket
 (require "ast.rkt")
-(provide simplify-match)
+(provide simplify-match
+         simplify-lets)
 
 (define simplify-match
   (create-rpass
@@ -25,12 +26,8 @@
                (pat-var? (pat-pair-b (expr-branch-pat (car brs)))))
     (error "matching over pair with multiple branches or complex pattern." brs))
 
-  ;; (printf "match pair")
-  ;; (printf "pat: ~a\n" (pp (expr-branch-pat (car brs))))
   (define car-type (cadr (typeof tst)))
   (define cdr-type (caddr (typeof tst)))
-  ;; (printf "car-type: ~a, cdr-type: ~a\n" car-type cdr-type)
-  ;; (printf "branch: ~a\n" (print-expr (car brs)))
   (define car-bind (expr-branch-body (car brs)))
   (define cdr-bind (expr-bind-body car-bind))
   (define car-var (expr-bind-var car-bind))
@@ -38,7 +35,22 @@
   (printf "match-pair: \n\tbr: ~a\n\tat: ~a, bt: ~a\n"
           (pe (car brs))
           car-type cdr-type)
-  ;; (printf "car-var: ~a, cdr-var: ~a\n" (print-expr car-var) (print-expr cdr-var))
   (expr-let t car-var (expr-app car-type (expr-intrf 'car) (list tst))
             (expr-let t cdr-var (expr-app cdr-type (expr-intrf 'cdr) (list tst))
                       (expr-bind-body cdr-bind))))
+
+(define (sl e env)
+  (fill-expr-pass
+   (curryr sl env) e
+   [(expr-let t v val body)
+    (if (expr-var? val)
+        (begin
+          (printf "replacing: ~a with ~a\n" (print-expr v) (print-expr val))
+          (sl body (hash-set env v val)))
+        (expr-let t v (sl val env) (sl body env)))]
+   [v #:when (hash-has-key? env v)
+      (printf "\treplaced: ~a with ~a\n" (print-expr v) (print-expr (hash-ref env v)))
+      (hash-ref env v)]))
+
+(define (simplify-lets e)
+  (sl e (make-immutable-hash)))
