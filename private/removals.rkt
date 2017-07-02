@@ -37,7 +37,7 @@
      (if (set-member? bff var)
          (expr-let t var val body)
          (begin
-           (printf "removing: ~a\n" (pe var))
+           (printf "removing: ~a=~a\n" (pe var) (pe body))
            body))])
    (reducer)
    (stmt)
