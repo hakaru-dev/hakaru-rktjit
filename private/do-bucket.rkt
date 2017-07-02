@@ -25,7 +25,11 @@
     (define nbody (expr-block (typeof body) (stmt-block stmts) body))
     (expr-lets ntyps nvars nvals nbody)]
    [(expr-let t var (expr-bucket t start end reducer) body)
-    (expr-let t var (do-bucket var t start end reducer) body)]))
+    (define-values (typs vars vals stmt) (do-bucket var t start end reducer))
+    (define nbody (expr-block t stmt body))
+    (expr-lets typs vars vals nbody)
+    ;; (expr-let t var (do-bucket var t start end reducer) body)
+    ]))
 
 (define (do-bucket result t start end reducer)
     (define ind (expr-var 'nat (gensym^ (symbol-append (expr-var-sym result) 'i)) '_))
