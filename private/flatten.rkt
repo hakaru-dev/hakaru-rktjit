@@ -1,7 +1,6 @@
 #lang racket
 
 (require "ast.rkt")
-(require "pass-utils.rkt")
 (require "utils.rkt")
 (require racket/trace)
 (provide flatten-anf)

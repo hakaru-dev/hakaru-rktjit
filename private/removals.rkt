@@ -1,6 +1,5 @@
 #lang racket
 (require "ast.rkt")
-(require "pass-utils.rkt")
 
 (provide remove-unit-lets
          remove-empty-lets
