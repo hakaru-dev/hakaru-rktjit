@@ -1,7 +1,9 @@
 #lang racket
 (require "ast.rkt")
+(require "utils.rkt")
 (provide simplify-match
          simplify-lets
+         remove-pairs
          )
 
 (define simplify-match
@@ -57,3 +59,15 @@
 
 (define (simplify-lets e)
   (sl e (make-immutable-hash)))
+
+
+(define remove-pairs 
+  (create-rpass
+   (expr [(expr-app t (expr-intrf s) rands)
+          (match s
+            ['car (expr-var t (symbol-append (expr-var-sym (car rands)) 'a) '_)]
+            ['cdr (expr-var t (symbol-append (expr-var-sym (car rands)) 'a) '_)]
+            [else  (expr-app t (expr-intrf s) rands)])])
+   (reducer)
+   (stmt)
+   (pat)))
