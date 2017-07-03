@@ -53,6 +53,8 @@
      (expr-val type s)]
     [(? symbol?) #:when (hash-has-key? env e)
      (hash-ref env e)]
+    [(? symbol?)
+     (expr-intrf e)]
     [else (error (format "match: no matching clause found for ~a" e))]))
 
 (define (sr r env)

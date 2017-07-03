@@ -12,9 +12,8 @@
 (require "basic-fluff.rkt")
 (require "ast.rkt")
 (require "utils.rkt")
-(require "simplify-match.rkt")
-(require "simplify-lets.rkt")
-(require "remove-lets.rkt")
+(require "simplifications.rkt")
+(require "removals.rkt")
 (require "do-bucket.rkt")
 (provide (all-defined-out))
 
@@ -22,21 +21,23 @@
   (call-with-input-file filename
     (lambda (in)
       (read in))))
-
 (define pp-expr (compose pretty-display print-expr))
 (define (passes interpret-args)
   (list (cons reduce-curry pretty-display)
-
         (cons parse-sexp         pp-expr)
+
         (cons flatten-anf        pp-expr)
         (cons simplify-match     pp-expr)
 
+        (cons bucket->for pp-expr)
         (cons remove-unit-lets   pp-expr)
+
+        (cons simplify-lets pp-expr)
         (cons remove-empty-lets  pp-expr)
-        (cons simplify-lets      pp-expr)
         (cons remove-unused-lets pp-expr)
-        (cons bucket->for        pp-expr)
-        ;; (interpret interpret-args)
+        (cons remove-pairs pp-expr)
+
+        (cons flatten-to-stmt pp-expr)
         (cons expand-to-lc (compose pretty-display print-ast))
         (cons add-fluff pretty-display)))
 
@@ -92,7 +93,8 @@
   (require ffi/unsafe)
   (require "jit-utils.rkt")
   ;; (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
-  (define nbgo-src (read-file "../../test.hk"))
+  ;; (define nbgo-src (read-file "../../test.hk"))
+  (define nbgo-src (read-file "../test/unit/bucket-index.hkr"))
   (define nbgo-mod-jit
     (debug-program nbgo-src
                    (passes

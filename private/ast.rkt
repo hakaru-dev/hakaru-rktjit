@@ -203,6 +203,16 @@
    (begin
      (define-generics stmtg (map-stmt f-expr f-reducer f-stmt f-pat stmtg))
      (struct stmt ())
+     (struct stmt-lets stmt (vars bstmt)
+       #:methods gen:stmtg
+       ((define (map-stmt f-expr f-reducer f-stmt f-pat e^)
+          (match-define (stmt-lets vars bstmt) e^)
+          (stmt-lets (map f-expr vars) (f-stmt bstmt)))))
+     (struct stmt-return stmt (val)
+       #:methods gen:stmtg
+       ((define (map-stmt f-expr f-reducer f-stmt f-pat e^)
+          (match-define (stmt-return val) e^)
+          (stmt-return (f-expr val)))))
      (struct stmt-if stmt (tst thn els)
       #:methods gen:stmtg
       ((define (map-stmt f-expr f-reducer f-stmt f-pat e^)
@@ -296,6 +306,29 @@
                          (define ne (match e mat-pat ... (else e)))
                          (map-pat f-expr f-reducer f-stmt f-pat ne))))
          (λ (e) (map-expr f-expr f-reducer f-stmt f-pat e))))))
+(define-syntax (create-pass/state stx)
+  (syntax-case stx (expr reducer stmt pat)
+    ((_ si
+        (expr mat-expr ...)
+        (reducer mat-reducer ...)
+        (stmt mat-stmt ...)
+        (pat mat-pat ...))
+     #`(letrec ((f-expr (λ (s e)
+                          (define ne (match e mat-expr ... (else e)))
+                          (map-expr f-expr f-reducer f-stmt f-pat ne)))
+                (f-reducer (λ (s e) (define ne (match e mat-reducer ... (else e)))
+                              (map-reducer f-expr f-reducer f-stmt f-pat ne)))
+                (f-stmt (λ (s e)
+                          (define ne (match e mat-stmt ... (else e)))
+                          (map-stmt f-expr f-reducer f-stmt f-pat ne)))
+                (f-pat (λ (s e)
+                         (define ne (match e mat-pat ... (else e)))
+                         (map-pat f-expr f-reducer f-stmt f-pat ne))))
+         (λ (e) (map-expr (curry f-expr si)
+                          (curry f-reducer si)
+                          (curry f-stmt si)
+                          (curry f-pat si)
+                          e))))))
 ;AG-END
 
 (define internal-ops
@@ -328,8 +361,11 @@
      `((main ,(pe main))
        ,@(for/list [(fn fns)]
            `(,(car fn) ,(pe (cdr fn)))))]
+    [(expr-fun args ret-type body) #:when (stmt? body)
+     `(function ,(map pe args) ,(ps body))]
     [(expr-fun args ret-type body)
      `(function ,(map pe args) ,(pe body))]
+
     [(expr-var type sym orig) sym #;(string->symbol (format "~a|~a" sym orig))]
     [(expr-arr type index size body)
      `(array ,(pe index) ,(pe size) ,(pe body))]
@@ -383,10 +419,12 @@
 (define display-pattern (compose pretty-display print-pattern))
 (define (ps stmt)
   (match stmt
+    [(stmt-lets vars stmt) `(let-stmt ,(map pe vars) ,(ps stmt))]
     [(stmt-if tst thn els) `(if-stmt ,(pe tst) ,(ps thn) ,(ps els))]
     [(stmt-for i start end body) `(for-stmt (,(pe i) ,(pe start) ,(pe end)) ,(ps body))]
     [(stmt-block stmts) `(block-stmt ,@(map ps stmts))]
     [(stmt-assign var val) `(set! ,(pe var) ,(pe val))]
+    [(stmt-return val) `(return ,(pe val))]
     [(stmt-void) '<void>]))
 (define print-stmt ps)
 (define display-stmt (compose pretty-display print-stmt))

@@ -67,9 +67,10 @@
      (define-values (trb vrb vlb) (get-init binds (expr-sym-append result 'b) tb rb))
      (values (append tra trb) (append vra vrb) (append vla vlb))]
     [(`(array ,tar) (reducer-index n _ ra))
+     (printf "reducer-index: ~a\n" (pe result))
      (define ptar (get-print-type tar))
      (define arr-size (assign-binds binds n))
-     (define arrn (expr-var '? (gensym^ 'arri) '_))
+     (define arrn (expr-var t (gensym^ 'arri) '_))
      (define fori (expr-var 'nat (gensym^ 'fi) '_))
      (define arr-init (expr-app tar (expr-intrf (symbol-append 'empty-array- ptar))
                                 (list arr-size)))
@@ -98,28 +99,28 @@
   (match* (reducer t)
     [((reducer-split (expr-bind bvar bbody) a b) `(pair ,ta ,tb))
      ;; (printf "\t reducer-split typea: ~a, typeb: ~a\n" ta tb)
-     (stmt-if (expr-let '? bvar i bbody)
-              (get-accum i binds (expr-var '? (symbol-append (expr-var-sym result) 'a) '_) ta a)
-              (get-accum i binds (expr-var '? (symbol-append (expr-var-sym result) 'b) '_) tb b))]
+     (stmt-if (expr-let (typeof i) bvar i bbody)
+              (get-accum i binds (expr-var ta (symbol-append (expr-var-sym result) 'a) '_) ta a)
+              (get-accum i binds (expr-var tb (symbol-append (expr-var-sym result) 'b) '_) tb b))]
     [((reducer-fanout a b) `(pair ,ta ,tb))
      ;; (printf "\t reducer-fanout typea: ~a, typeb: ~a\n" ta tb)
      (stmt-block
       (list
-       (get-accum i binds (expr-var '? (symbol-append (expr-var-sym result) 'a) '_) ta a)
-       (get-accum i binds (expr-var '? (symbol-append (expr-var-sym result) 'b) '_) tb b)))]
+       (get-accum i binds (expr-var ta (symbol-append (expr-var-sym result) 'a) '_) ta a)
+       (get-accum i binds (expr-var tb (symbol-append (expr-var-sym result) 'b) '_) tb b)))]
     [((reducer-add e) te)
      (printf "\t reducer-add type: ~a a: ~a\n" te (pe e))
      (printf "\t reducer-add binds: ~a" (map pe binds))
-     (stmt-assign result (expr-app '? (expr-intrf '+)  (list result (assign-binds binds e))))]
+     (stmt-assign result (expr-app (typeof result)
+                                   (expr-intrf '+)
+                                   (list result (assign-binds binds e))))]
     [((reducer-nop) 'unit)
      (stmt-void)]
     [((reducer-index n ind a) ti)
      (printf "\t reducer-index type: ~a\n" ti)
-     (define ind-result (expr-app '? (expr-intrf 'index)
+     (define ind-result (expr-app (cadr (typeof result)) (expr-intrf 'index)
                            (list result (assign-binds binds ind))))
-     (get-accum i
-                 (cons ind-result binds)
-                 ind-result t a)]
+     (get-accum i (cons ind-result binds) ind-result t a)]
     [(r t) (printf "unknown reducer type: ~a\n" t)]))
 
 (define (assign-binds vars bind)
@@ -127,6 +128,7 @@
   (if (and (empty? vars) (not (expr-bind? bind)))
       bind
       (match bind
-           [(expr-bind v b)
-            (expr-let '? v (car vars)
-                      (assign-binds (cdr vars) b))])))
+        [(expr-bind v b)
+         (define body (assign-binds (cdr vars) b))
+         (expr-let (typeof body) v (car vars)
+                   body)])))
