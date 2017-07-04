@@ -51,11 +51,12 @@
      (define printer (cdr c))
      (printf "\n\napplying ~a\n" (object-name compiler))
      (let ([p (compiler prg)])
-       (unless (member (object-name compiler)
+       (when (member (object-name compiler)
                        '(;reduce-curry
-                         parse-exp ;flatten-anf
-                         ;; simplify-match
-                         ;expand-to-lc  add-fluff
+                         ;parse-exp flatten-anf
+                         ;simplify-match
+                         expand-to-lc
+                         ;add-fluff
                          ))
          (parameterize ([pretty-print-current-style-table
                          (pretty-print-extend-style-table
@@ -96,25 +97,31 @@
   (require ffi/unsafe)
   (require "jit-utils.rkt")
   ;; (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
-  ;; (define nbgo-src (read-file "../../test.hk"))
+;  (define nbgo-src (read-file "../test/unit/bucket-nbcat.hkr"))
   (define nbgo-src (read-file "../test/unit/bucket-index.hkr"))
   (define nbgo-mod-jit
     (debug-program nbgo-src
                    (passes
                     '())))
   ;; (jit-dump-module nbgo-mod-jit)
-  (error 'stop)
   (jit-write-bitcode nbgo-mod-jit "test.bc")
   (define main (jit-get-function 'main nbgo-mod-jit))
   (hakaru-defines nbgo-mod-jit)
-  (define read-from-csv (compose make-c-array-nat read-vector-from-csv))
-  (define topic-prior (make-c-array-prob (replicate-vector 10 1.0)))
-  (define word-prior (make-c-array-prob (replicate-vector 100 1.0)))
-  (define v (read-from-csv "../test/input/small-arg3.csv")) ;;size 40x0   ;; values 0-20
-  (define words (read-from-csv "../test/input/small-arg4.csv")) ;;size 47049 ;; values 0-7022
-  (define docs (read-from-csv "../test/input/small-arg5.csv")) ;;size 47049 ;; values 0-400
-  (define docUpdate 0) ;; value 0-400
-  (define result-raw (time (main topic-prior word-prior v words docs docUpdate)))
-  (define result-vector
-    (cblock->vector (get-array-prob result-raw) prob-type (size-array-prob result-raw)))
-  (pretty-display result-vector))
+  (define nat-array (make-c-array-nat (replicate-vector 100 1)))
+  (define raw (main nat-array))
+  (pretty-display (cblock->vector (get-array-nat raw) nat-type (size-array-nat raw)))
+  ;; (error 'stop)
+
+
+  ;; (define read-from-csv (compose make-c-array-nat read-vector-from-csv))
+  ;; (define topic-prior (make-c-array-prob (replicate-vector 10 1.0)))
+  ;; (define word-prior (make-c-array-prob (replicate-vector 100 1.0)))
+  ;; (define v (read-from-csv "../test/input/small-arg3.csv")) ;;size 40x0   ;; values 0-20
+  ;; (define words (read-from-csv "../test/input/small-arg4.csv")) ;;size 47049 ;; values 0-7022
+  ;; (define docs (read-from-csv "../test/input/small-arg5.csv")) ;;size 47049 ;; values 0-400
+  ;; (define docUpdate 0) ;; value 0-400
+  ;; (define result-raw (time (main topic-prior word-prior v words docs docUpdate)))
+  ;; (define result-vector
+  ;;   (cblock->vector (get-array-prob result-raw) prob-type (size-array-prob result-raw)))
+  ;; (pretty-display result-vector)
+  )

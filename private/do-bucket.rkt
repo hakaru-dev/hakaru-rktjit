@@ -47,13 +47,6 @@
   (match-define (expr-var _ s o) var)
   (expr-var t (symbol-append s sym) o))
 
-(define (get-print-type t)
-  (match t
-    [`(array ,tar) #:when (symbol? tar)
-     (symbol-append tar '-p)]
-    [`(array ,tar) (symbol-append (get-print-type tar) 'p)]
-    [symbol? t]))
-
 (define (get-init binds result t reducer)
   ;; (printf "get-init\t result: ~a, type: ~a\n" (pe result) t)
   (match* (t reducer)
@@ -68,11 +61,11 @@
      (values (append tra trb) (append vra vrb) (append vla vlb))]
     [(`(array ,tar) (reducer-index n _ ra))
      (printf "reducer-index: ~a\n" (pe result))
-     (define ptar (get-print-type tar))
+     (define ptar (get-print-type `(array ,tar)))
      (define arr-size (assign-binds binds n))
      (define arrn (expr-var t (gensym^ 'arri) '_))
      (define fori (expr-var 'nat (gensym^ 'fi) '_))
-     (define arr-init (expr-app tar (expr-intrf (symbol-append 'empty-array- ptar))
+     (define arr-init (expr-app tar (expr-intrf (symbol-append 'empty- ptar))
                                 (list arr-size)))
      (define-values (vrt vra vla) (get-init (cons fori binds) result tar ra))
      (define arrv

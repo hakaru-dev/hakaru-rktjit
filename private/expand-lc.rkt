@@ -11,9 +11,11 @@
   (match tast
     [`(array ,t) #:when (symbol? t)
      (symbol-append (symbol-append 'array- t) '-p)]
-    [`(array ,t) (symbol-append (get-type t) 'p)]
+    [`(array ,t) (symbol-append 'array- (get-type t))]
     [`(measure ,t) (symbol-append t 'm)]
-    [else tast]))
+    [(? symbol?) tast]
+    ;; [else tast]
+    ))
 
 (define (array-type t)
   (match t
@@ -43,10 +45,10 @@
   (match rator
     [(expr-intrf s) s]
     [(expr-intr s)
-     (define r-type (get-type (expr-type (car rands))))
+     (define r-type (get-print-type (expr-type (car rands))))
      (match s
-       ['index (symbol-append 'index- r-type)]
-       ['size (symbol-append 'size- r-type)]
+       ['index (string->symbol (format "index-~a-p" r-type))]
+       ['size  (string->symbol (format "size-~a-p" r-type))]
        ['recip (symbol-append 'recip- r-type)]
        ['+ (string->symbol (format "add-~a-~a" (length rands) r-type))]
        ['* (string->symbol (format "mul-~a-~a" (length rands) r-type))]
@@ -103,17 +105,10 @@
      (expand-fnb val var)
      body))))
 
-(define (get-var-ast v)
-  (match v
-    [(expr-var t sym o)
-     (ast-exp-var sym)]
-    [(expr-intr sym)
-     (ast-exp-var sym)]))
-
 (define (expand-fnb b to)
   (match b
     [(expr-let type var val b)
-     (define var-ast (get-var-ast var))
+     (define var-ast (expand-exp var))
      (ast-stmt-let
       var-ast (get-type (expr-var-type var)) '#%void 
       (ast-stmt-block
@@ -121,11 +116,11 @@
         (expand-fnb val var-ast)
         (expand-fnb b to))))]
     [(expr-sum t i start end b)
-     (define se (ast-exp-var (gensym^ 'se)))
+     (define se (expand-exp (gensym^ 'se)))
      (wrap-with-exp
       se 'nat end
       (fold-stmt
-       b t t (value 0 t) (get-var-ast i) (expand-exp start) se to
+       b t t (value 0 t) (expand-exp i) (expand-exp start) se to
        (fold-fn (symbol-append 'add-2- t))))]
     [(expr-prd t i start end b)
      (define pe (ast-exp-var (gensym^ 'pe)))
@@ -144,12 +139,13 @@
        (λ (tmp tmpi)
          (ast-stmt-exp
           (ast-exp-app
-           (string->symbol (format "set-array-~a-at-index" (cadr t)))
+           (string->symbol (format "set-~a-at-index" (get-print-type t); (cadr t)
+                                   ))
            (list tmp (expand-exp i) tmpi))))))]
     [(expr-if t tst thn els)
      (ast-stmt-if (expand-exp tst) (expand-fnb thn to) (expand-fnb els to))]
     [(expr-app t rt rds)
-     (ast-stmt-set! (expand-exp to) (ast-exp-app (expand-exp rt) (map expand-exp rds)))]
+     (ast-stmt-set! (expand-exp to) (expand-exp (expr-app t rt rds)))]
     [(expr-val t v) (ast-stmt-set! (expand-exp to) (get-value v t))]
     [(expr-var type sym orig) (ast-stmt-set! (expand-exp to) sym)]))
 
@@ -189,8 +185,10 @@
     ([stmt-block stmts]
      (ast-stmt-block (map expand-stmt stmts)))
     ([stmt-assign (expr-app t (expr-intr 'index) (list arr ind)) val]
-     (ast-stmt-exp (ast-exp-app (string->symbol (format "set-array-~a-at-index" (cadr (typeof arr))))
-                   (map expand-exp (list arr ind val)))))
+     (ast-stmt-exp (ast-exp-app
+                    (string->symbol
+                     (format "set-~a-at-index" (get-print-type (typeof arr))))
+                    (map expand-exp (list arr ind val)))))
     ([stmt-assign var val]
      (expand-fnb val var)
      ;; (ast-stmt-set! (expand-exp var) (expand-exp val))

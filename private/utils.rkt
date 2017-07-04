@@ -6,6 +6,7 @@
 
 (provide gensym^
          symbol-append
+         get-print-type
          map-ast
          real->prob
          prob->real
@@ -88,3 +89,11 @@
 
 (define (write-vector-to-csv fname)
   (void))
+
+
+(define (get-print-type t)
+  (match t
+    [`(array ,tar) #:when (symbol? tar)
+     (symbol-append 'array- tar)]
+    [`(array ,tar) (symbol-append 'array- (get-print-type tar))]
+    [symbol? t]))
