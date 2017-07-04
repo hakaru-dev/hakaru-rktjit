@@ -9,9 +9,12 @@
 
 (define (get-type tast)
   (match tast
-    [`(array ,t)
+    [`(array ,t) #:when (symbol? t)
      (symbol-append (symbol-append 'array- t) '-p)]
+    [`(array ,t) (symbol-append (get-type t) 'p)]
+    [`(measure ,t) (symbol-append t 'm)]
     [else tast]))
+
 (define (array-type t)
   (match t
     [`(array ,t) t]))
@@ -87,7 +90,7 @@
           (ast-stmt-set!
            i
            (ast-exp-app 'jit-add-nuw (list i (nat-value 1))))))))
-      (ast-stmt-set! assign-to tmp))))))
+      (ast-stmt-set! (expand-exp assign-to) tmp))))))
 
 (define (fold-fn fn)
   (λ (tmp tmpi)
@@ -144,28 +147,32 @@
            (string->symbol (format "set-array-~a-at-index" (cadr t)))
            (list tmp (expand-exp i) tmpi))))))]
     [(expr-if t tst thn els)
-     (define ife (ast-exp-var (gensym^ 'ift)))
-     (wrap-with-exp ife (expr-type (get-type tst)) tst
-                    (ast-stmt-if ife (expand-fnb thn to) (expand-fnb els to)))]
+     (ast-stmt-if (expand-exp tst) (expand-fnb thn to) (expand-fnb els to))]
     [(expr-app t rt rds)
-     (define rands-ast (for/list ([rd rds]) (ast-exp-var (gensym^ 'rd))))
-     (for/fold [(body (ast-stmt-set! to (ast-exp-app (get-rator-sym rt rds) rands-ast)))]
-               [(r rands-ast)
-                (rd rds)]
-       (wrap-with-exp r (get-type (expr-type rd)) rd  body))]
-    [(expr-val t v) (ast-stmt-set! to (get-value v t))]
-    [(expr-var type sym orig) (ast-stmt-set! to sym)]))
+     (ast-stmt-set! (expand-exp to) (ast-exp-app (expand-exp rt) (map expand-exp rds)))]
+    [(expr-val t v) (ast-stmt-set! (expand-exp to) (get-value v t))]
+    [(expr-var type sym orig) (ast-stmt-set! (expand-exp to) sym)]))
 
-(define (expand-exp b)
+(define (expand-exp b (env (make-immutable-hash)))
   (match b
     [(expr-app t rt rds)
-     (ast-exp-app (get-rator-sym rt rds) (map expand-exp rds))]
+     (ast-exp-app (get-rator-sym rt rds) (map (curryr expand-exp env) rds))]
+    [var #:when (hash-has-key? env var)
+     (hash-ref env var)]
     [(expr-var t sym o)
      (ast-exp-var sym)]
     [(expr-intr sym)
      (ast-exp-var sym)]
+    [(expr-intrf sym)
+     (ast-exp-var sym)]
     [(expr-val t v)
      (get-value v t)]
+    [(expr-let t var val b)
+     (expand-exp b (hash-set env var (expand-exp val env)))]
+    [(ast-exp-var _)
+     b]
+    [(? symbol?)
+     b]
     [else (error "cannot expand expression" b)]))
 
 (define (expand-stmt stmt)
@@ -185,7 +192,9 @@
      (ast-stmt-exp (ast-exp-app (string->symbol (format "set-array-~a-at-index" (cadr (typeof arr))))
                    (map expand-exp (list arr ind val)))))
     ([stmt-assign var val]
-     (ast-stmt-set! (expand-exp var) (expand-exp val)))
+     (expand-fnb val var)
+     ;; (ast-stmt-set! (expand-exp var) (expand-exp val))
+     )
     ([stmt-void]
      (ast-stmt-exp (ast-exp-void-value)))
     ([stmt-for i start end body]
@@ -200,7 +209,9 @@
         (ast-stmt-block
          (list
           (expand-stmt body)
-          (ast-stmt-set! (expand-exp i) (ast-exp-app 'jit-add-nuw (list (expand-exp i) (nat-value 1))))))))))
+          (ast-stmt-set! (expand-exp i)
+                         (ast-exp-app 'jit-add-nuw
+                                      (list (expand-exp i) (nat-value 1))))))))))
     ([stmt-return val]
      (ast-stmt-ret (expand-exp val)))))
 
