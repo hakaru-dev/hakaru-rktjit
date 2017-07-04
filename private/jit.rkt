@@ -22,6 +22,7 @@
     (lambda (in)
       (read in))))
 (define pp-expr (compose pretty-display print-expr))
+(define stop (cons (λ (e) (error 'stop)) pp-expr))
 (define (passes interpret-args)
   (list (cons reduce-curry pretty-display)
         (cons parse-sexp         pp-expr)
@@ -30,6 +31,7 @@
         (cons simplify-match     pp-expr)
 
         (cons bucket->for pp-expr)
+;        stop
         (cons remove-unit-lets   pp-expr)
 
         (cons simplify-lets pp-expr)
@@ -38,7 +40,7 @@
         (cons remove-pairs pp-expr)
 
         (cons flatten-to-stmt pp-expr)
-        (cons expand-to-lc (compose pretty-display print-ast))
+        (cons expand-to-lc (compose  pretty-display print-ast))
         (cons add-fluff pretty-display)))
 
 (define (debug-program prg cmplrs)
@@ -53,7 +55,8 @@
                        '(;reduce-curry
                          parse-exp ;flatten-anf
                          ;; simplify-match
-                         expand-to-lc  add-fluff))
+                         ;expand-to-lc  add-fluff
+                         ))
          (parameterize ([pretty-print-current-style-table
                          (pretty-print-extend-style-table
                           (pretty-print-current-style-table)
@@ -100,6 +103,7 @@
                    (passes
                     '())))
   ;; (jit-dump-module nbgo-mod-jit)
+  (error 'stop)
   (jit-write-bitcode nbgo-mod-jit "test.bc")
   (define main (jit-get-function 'main nbgo-mod-jit))
   (hakaru-defines nbgo-mod-jit)

@@ -166,7 +166,43 @@
      (ast-exp-var sym)]
     [(expr-val t v)
      (get-value v t)]
-    [else b]))
+    [else (error "cannot expand expression" b)]))
+
+(define (expand-stmt stmt)
+  (match stmt
+    ([stmt-lets vars bstmt]
+     (for/fold [(stmt (expand-stmt bstmt))]
+               [(var vars)]
+       (ast-stmt-let (expand-exp var) (get-type (typeof var)) (ast-exp-void-value)
+                     stmt)))
+    ([stmt-if tst thn els]
+     (ast-stmt-if (expand-exp tst)
+                  (expand-stmt thn)
+                  (expand-stmt els)))
+    ([stmt-block stmts]
+     (ast-stmt-block (map expand-stmt stmts)))
+    ([stmt-assign (expr-app t (expr-intr 'index) (list arr ind)) val]
+     (ast-stmt-exp (ast-exp-app (string->symbol (format "set-array-~a-at-index" (cadr (typeof arr))))
+                   (map expand-exp (list arr ind val)))))
+    ([stmt-assign var val]
+     (ast-stmt-set! (expand-exp var) (expand-exp val)))
+    ([stmt-void]
+     (ast-stmt-exp (ast-exp-void-value)))
+    ([stmt-for i start end body]
+     (define end-sym (gensym^ 'end))
+     (ast-stmt-let
+      (expand-exp i) (typeof i) (expand-exp start)
+      (ast-stmt-let
+       end-sym (typeof i) (expand-exp end)
+       (ast-stmt-while
+        (list (expand-exp i)) (list (get-type (typeof i)))
+        (ast-exp-app 'jit-icmp-ult (list (expand-exp i) end-sym))
+        (ast-stmt-block
+         (list
+          (expand-stmt body)
+          (ast-stmt-set! (expand-exp i) (ast-exp-app 'jit-add-nuw (list (expand-exp i) (nat-value 1))))))))))
+    ([stmt-return val]
+     (ast-stmt-ret (expand-exp val)))))
 
 (define (expand-to-lc mod)
   (ast-module
@@ -178,12 +214,14 @@
         'main '() '(AlwaysInline)
         (map expand-exp args) (map (compose get-type expr-var-type) args)
         (get-type ret-type)
-        (ast-stmt-let
-         ret (get-type ret-type) (initial-value ret-type) ;;allocates twice for array
-         (ast-stmt-block
-          (list
-           (expand-fnb b ret)
-           (ast-stmt-ret ret)))))]) 
+        (expand-stmt b)
+        ;; (ast-stmt-let
+        ;;          ret (get-type ret-type) (initial-value ret-type) ;;allocates twice for array
+        ;;          (ast-stmt-block
+        ;;           (list
+        ;;            (expand-fnb b ret)
+        ;;            (ast-stmt-ret ret))))
+        )]) 
     (for/list ([fnp (expr-mod-fns mod)])
       (define fn-name (car fnp))
       (define fn (cdr fnp))

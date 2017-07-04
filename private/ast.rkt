@@ -38,6 +38,7 @@
    (for (i start end body) (expr expr expr stmt))
    (block (stmts) ((* stmt)))
    (assign (var val) (expr expr))
+   (return (val) (expr))
    (void () ()))
   (pat
    (true () ())
@@ -67,12 +68,12 @@
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-let type var val body) e^)
          (expr-let (f-symbol type) (f-expr var) (f-expr val) (f-expr body)))))
-     (struct expr-lets expr (types vars vals body)
+     (struct expr-lets expr (type vars vals body)
       #:methods gen:exprg
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
-         (match-define (expr-lets types vars vals body) e^)
+         (match-define (expr-lets type vars vals body) e^)
          (expr-lets
-          (f-symbol types)
+          (f-symbol type)
           (map f-expr vars)
           (map f-expr vals)
           (f-expr body)))))
@@ -353,7 +354,8 @@
     [(expr-intr s) '*]
     [(expr-intrf s) '!]
     [(expr-var t s o) t]
-    [(expr-bucket t s e b) t]))
+    [(expr-bucket t s e b) t]
+    [(expr-block t s b) t]))
 
 (define (pe e)
   (match e
