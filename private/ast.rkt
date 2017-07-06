@@ -35,6 +35,7 @@
    (index (n i a) (expr expr reducer)))
   (stmt
    (if (tst thn els) (expr stmt stmt))
+   (lets (vars bstmt) ((* expr) stmt))
    (for (i start end body) (expr expr expr stmt))
    (block (stmts) ((* stmt)))
    (assign (var val) (expr expr))
