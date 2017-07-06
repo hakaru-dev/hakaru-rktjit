@@ -41,9 +41,12 @@
 (define (expr-type e)
   (typeof e))
 
-(define (get-rator-sym rator rands)
+(define (get-rator-sym t rator rands)
   (match rator
+    [(expr-intrf 'empty)
+     (string->symbol (format "empty-~a-zero" (get-print-type t)))]
     [(expr-intrf s) s]
+
     [(expr-intr s)
      (define r-type (get-print-type (expr-type (car rands))))
      (match s
@@ -152,7 +155,7 @@
 (define (expand-exp b (env (make-immutable-hash)))
   (match b
     [(expr-app t rt rds)
-     (ast-exp-app (get-rator-sym rt rds) (map (curryr expand-exp env) rds))]
+     (ast-exp-app (get-rator-sym t rt rds) (map (curryr expand-exp env) rds))]
     [var #:when (hash-has-key? env var)
      (hash-ref env var)]
     [(expr-var t sym o)

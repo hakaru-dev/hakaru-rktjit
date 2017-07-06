@@ -22,7 +22,7 @@
   (create-rpass
    (expr
     [(expr-let t var val body)
-     #:when (equal? var body)
+     #:when (and (equal? var body) (not (is-complex? val)))
      (printf "replacing ~a with ~a\n" (pe var) (pe val))
      val])
    (reducer)

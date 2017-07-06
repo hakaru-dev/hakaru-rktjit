@@ -182,7 +182,9 @@
     [s s]))
 (define (fe e to)
   (define (do-assign v)
-    (if to (stmt-assign to v) (stmt-return v)))
+    (if to
+        (stmt-assign to v)
+        (stmt-return v)))
   (match e
     [(expr-fun args ret-type body)
      (expr-fun args ret-type (fe body #f))]
@@ -191,7 +193,7 @@
     [(expr-lets type vars vals body)
      (stmt-lets-block vars vals (fs (fe body to)))]
     [(expr-if t tst thn els)
-     (stmt-if t tst (fe thn to) (fe els to))]
+     (stmt-if tst (fe thn to) (fe els to))]
     [(expr-block t stmt val)
      (stmt-block (list (fs stmt) (fe val to)))]
     [e #:when (expr? e) (do-assign e)]

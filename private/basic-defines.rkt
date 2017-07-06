@@ -40,6 +40,12 @@
         (#%exp (#%app jit-store! size sizep))
         (#%exp (#%app jit-store! data atp))
         (return ap)))))
+(define (empty-array-type-zero type type-p type-pp array-type array-type-p)
+  `(define-function
+     (#:attr AlwaysInline)
+     (,(string->symbol (format "empty-array-~a-zero" type))
+      : ,array-type-p)
+     (return (#%app ,(string->symbol (format "empty-array-~a" type)) (#%ui-value 0 nat)))))
 (define (size-array-type type type-p type-pp array-type array-type-p)
   `(define-function
      (#:attr AlwaysInline)
@@ -74,6 +80,7 @@
   `(,(make-array-type type type-p type-pp array-type array-type-p)
     ,(get-array-type type type-p type-pp array-type array-type-p)
     ,(empty-array-type type type-p type-pp array-type array-type-p)
+    ,(empty-array-type-zero type type-p type-pp array-type array-type-p)
     ,(size-array-type type type-p type-pp array-type array-type-p)
     ,(index-array-type type type-p type-pp array-type array-type-p)
     ,(set-array-type-at-index type type-p type-pp array-type array-type-p)))
