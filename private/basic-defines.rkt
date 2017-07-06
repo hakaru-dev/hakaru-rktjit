@@ -290,13 +290,18 @@
                (type-pp (string->symbol (format "~a-pp" type))))
            (array-functions type type-p type-pp array-type array-type-p))))))
 
+
 (module+ test
   (require rackunit)
   (require "utils.rkt")
   ;(pretty-display (basic-defines))
-  (define benv  (initialize-jit (compile-module `(#%module ,@(basic-defines)))))
-  (jit-dump-function benv 'make-array-array-nat)
-  ;(jit-dump-module benv)
+  (define
+    benv
+    (initialize-jit
+     (compile-module
+      `(#%module
+        ,@(basic-defines)))))
+  (jit-dump-module benv)
   (define (get-t t) (jit-get-racket-type (env-lookup t benv)))
   (define (get-f f) (jit-get-function f benv))
   
