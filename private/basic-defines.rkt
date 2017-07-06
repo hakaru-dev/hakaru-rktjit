@@ -115,12 +115,12 @@
     (define-type array-nat (struct (size : i32) (data : nat-p)))
     (define-type array-nat-p (pointer array-nat))
     (define-type array-nat-pp (pointer array-nat-p))
-    (define-type array-array-nat (struct (size : i32) (data : array-nat-p)))
+    (define-type array-nat-ppp (pointer array-nat-pp))
+    (define-type array-array-nat (struct (size : i32) (data : array-nat-pp)))
     (define-type array-array-nat-p (pointer array-array-nat))
-    (define-function (#:attr AlwaysInline)
+    (define-function (#:attr AlwaysInline) ;;TODO
       (categorical (arr : prob-p) : natm)
       (return arr))
-
 
 
     (define-function (#:attr AlwaysInline)
@@ -213,9 +213,77 @@
        (v1 : prob) (v2 : prob) (v3 : prob) (v4 : prob) : prob)
       (return (#%app jit-fadd v4 (#%app jit-fadd v3 (#%app jit-fadd v1 v2)))))
 
-    ;; ,(get-array-type 'nat-p 'nat-pp 'nat-ppp 'array-nat-p 'array-nat-pp)
+    (define-function
+      (#:attr AlwaysInline)
+      (make-array-array-nat (size : i32) (data : array-nat-pp) : array-array-nat-p)
+      (let ((ap : array-array-nat-p (#%app jit-malloc (#%type array-array-nat)))
+            (ap-size* : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat))))
+            (ap-data*
+             :
+             array-nat-ppp
+             (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
+        (block
+         (#%exp (#%app jit-store! size ap-size*))
+         (#%exp (#%app jit-store! data ap-data*))
+         (return ap))))
+    (define-function
+      (#:attr AlwaysInline)
+      (get-array-array-nat (s : array-array-nat-p) : array-nat-pp)
+      (let ((atp : array-nat-p (#%gep s ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
+        (return (#%app jit-load atp))))
+    (define-function
+      (#:attr AlwaysInline)
+      (empty-array-array-nat (size : i32) : array-array-nat-p)
+      (let ((ap : array-array-nat-p (#%app jit-malloc (#%type array-array-nat)))
+            (data : array-nat-pp (#%app jit-arr-malloc (#%type array-nat-p) size))
+            (atp : array-nat-ppp (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat))))
+            (sizep : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat)))))
+        (block
+         (#%exp (#%app jit-store! size sizep))
+         (#%exp (#%app jit-store! data atp))
+         (return ap))))
+    (define-function
+      (#:attr AlwaysInline)
+      (empty-array-array-nat-zero : array-array-nat-p)
+      (return (#%app empty-array-array-nat (#%ui-value 0 nat))))
+    (define-function
+      (#:attr AlwaysInline)
+      (size-array-array-nat-p (array-ptr : array-array-nat-p) : i32)
+      (return
+       (#%app jit-load (#%gep array-ptr ((#%ui-value 0 nat) (#%ui-value 0 nat))))))
+    (define-function
+      (#:attr AlwaysInline)
+      (index-array-array-nat-p
+       (array-ptr : array-array-nat-p)
+       (index : i32)
+       :
+       array-nat-p)
+      (return
+       (#%app jit-load
+              (#%gep
+               (#%app jit-load (#%gep array-ptr ((#%ui-value 0 nat) (#%ui-value 1 nat))))
+               (index)))))
+    (define-function
+      (#:attr AlwaysInline)
+      (set-array-array-nat-at-index
+       (arr : array-array-nat-p)
+       (in : nat)
+       (v : array-nat-p)
+       :
+       void)
+      (block
+       (#%exp
+        (#%app
+         jit-store!
+         v
+         (#%gep
+          (#%app jit-load (#%gep arr ((#%ui-value 0 nat) (#%ui-value 1 nat))))
+          (in))))
+       (return-void)))
+
+
     ,@(append*
-       (for/list ([type '(nat real prob array-nat)])
+       (for/list ([type '(nat real prob)])
          (let ((array-type (string->symbol (format "array-~a" type)))
                (array-type-p (string->symbol (format "array-~a-p" type)))
                (type-p (string->symbol (format "~a-p" type)))
@@ -225,9 +293,10 @@
 (module+ test
   (require rackunit)
   (require "utils.rkt")
-  (pretty-display (basic-defines))
+  ;(pretty-display (basic-defines))
   (define benv  (initialize-jit (compile-module `(#%module ,@(basic-defines)))))
-  (jit-dump-module benv)
+  (jit-dump-function benv 'make-array-array-nat)
+  ;(jit-dump-module benv)
   (define (get-t t) (jit-get-racket-type (env-lookup t benv)))
   (define (get-f f) (jit-get-function f benv))
   
@@ -300,6 +369,20 @@
   (check-eq? (size-nat eti) 5)
   (set-array-nat-at-index! eti 3 42)
   (check-eq? (index-array-nat eti 3) 42)
+
+  (define make-array-array-nat (get-f 'make-array-array-nat))
+  (define index-array-array-nat (get-f 'index-array-array-nat-p))
+  (define size-array-array-nat (get-f 'size-array-array-nat-p))
+  (define set-array-array-nat-at-index! (get-f 'set-array-array-nat-at-index))
+  (define empty-array-array-nat (get-f 'empty-array-array-nat))
+
+  (define etai (empty-array-array-nat 5))
+  (set-array-array-nat-at-index! etai 2 eti)
+  (define etib (index-array-array-nat etai 2))
+  (check ptr-equal? etib eti)
+  (check-eq? (index-array-nat etib 3) 42)
+
+
 
   (define make-array-real (get-f 'make-array-real))
   (define index-array-real (get-f 'index-array-real-p))
