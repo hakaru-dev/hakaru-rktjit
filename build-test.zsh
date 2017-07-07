@@ -2,6 +2,11 @@
 
 export PATH=$PATH:~/.cabal/bin/
 hk=$1
+opt=""
+if [[ -z "$2" ]]
+then
+    opt="--opt"
+fi
 
 racketcode () {
     read -d '' rktsrc <<EOF
@@ -38,6 +43,7 @@ EOF
 }
 
 haskellcode () {
+    rm "hs/"$hk".hs"
     compile ./hk/$hk.hk -o "hs/"$hk".hs" -M Main --logfloat-prelude
     import_template=`cat hs/import-template`
     main_template=`cat hs/main-template`
@@ -48,11 +54,12 @@ haskellcode () {
 }
 
 compilehaskell () {
-    ghc -v0 -O3 "hs/"$hk".hs" -o "test/hs/"$hk
+    # ghc "hs/"$hk".hs" -o "test/hs/"$hk
+    stack ghc -- "hs/"$hk".hs" -o "test/hs/"$hk
 }
 
 buildhk () {
-    prettyfull ./hk/$hk.hk > "hkr/"$hk".hkr"
+    prettysexpr $opt ./hk/$hk.hk > "hkr/"$hk".hkr"
     racketcode $hk
     haskellcode $hk
     compilehaskell $hk

@@ -2,14 +2,14 @@
 module Main where
 
 import           Data.Number.LogFloat (LogFloat)
-import           Prelude              hiding (product, exp, log, (**))
-
+import           Prelude hiding (product, exp, log, (**))
 import           Language.Hakaru.Runtime.LogFloatPrelude
-import           Language.Hakaru.Runtime.LogFloatCmdLine
 
+import           Language.Hakaru.Runtime.CmdLine
 import           Language.Hakaru.Types.Sing
 import qualified System.Random.MWC                as MWC
 import           Control.Monad
+import           System.Environment (getArgs)
 
 import qualified Data.Time.Clock as C
 import qualified System.Environment as SE
@@ -18,9 +18,8 @@ import qualified Data.Vector.Unboxed as UV
 import qualified Data.Text.IO as TIO
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
-import           System.Environment (getArgs)
 
-prog = 
+prog =
   lam $ \ topic_prior0 ->
   lam $ \ word_prior1 ->
   lam $ \ z2 ->

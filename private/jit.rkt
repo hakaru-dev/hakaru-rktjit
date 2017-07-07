@@ -23,12 +23,12 @@
       (read in))))
 (define pp-expr (compose pretty-display print-expr))
 (define stop (cons (λ (e) (error 'stop)) pp-expr))
-(define (passes interpret-args)
+(define passes
   (list (cons reduce-curry pretty-display)
         (cons parse-sexp         pp-expr)
 
-        (cons flatten-anf        pp-expr)
         (cons simplify-match     pp-expr)
+        (cons flatten-anf        pp-expr)
 
         (cons bucket->for pp-expr)
 ;        stop
@@ -40,6 +40,7 @@
         (cons remove-pairs pp-expr)
 
         (cons flatten-to-stmt pp-expr)
+
         (cons expand-to-lc (compose  pretty-display print-ast))
         (cons add-fluff pretty-display)))
 
@@ -51,11 +52,11 @@
      (define printer (cdr c))
      (printf "\n\napplying ~a\n" (object-name compiler))
      (let ([p (compiler prg)])
-       (when (member (object-name compiler)
+       (unless (member (object-name compiler)
                        '(;reduce-curry
                          ;parse-exp flatten-anf
                          ;simplify-match
-                         expand-to-lc
+                         ;expand-to-lc
                          ;add-fluff
                          ))
          (parameterize ([pretty-print-current-style-table
@@ -69,59 +70,55 @@
   (define module-env (compile-module prog-ast))
   (jit-optimize-module module-env #:opt-level 3)
   ;; (jit-dump-module module-env)
-  (jit-dump-function module-env 'main)
+  ;; (jit-dump-function module-env 'main)
   (define mod-env (initialize-jit module-env #:opt-level 3))
-  ;; (jit-dump-module mod-env)
   mod-env)
 
 (define debug-pass (make-parameter #f))
+
 (define (compile-src src)
-  (define prog
-    (for/fold ([prg src])
-              ([c (list reduce-curry  parse-sexp expand-to-lc add-fluff)]
-               [p (list pretty-display
-                        (compose pretty-display print-expr)
-                        (compose pretty-display print-ast)
-                        pretty-display)])
-      (define n (c prg))
-      (printf "applying: ~a\n" (object-name c))
-      (when (debug-pass)
-        (printf "pretty-print:\n")
-        (p n))
-      n))
-  (define module-env (compile-module prog))
+  (define prog-module
+   (for/fold ([prg src])
+             ([p passes])
+     (define compiler (car p))
+     (define printer (cdr p))
+     (printf "\n\napplying ~a\n" (object-name compiler))
+     (compiler prg)))
+  (define module-env (compile-module prog-module))
   (jit-optimize-module module-env #:opt-level 3)
   (initialize-jit module-env #:opt-level 3))
 
 (module+ test
   (require ffi/unsafe)
   (require "jit-utils.rkt")
-  ;; (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
-;  (define nbgo-src (read-file "../test/unit/bucket-nbcat.hkr"))
-  (define nbgo-src (read-file "../test/unit/bucket-index.hkr"))
+  (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
+;  (define nbgo-src (read-file "../test/unit/bucket-nb.hkr"))
+;  (define nbgo-src (read-file "../test/unit/bucket-index.hkr"))
   (define nbgo-mod-jit
-    (debug-program nbgo-src
-                   (passes
-                    '())))
+    (compile-src nbgo-src)
+    ;; (debug-program nbgo-src
+    ;;                passes)
+    )
   ;; (jit-dump-module nbgo-mod-jit)
-  (jit-write-bitcode nbgo-mod-jit "test.bc")
+  ;; (jit-write-bitcode nbgo-mod-jit "test.bc")
   (define main (jit-get-function 'main nbgo-mod-jit))
   (hakaru-defines nbgo-mod-jit)
-  (define nat-array (make-c-array-nat (replicate-vector 100 1)))
-  (define raw (main nat-array))
-  (pretty-display (cblock->vector (get-array-nat raw) nat-type (size-array-nat raw)))
+
+  ;; (define nat-array (make-c-array-nat (replicate-vector 100 1)))
+  ;; (define raw (main nat-array))
+  ;; (pretty-display (cblock->vector (get-array-nat raw) nat-type (size-array-nat raw)))
   ;; (error 'stop)
 
 
-  ;; (define read-from-csv (compose make-c-array-nat read-vector-from-csv))
-  ;; (define topic-prior (make-c-array-prob (replicate-vector 10 1.0)))
-  ;; (define word-prior (make-c-array-prob (replicate-vector 100 1.0)))
-  ;; (define v (read-from-csv "../test/input/small-arg3.csv")) ;;size 40x0   ;; values 0-20
-  ;; (define words (read-from-csv "../test/input/small-arg4.csv")) ;;size 47049 ;; values 0-7022
-  ;; (define docs (read-from-csv "../test/input/small-arg5.csv")) ;;size 47049 ;; values 0-400
-  ;; (define docUpdate 0) ;; value 0-400
-  ;; (define result-raw (time (main topic-prior word-prior v words docs docUpdate)))
-  ;; (define result-vector
-  ;;   (cblock->vector (get-array-prob result-raw) prob-type (size-array-prob result-raw)))
-  ;; (pretty-display result-vector)
+  (define read-from-csv (compose make-c-array-nat read-vector-from-csv))
+  (define topic-prior (make-c-array-prob (replicate-vector 10 1.0)))
+  (define word-prior (make-c-array-prob (replicate-vector 100 1.0)))
+  (define v (read-from-csv "../test/input/small-arg3.csv")) ;;size 40x0   ;; values 0-20
+  (define words (read-from-csv "../test/input/small-arg4.csv")) ;;size 47049 ;; values 0-7022
+  (define docs (read-from-csv "../test/input/small-arg5.csv")) ;;size 47049 ;; values 0-400
+  (define docUpdate 0) ;; value 0-400
+  (define result-raw (time (main topic-prior word-prior v words docs docUpdate)))
+  (define result-vector
+    (cblock->vector (get-array-prob result-raw) prob-type (size-array-prob result-raw)))
+  (pretty-display result-vector)
   )
