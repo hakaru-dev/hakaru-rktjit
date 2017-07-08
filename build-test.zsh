@@ -2,9 +2,12 @@
 
 export PATH=$PATH:~/.cabal/bin/
 hk=$1
+inp="hk/$hk.hk"
+echo "input=$inp"
 opt=""
-if [[ -z "$2" ]]
+if [[ ! -z "$2" ]] 
 then
+    hk=$1"bucket"
     opt="--opt"
 fi
 
@@ -39,30 +42,41 @@ racketcode () {
 (write-vector-to-csv result-vector)
 (pretty-display result-vector)
 EOF
-   echo $rktsrc > ./test/$hk.rkt
+    echo $rktsrc > ./test/$hk.rkt
 }
 
 haskellcode () {
-    rm "hs/"$hk".hs"
-    compile ./hk/$hk.hk -o "hs/"$hk".hs" -M Main --logfloat-prelude
+    echo "generating haskell code"
+    if [[ -z "$opt" ]] then
+	compile $inp -o "hs/"$hk".hs" -M Main --logfloat-prelude
+    else
+	summary $inp -o "hs/"$hk".hs" -M Main --logfloat-prelude 
+    fi
+
     import_template=`cat hs/import-template`
     main_template=`cat hs/main-template`
-    before=`sed -n '1,12p' "hs/$1.hs"`
-    after=`sed -n '13,9999p' "hs/$1.hs"`
+    before=`sed -n '1,12p' "hs/$hk.hs"`
+    after=`sed -n '13,9999p' "hs/$hk.hs"`
     echo "$before\n$import_template\n$after" > "hs/"$hk".hs"
     echo $main_template >> "hs/"$hk".hs"
 }
 
 compilehaskell () {
     # ghc "hs/"$hk".hs" -o "test/hs/"$hk
-    stack ghc -- "hs/"$hk".hs" -o "test/hs/"$hk
+    # stack ghc -- "hs/"$hk".hs" -o "test/hs/"$hk
 }
 
 buildhk () {
-    prettysexpr $opt ./hk/$hk.hk > "hkr/"$hk".hkr"
-    racketcode $hk
-    haskellcode $hk
-    compilehaskell $hk
+    echo "generating hkr"
+    if [[ -z "$opt" ]]
+    then
+	prettysexpr $inp > "hkr/"$hk".hkr"
+    else
+	prettysexpr --opt $inp > "hkr/"$hk".hkr"
+    fi
+    # racketcode
+    haskellcode
+    compilehaskell
 }
 
 buildhk
