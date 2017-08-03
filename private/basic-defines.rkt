@@ -1,6 +1,7 @@
 #lang racket
 (require ffi/unsafe)
 (require sham/jit)
+(require sham/private/ast)
 (provide basic-defines)
 
 (define (make-array-type type type-p type-pp array-type array-type-p)
@@ -85,45 +86,80 @@
     ,(index-array-type type type-p type-pp array-type array-type-p)
     ,(set-array-type-at-index type type-p type-pp array-type array-type-p)))
 
+(require (for-syntax racket/syntax))
 (define (basic-defines)
-  `((define-type nat i32)
-    (define-type int i32)
-    (define-type data-type i32)
-    (define-type real f64)
-    (define-type prob real)
+  (define i32 (sham:type:ref 'i32))
+  (define f64 (sham:type:ref 'f64))
+  (define nat i32)
+  (define int i32)
+  (define real f64)
+  (define prob f64)
+  (define-syntax (create-ptr-def stx)
+    (syntax-case stx ()
+      [(_ ptr)
+       (with-syntax ([ptr* (format-id stx "~a*"  #'ptr)])
+         #'(sham:def:type 'ptr* (sham:type:pointer (sham:type:ref 'ptr))))]))
+  (define-syntax (create-ptr-defs stx)
+    (syntax-case stx ()
+      [(_ ptr ...)
+       #'(list (create-ptr-def ptr) ...)]))
 
-    (define-type natm (pointer prob)) ;;TODO for measure
+  (define-syntax (create-array-def stx)
+    (syntax-case stx ()
+      [(_ type)
+       (with-syntax ([type* (format-id stx "~a*"  #'type)]
+                     [atype (format-id stx "array<~a>" #'type)])
+         #'(sham:def:type 'atype (sham:type:struct
+                                  '(size data)
+                                  (list nat (sham:type:ref 'type*)))))]))
+  (define-syntax (create-array-defs stx)
+    (syntax-case stx ()
+      [(_ type ...)
+       #'(list (create-array-def type) ...)]))
+  (define types
+    (append
+     (list
+      (sham:def:type 'nat  (sham:type:ref 'i32))
+      (sham:def:type 'int  (sham:type:ref 'i32))
+      (sham:def:type 'real (sham:type:ref 'f64))
+      (sham:def:type 'prob (sham:type:ref 'f64)))
+     (create-ptr-defs
+      nat nat* nat**
+      real real* real**
+      prob prob* prob**)
+     (create-array-defs real prob nat)
+     (create-ptr-defs array<nat> array<real> array<prob>)
+     (create-array-defs array<nat> array<real> array<prob>)))
 
-    (define-type nat-p (pointer nat))
-    (define-type nat-pp (pointer nat-p))
-    (define-type nat-ppp (pointer nat-pp))
+  (define sham$var sham:exp:var)
+  (define-syntax (sham$app stx)
+    (syntax-case stx ()
+      [(_ sym rands ...)
+       #'(sham:exp:app (sham:rator:symbol 'sym) (list rands ...))]
+      [(_ (str t) rands ...)
+       #'(sham:exp:app (sham:rator:intrinsic str (sham:type:ref t))
+                     (list rands ...))]))
+  (define-syntax (sham$define stx)
+    (syntax-case stx (return :)
+      [(_ (id (args : t) ... : rett) (return stmt))
+       #'(sham:def:function
+          'id '() '(AlwaysInline)
+          '(args ...) (list (sham:type:ref 't) ...) (sham:type:ref 'rett)
+          (sham:stmt:return stmt))]))
+  
+  (define funs
+    (list
+    ;; (define-function (#:attr AlwaysInline) ;;TODO
+    ;;   (categorical (arr : prob-p) : natm)
+    ;;   (return arr))
 
+     (print-def
+      (sham$define
+       (nat2prob (v : nat) : prob)
+       (return
+        (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real))))))
 
-    (define-type real-p (pointer real))
-    (define-type real-pp (pointer real-p))
-    (define-type real-ppp (pointer real-pp))
-
-    (define-type prob-p (pointer prob))
-    (define-type prob-pp (pointer prob-p))
-    (define-type prob-ppp (pointer prob-pp))
-
-    (define-type array-real (struct (size : i32) (data : real-p)))
-    (define-type array-real-p (pointer array-real))
-    (define-type array-prob (struct (size : i32) (data : prob-p)))
-    (define-type array-prob-p (pointer array-prob))
-
-    (define-type array-nat (struct (size : i32) (data : nat-p)))
-    (define-type array-nat-p (pointer array-nat))
-    (define-type array-nat-pp (pointer array-nat-p))
-    (define-type array-nat-ppp (pointer array-nat-pp))
-    (define-type array-array-nat (struct (size : i32) (data : array-nat-pp)))
-    (define-type array-array-nat-p (pointer array-array-nat))
-    (define-function (#:attr AlwaysInline) ;;TODO
-      (categorical (arr : prob-p) : natm)
-      (return arr))
-
-
-    (define-function (#:attr AlwaysInline)
+     (define-function (#:attr AlwaysInline)
       (nat2prob (v : nat) : prob)
       (return (#%app real2prob
                      (#%app jit-ui->fp v (#%type real)))))
@@ -177,8 +213,8 @@
        (v1 : prob) (v2 : prob) : prob)
       (return (#%app real2prob
                      (#%app add-2-real
-                      (#%app prob2real v1)
-                      (#%app prob2real v2)))))
+                            (#%app prob2real v1)
+                            (#%app prob2real v2)))))
 
 
 
@@ -188,10 +224,10 @@
       (add-3-prob
        (v1 : prob) (v2 : prob) (v3 : prob) : prob)
       (return (#%app real2prob
-               (#%app add-3-real
-                      (#%app prob2real v1)
-                      (#%app prob2real v2)
-                      (#%app prob2real v3)))))
+                     (#%app add-3-real
+                            (#%app prob2real v1)
+                            (#%app prob2real v2)
+                            (#%app prob2real v3)))))
     (define-function
       (#:attr AlwaysInline)
       (mul-2-nat
@@ -288,7 +324,7 @@
                (array-type-p (string->symbol (format "array-~a-p" type)))
                (type-p (string->symbol (format "~a-p" type)))
                (type-pp (string->symbol (format "~a-pp" type))))
-           (array-functions type type-p type-pp array-type array-type-p))))))
+           (array-functions type type-p type-pp array-type array-type-p)))))))
 
 
 (module+ test
