@@ -2,23 +2,10 @@
 (require ffi/unsafe)
 (require sham/jit)
 (require sham/private/ast)
+(require (for-syntax racket/syntax))
 (provide basic-defines)
 
-(define (make-array-type type type-p type-pp array-type array-type-p)
-  (define fn-name (string->symbol (format "make-array-~a" type)))
-  `(define-function
-     (#:attr AlwaysInline)
-     (,fn-name
-      (size : i32)
-      (data : ,type-p)
-      : ,array-type-p)
-     (let ((ap : ,array-type-p (#%app jit-malloc (#%type ,array-type)))
-           (ap-size* : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat))))
-           (ap-data* : ,type-pp (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
-       (block
-        (#%exp (#%app jit-store! size ap-size*))
-        (#%exp (#%app jit-store! data ap-data*))
-        (return ap)))))
+
 (define (get-array-type type type-p type-pp array-type array-type-p)
   `(define-function
      (#:attr AlwaysInline)
@@ -86,148 +73,171 @@
     ,(index-array-type type type-p type-pp array-type array-type-p)
     ,(set-array-type-at-index type type-p type-pp array-type array-type-p)))
 
-(require (for-syntax racket/syntax))
-(define (basic-defines)
-  (define i32 (sham:type:ref 'i32))
-  (define f64 (sham:type:ref 'f64))
-  (define nat i32)
-  (define int i32)
-  (define real f64)
-  (define prob f64)
-  (define-syntax (create-ptr-def stx)
-    (syntax-case stx ()
-      [(_ ptr)
-       (with-syntax ([ptr* (format-id stx "~a*"  #'ptr)])
-         #'(sham:def:type 'ptr* (sham:type:pointer (sham:type:ref 'ptr))))]))
-  (define-syntax (create-ptr-defs stx)
-    (syntax-case stx ()
-      [(_ ptr ...)
-       #'(list (create-ptr-def ptr) ...)]))
 
-  (define-syntax (create-array-def stx)
-    (syntax-case stx ()
-      [(_ type)
-       (with-syntax ([type* (format-id stx "~a*"  #'type)]
-                     [atype (format-id stx "array<~a>" #'type)])
-         #'(sham:def:type 'atype (sham:type:struct
-                                  '(size data)
-                                  (list nat (sham:type:ref 'type*)))))]))
-  (define-syntax (create-array-defs stx)
-    (syntax-case stx ()
-      [(_ type ...)
-       #'(list (create-array-def type) ...)]))
-  (define types
-    (append
-     (list
-      (sham:def:type 'nat  (sham:type:ref 'i32))
-      (sham:def:type 'int  (sham:type:ref 'i32))
-      (sham:def:type 'real (sham:type:ref 'f64))
-      (sham:def:type 'prob (sham:type:ref 'f64)))
-     (create-ptr-defs
-      nat nat* nat**
-      real real* real**
-      prob prob* prob**)
-     (create-array-defs real prob nat)
-     (create-ptr-defs array<nat> array<real> array<prob>)
-     (create-array-defs array<nat> array<real> array<prob>)))
+(define i32 (sham:type:ref 'i32))
+(define f64 (sham:type:ref 'f64))
+(define nat i32)
+(define int i32)
+(define real f64)
+(define prob f64)
 
-  (define (real-value v)
-    (sham:exp:fl-value v (sham:type:ref 'real)))
-  (define sham$var sham:exp:var)
-  (define-syntax (sham$app stx)
-    (syntax-case stx ()
-      [(_ (str t) rands ...)
-       #'(sham:exp:app (sham:rator:intrinsic 'str
-                                             (sham:type:ref 't))
+(define sham$var sham:exp:var)
+(define-syntax (sham$app stx)
+  (syntax-case stx ()
+    [(_ (str t) rands ...)
+     #'(sham:exp:app (sham:rator:intrinsic 'str
+                                           (sham:type:ref 't))
                      (list rands ...))]
-      [(_ sym rands ...)
-       #'(sham:exp:app (sham:rator:symbol 'sym) (list rands ...))]))
-  (define-syntax (sham$app-var stx)
-    (syntax-case stx ()
-      [(_ app rands ...)
-       #'(sham$app app (sham:exp:var 'rands) ...)]))
-  (define-syntax (sham$define stx)
-    (syntax-case stx (return :)
-      [(_ (id (args : t) ... : rett) (return stmt))
-       #'(sham:def:function
-          'id '() '(AlwaysInline)
-          '(args ...) (list (sham:type:ref 't) ...) (sham:type:ref 'rett)
-          (sham:stmt:return stmt))]))
-  
-  (define simple-funs
-    (list
-    ;; (define-function (#:attr AlwaysInline) ;;TODO
-    ;;   (categorical (arr : prob-p) : natm)
-    ;;   (return arr))
+    [(_ sym rands ...)
+     #'(sham:exp:app (sham:rator:symbol 'sym) (list rands ...))]))
+(define-syntax (sham$app-var stx)
+  (syntax-case stx ()
+    [(_ app rands ...)
+     #'(sham$app app (sham:exp:var 'rands) ...)]))
+(define-syntax (sham$define stx)
+  (syntax-case stx (return :)
+    [(_ (id (args : t) ... : rett) (return stmt))
+     #'(sham:def:function
+        'id '() '(AlwaysInline)
+        '(args ...) (list (sham:type:ref 't) ...) (sham:type:ref 'rett)
+        (sham:stmt:return stmt))]))
+(define pointer-format "~a*")
+(define array-format "array<~a>")
+(define (create-pointer-type t-sym)
+  (sham:type:pointer (sham:type:ref 't-sym)))
+(define (create-array-type t-sym)
+  (sham:type:struct
+   '(size data)
+   (list nat (sham:type:ref t-sym))))
 
-     (sham$define
-      (nat2prob (v : nat) : prob)
-      (return
-       (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real)))))
+(define-syntax (create-ptr-def stx)
+  (syntax-case stx ()
+    [(_ ptr)
+     (with-syntax ([ptr* (format-id stx "~a*"  #'ptr)])
+       #'(sham:def:type 'ptr* (create-pointer-type 'ptr)))]))
+(define-syntax (create-ptr-defs stx)
+  (syntax-case stx ()
+    [(_ ptr ...)
+     #'(list (create-ptr-def ptr) ...)]))
 
-     (sham$define
-      (prob2real (v : prob) : real)
-      (return (sham$app-var (llvm.exp.f64 prob) v)))
-     
-     (sham$define
-      (real2prob (v : real) : prob)
-      (return (sham$app-var (llvm.log.f64 prob) v)))
 
-     (sham$define
-       (recip-nat (v : nat) : real)
-       (return (sham$app fdiv (real-value 1.0)
-                         (sham$app ui->fp (sham$var 'v)
-                                   (sham:exp:type (sham:type:ref 'real))))))
-    (sham$define
-      (recip-real (v : real) : real)
-      (return (sham$app fdiv (real-value 1.0) (sham$var 'v))))
+(define-syntax (create-array-def stx)
+  (syntax-case stx ()
+    [(_ type)
+     (with-syntax ([type* (format-id stx "~a*"  #'type)]
+                   [atype (format-id stx "array<~a>" #'type)])
+       #'(sham:def:type 'atype (create-array-type 'type*)))]))
+(define-syntax (create-array-defs stx)
+  (syntax-case stx ()
+    [(_ type ...)
+     #'(list (create-array-def type) ...)]))
+(define (real-value v)
+  (sham:exp:fl-value v (sham:type:ref 'real)))
+(define (nat-value v)
+  (sham:exp:ui-value v (sham:type:ref 'nat)))
+(define types
+  (append
+   (list
+    (sham:def:type 'nat  (sham:type:ref 'i32))
+    (sham:def:type 'int  (sham:type:ref 'i32))
+    (sham:def:type 'real (sham:type:ref 'f64))
+    (sham:def:type 'prob (sham:type:ref 'f64)))
+   (create-ptr-defs
+    nat nat* nat**
+    real real* real**
+    prob prob* prob**)
+   (create-array-defs real prob nat)
+   (create-ptr-defs array<nat> array<real> array<prob>)
+   (create-array-defs array<nat> array<real> array<prob>)))
+(define simple-funs
+  (list
+   (sham$define
+    (nat2prob (v : nat) : prob)
+    (return
+     (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real)))))
 
-    (sham$define
-      (recip-prob (v : real) : real)
-      (return (sham$app fmul (real-value -1.0) (sham$var 'v))))
+   (sham$define
+    (prob2real (v : prob) : real)
+    (return (sham$app-var (llvm.exp.f64 prob) v)))
+   
+   (sham$define
+    (real2prob (v : real) : prob)
+    (return (sham$app-var (llvm.log.f64 prob) v)))
 
-    (sham$define
-     (add-2-nat (v1 : nat) (v2 : nat) : nat)
-     (return (sham$app-var add-nuw v1 v2)))
-    (sham$define
-     (add-2-real (v1 : real) (v2 : real) : real)
-      (return (sham$app-var fadd v1 v2)))
-    (sham$define
-      (add-3-real (v1 : real) (v2 : real) (v3 : real) : real)
-      (return (sham$app fadd
-                        (sham$app-var fadd v1 v2)
-                        (sham$var 'v3))))
+   (sham$define
+    (recip-nat (v : nat) : real)
+    (return (sham$app fdiv (real-value 1.0)
+                      (sham$app ui->fp (sham$var 'v)
+                                (sham:exp:type (sham:type:ref 'real))))))
+   (sham$define
+    (recip-real (v : real) : real)
+    (return (sham$app fdiv (real-value 1.0) (sham$var 'v))))
 
-    (sham$define
-      (add-2-prob (v1 : prob) (v2 : prob) : prob)
-      (return (sham$app real2prob
-                     (sham$app add-2-real
-                            (sham$app-var prob2real v1)
-                            (sham$app-var prob2real v2)))))
+   (sham$define
+    (recip-prob (v : real) : real)
+    (return (sham$app fmul (real-value -1.0) (sham$var 'v))))
 
-    (sham$define
-     (add-3-prob (v1 : prob) (v2 : prob) (v3 : prob) : prob)
-     (return (sham$app real2prob
-                       (sham$app add-3-real
-                                 (sham$app-var prob2real v1)
-                                 (sham$app-var prob2real v2)
-                                 (sham$app-var prob2real v3)))))
-    (sham$define
-      (mul-2-nat (v1 : nat) (v2 : nat) : nat)
-      (return (sham$app-var mul-nuw v1 v2)))
-    (sham$define
-      (mul-2-real (v1 : real) (v2 : real) : real)
-      (return (sham$app-var fmul v1 v2)))
-    (sham$define
-      (mul-2-prob (v1 : prob) (v2 : prob) : prob)
-      (return (sham$app-var fadd v1 v2)))
+   (sham$define
+    (add-2-nat (v1 : nat) (v2 : nat) : nat)
+    (return (sham$app-var add-nuw v1 v2)))
+   (sham$define
+    (add-2-real (v1 : real) (v2 : real) : real)
+    (return (sham$app-var fadd v1 v2)))
+   (sham$define
+    (add-3-real (v1 : real) (v2 : real) (v3 : real) : real)
+    (return (sham$app fadd
+                      (sham$app-var fadd v1 v2)
+                      (sham$var 'v3))))
 
-    (sham$define
-      (mul-4-prob (v1 : prob) (v2 : prob) (v3 : prob) (v4 : prob) : prob)
-      (return (sham$app fadd
-                        (sham$var 'v4)
-                        (sham$app fadd (sham$var 'v3) (sham$app-var fadd v1 v2)))))
+   (sham$define
+    (add-2-prob (v1 : prob) (v2 : prob) : prob)
+    (return (sham$app real2prob
+                      (sham$app add-2-real
+                                (sham$app-var prob2real v1)
+                                (sham$app-var prob2real v2)))))
 
+   (sham$define
+    (add-3-prob (v1 : prob) (v2 : prob) (v3 : prob) : prob)
+    (return (sham$app real2prob
+                      (sham$app add-3-real
+                                (sham$app-var prob2real v1)
+                                (sham$app-var prob2real v2)
+                                (sham$app-var prob2real v3)))))
+   (sham$define
+    (mul-2-nat (v1 : nat) (v2 : nat) : nat)
+    (return (sham$app-var mul-nuw v1 v2)))
+   (sham$define
+    (mul-2-real (v1 : real) (v2 : real) : real)
+    (return (sham$app-var fmul v1 v2)))
+   (sham$define
+    (mul-2-prob (v1 : prob) (v2 : prob) : prob)
+    (return (sham$app-var fadd v1 v2)))
+
+   (sham$define
+    (mul-4-prob (v1 : prob) (v2 : prob) (v3 : prob) (v4 : prob) : prob)
+    (return (sham$app fadd
+                      (sham$var 'v4)
+                      (sham$app fadd (sham$var 'v3) (sham$app-var fadd v1 v2)))))))
+
+(define (make-array type type-p type-pp array-type array-type-p)
+  (define fn-name (string->symbol (format "make-array-~a" type)))
+  (sham$define
+   fn-name (size : i32) (data : ,(create-pointer-type)))
+  `(define-function
+     (#:attr AlwaysInline)
+     (,fn-name
+      (size : i32)
+      (data : ,type-p)
+      : ,array-type-p)
+     (let ((ap : ,array-type-p (#%app jit-malloc (#%type ,array-type)))
+           (ap-size* : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat))))
+           (ap-data* : ,type-pp (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
+       (block
+        (#%exp (#%app jit-store! size ap-size*))
+        (#%exp (#%app jit-store! data ap-data*))
+        (return ap)))))
+(define array-functions
+  (list
     ;; (sham$define
     ;;   (make-array-array-nat (size : i32) (data : array-nat-pp) : array-array-nat-p)
     ;;   (let ((ap : array-array-nat-p (#%app jit-malloc (#%type array-array-nat)))
@@ -240,6 +250,10 @@
     ;;      (#%exp (#%app jit-store! size ap-size*))
     ;;      (#%exp (#%app jit-store! data ap-data*))
     ;;      (return ap))))
+
+   ))
+(define (basic-defines)
+
     ;; (define-function
     ;;   (#:attr AlwaysInline)
     ;;   (get-array-array-nat (s : array-array-nat-p) : array-nat-pp)
@@ -303,7 +317,6 @@
     ;;            (type-p (string->symbol (format "~a-p" type)))
     ;;            (type-pp (string->symbol (format "~a-pp" type))))
     ;;        (array-functions type type-p type-pp array-type array-type-p))))
-    ))
   (append types simple-funs))
 
 
