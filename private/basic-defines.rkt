@@ -5,75 +5,6 @@
 (require (for-syntax racket/syntax))
 (provide basic-defines)
 
-
-(define (get-array-type type type-p type-pp array-type array-type-p)
-  `(define-function
-     (#:attr AlwaysInline)
-     (,(string->symbol (format "get-array-~a" type))
-      (s : ,array-type-p)
-      : ,type-p)
-     (let ((atp : ,type-p (#%gep s ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
-       (return (#%app jit-load atp)))))
-(define (empty-array-type type type-p type-pp array-type array-type-p)
-  `(define-function
-     (#:attr AlwaysInline)
-     (,(string->symbol (format "empty-array-~a" type))
-      (size : i32)
-      : ,array-type-p)
-     (let ((ap : ,array-type-p (#%app jit-malloc (#%type ,array-type)))
-           (data : ,type-p (#%app jit-arr-malloc (#%type ,type) size))
-           (atp : ,type-pp (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat))))
-           (sizep : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat)))))
-       (block
-        (#%exp (#%app jit-store! size sizep))
-        (#%exp (#%app jit-store! data atp))
-        (return ap)))))
-(define (empty-array-type-zero type type-p type-pp array-type array-type-p)
-  `(define-function
-     (#:attr AlwaysInline)
-     (,(string->symbol (format "empty-array-~a-zero" type))
-      : ,array-type-p)
-     (return (#%app ,(string->symbol (format "empty-array-~a" type)) (#%ui-value 0 nat)))))
-(define (size-array-type type type-p type-pp array-type array-type-p)
-  `(define-function
-     (#:attr AlwaysInline)
-     (,(string->symbol (format "size-~a-p" array-type))
-      (array-ptr : ,array-type-p) : i32)
-     (return (#%app jit-load (#%gep array-ptr ((#%ui-value 0 nat) (#%ui-value 0 nat)))))))
-(define (index-array-type type type-p type-pp array-type array-type-p)
-  `(define-function
-     (#:attr AlwaysInline)
-     (,(string->symbol (format "index-~a-p" array-type))
-      (array-ptr : ,array-type-p) (index : i32) : ,type)
-     (return (#%app jit-load
-                    (#%gep
-                     (#%app jit-load
-                            (#%gep array-ptr
-                                   ((#%ui-value 0 nat) (#%ui-value 1 nat))))
-                     (index))))))
-(define (set-array-type-at-index type type-p type-pp array-type array-type-p)
-  `(define-function
-     (#:attr AlwaysInline)
-     (,(string->symbol (format "set-array-~a-at-index" type))
-      (arr : ,array-type-p) (in : nat) (v : ,type) : void)
-     (block (#%exp (#%app jit-store! v
-                          (#%gep
-                           (#%app jit-load
-                                  (#%gep arr
-                                         ((#%ui-value 0 nat) (#%ui-value 1 nat))))
-                           (in))))
-            (return-void))))
-
-(define (array-functions type type-p type-pp array-type array-type-p)
-  `(,(make-array-type type type-p type-pp array-type array-type-p)
-    ,(get-array-type type type-p type-pp array-type array-type-p)
-    ,(empty-array-type type type-p type-pp array-type array-type-p)
-    ,(empty-array-type-zero type type-p type-pp array-type array-type-p)
-    ,(size-array-type type type-p type-pp array-type array-type-p)
-    ,(index-array-type type type-p type-pp array-type array-type-p)
-    ,(set-array-type-at-index type type-p type-pp array-type array-type-p)))
-
-
 (define i32 (sham:type:ref 'i32))
 (define f64 (sham:type:ref 'f64))
 (define nat i32)
@@ -81,6 +12,10 @@
 (define real f64)
 (define prob f64)
 
+(define-syntax (sham$block stx)
+  (syntax-case stx ()
+    [(_ stmts ...)
+     (sham:stmt:block (list stmts ...))]))
 (define sham$var sham:exp:var)
 (define-syntax (sham$app stx)
   (syntax-case stx ()
@@ -104,7 +39,7 @@
 (define pointer-format "~a*")
 (define array-format "array<~a>")
 (define (create-pointer-type t-sym)
-  (sham:type:pointer (sham:type:ref 't-sym)))
+  (sham:type:pointer (sham:type:ref t-sym)))
 (define (create-array-type t-sym)
   (sham:type:struct
    '(size data)
@@ -219,23 +154,114 @@
                       (sham$var 'v4)
                       (sham$app fadd (sham$var 'v3) (sham$app-var fadd v1 v2)))))))
 
-(define (make-array type type-p type-pp array-type array-type-p)
-  (define fn-name (string->symbol (format "make-array-~a" type)))
-  (sham$define
-   fn-name (size : i32) (data : ,(create-pointer-type)))
-  `(define-function
-     (#:attr AlwaysInline)
-     (,fn-name
-      (size : i32)
-      (data : ,type-p)
-      : ,array-type-p)
-     (let ((ap : ,array-type-p (#%app jit-malloc (#%type ,array-type)))
-           (ap-size* : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat))))
-           (ap-data* : ,type-pp (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
-       (block
-        (#%exp (#%app jit-store! size ap-size*))
-        (#%exp (#%app jit-store! data ap-data*))
-        (return ap)))))
+(define (get-size-ptr vsym)
+  (sham:exp:gep (sham$var vsym) (list (nat-value 0) (nat-value 0))))
+(define (get-data-ptr vsym)
+  (sham:exp:gep (sham$var vsym) (list (nat-value 0) (nat-value 1))))
+(define (make-array type)
+  (define fn-name (string->symbol (format "make-array<~a>" type)))
+  (define p-type (create-pointer-type type))
+  (define a-type (create-array-type type))
+  (sham:def:function
+   fn-name '() '(AlwaysInline)
+   '(size data)
+   (list i32 p-type) a-type
+   (sham:stmt:let
+    '(ap ap-size* ap-data*)
+    (list (create-pointer-type a-type) (create-pointer-type 'i32) (create-pointer-type p-type))
+    (list (sham$app malloc (sham:exp:type a-type))
+          (get-size-ptr 'ap)
+          (get-data-ptr 'ap))
+    (sham$block
+     (sham:stmt:exp (sham$app-var store! size ap-size*))
+     (sham:stmt:exp (sham$app-var store! data ap-data*))
+     (sham:stmt:return (sham$var 'ap))))))
+
+(define (get-array-type type)
+  (define fn-name (string->symbol (format "get-ptr-array<~a>" type)))
+  (define p-type (create-pointer-type type))
+  (define a-type (create-array-type type))
+  (sham:def:function
+   fn-name '() '(AlwaysInline)
+   '(s)
+   (list (create-pointer-type a-type)) p-type
+   (sham:stmt:let
+    '(atp)
+    (list (create-pointer-type p-type))
+    (list (sham:exp:gep (sham$var 'ap) (list (nat-value 0) (nat-value 1))))
+    (sham:stmt:return (sham$app load (sham$var 'atp))))))
+
+(define (empty-array-type type)
+  (define fn-name (string->symbol (format "empty-array<~a>" type)))
+  (define p-type (create-pointer-type type))
+  (define a-type (create-array-type type))
+  (define a-type* (create-pointer-type a-type))
+  (sham:def:function
+   fn-name '() '(AlwaysInline)
+   '(size)
+   (list i32) (create-pointer-type a-type)
+   (sham:stmt:let
+    '(ap data datap sizep)
+    (list a-type* p-type (create-pointer-type p-type) (create-pointer-type i32))
+    (list (sham$app malloc (sham:exp:type a-type))
+          (sham$app arr-malloc (sham:exp:type type) (sham$var 'size))
+          (get-data-ptr 'ap)
+          (get-size-ptr 'ap))
+    (sham$block
+     (sham:stmt:exp (sham$app-var store! size sizep))
+     (sham:stmt:exp (sham$app-var store! data datap))
+     (sham:exp:return (sham$var 'ap))))))
+(define (size-array-type type)
+  (define fn-name (string->symbol (format "size-array<~a>" type)))
+  (define a-type (create-array-type type))
+  (define a-type* (create-pointer-type a-type))
+  (sham:def:function
+   fn-name '() '(AlwaysInline)
+   '(array-ptr)
+   (list a-type*) i32
+   (sham:stmt:return (sham$app load (get-size-ptr 'array-ptr)))))
+(define (index-array-type type)
+  (define fn-name (string->symbol (format "index-array<~a>" type)))
+  (define p-type (create-pointer-type type))
+  (define a-type (create-array-type type))
+  (define a-type* (create-pointer-type a-type))
+  (sham:def:function
+   fn-name '() '(AlwaysInline)
+   '(array-ptr index)
+   (list a-type* i32) (sham:type:ref type)
+   (sham:stmt:return
+    (sham$app load
+              (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
+                            (list (sham$var 'index)))))))
+(define (set-array-type-at-index type type-p type-pp array-type array-type-p)
+  (define fn-name (string->symbol (format "set-index-in-array<~a>" type)))
+  (define p-type (create-pointer-type type))
+  (define a-type (create-array-type type))
+  (define a-type* (create-pointer-type a-type))
+  (sham:def:function
+   fn-name '() '(AlwaysInline)
+   '(array-ptr index v)
+   (list a-type* i32 (sham:type:ref type)) (sham:type:ref 'void) 
+   (sham$block
+    (sham:stmt:exp
+     (sham$app store! v
+               (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
+                             (list (sham$var 'index)))))
+    (sham:stmt:return-void))))
+
+(define (empty-array-type-zero type)
+  (define fn-name (string->symbol (format "empty-zero-array<~a>" type)))
+  (define p-type (create-pointer-type type))
+  (define a-type (create-array-type type))
+  (define a-type* (create-pointer-type a-type))
+  (sham:def:function
+   fn-name '() '(AlwaysInline)
+   '()
+   (list ) a-type*
+   (sham:stmt:return
+    (sham$app ,(string->symbol (format "empty-array<~a>" type))
+              (nat-value 0)))))
+
 (define array-functions
   (list
     ;; (sham$define
