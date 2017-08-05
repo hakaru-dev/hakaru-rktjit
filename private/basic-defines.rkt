@@ -15,7 +15,7 @@
 (define-syntax (sham$block stx)
   (syntax-case stx ()
     [(_ stmts ...)
-     (sham:stmt:block (list stmts ...))]))
+     #'(sham:stmt:block (list stmts ...))]))
 (define sham$var sham:exp:var)
 (define-syntax (sham$app stx)
   (syntax-case stx ()
@@ -40,10 +40,12 @@
 (define array-format "array<~a>")
 (define (create-pointer-type t-sym)
   (sham:type:pointer (sham:type:ref t-sym)))
-(define (create-array-type t-sym)
+(define (create-array-type t)
   (sham:type:struct
    '(size data)
-   (list nat (sham:type:ref t-sym))))
+   (list nat 
+         (cond [(symbol? t) (sham:type:ref t)]
+               [else t]))))
 
 (define-syntax (create-ptr-def stx)
   (syntax-case stx ()
@@ -158,17 +160,21 @@
   (sham:exp:gep (sham$var vsym) (list (nat-value 0) (nat-value 0))))
 (define (get-data-ptr vsym)
   (sham:exp:gep (sham$var vsym) (list (nat-value 0) (nat-value 1))))
+;TODO make a sham util to have templated types
 (define (make-array type)
   (define fn-name (string->symbol (format "make-array<~a>" type)))
   (define p-type (create-pointer-type type))
-  (define a-type (create-array-type type))
+  (define a-type (create-array-type p-type))
+  (define a-type* (sham:type:pointer a-type))
+  (define p-type* (sham:type:pointer p-type))
   (sham:def:function
    fn-name '() '(AlwaysInline)
    '(size data)
-   (list i32 p-type) a-type
+   (list i32 p-type) a-type*
    (sham:stmt:let
     '(ap ap-size* ap-data*)
-    (list (create-pointer-type a-type) (create-pointer-type 'i32) (create-pointer-type p-type))
+    (list a-type* (create-pointer-type 'i32)
+          p-type*)
     (list (sham$app malloc (sham:exp:type a-type))
           (get-size-ptr 'ap)
           (get-data-ptr 'ap))
@@ -183,7 +189,7 @@
   (define a-type (create-array-type type))
   (sham:def:function
    fn-name '() '(AlwaysInline)
-   '(s)
+   '(ap)
    (list (create-pointer-type a-type)) p-type
    (sham:stmt:let
     '(atp)
@@ -204,13 +210,14 @@
     '(ap data datap sizep)
     (list a-type* p-type (create-pointer-type p-type) (create-pointer-type i32))
     (list (sham$app malloc (sham:exp:type a-type))
-          (sham$app arr-malloc (sham:exp:type type) (sham$var 'size))
+          (sham$app arr-malloc (sham:exp:type (sham:type:ref type)) (sham$var 'size))
           (get-data-ptr 'ap)
           (get-size-ptr 'ap))
     (sham$block
      (sham:stmt:exp (sham$app-var store! size sizep))
      (sham:stmt:exp (sham$app-var store! data datap))
-     (sham:exp:return (sham$var 'ap))))))
+     (sham:stmt:return (sham$var 'ap))))))
+
 (define (size-array-type type)
   (define fn-name (string->symbol (format "size-array<~a>" type)))
   (define a-type (create-array-type type))
@@ -220,6 +227,7 @@
    '(array-ptr)
    (list a-type*) i32
    (sham:stmt:return (sham$app load (get-size-ptr 'array-ptr)))))
+
 (define (index-array-type type)
   (define fn-name (string->symbol (format "index-array<~a>" type)))
   (define p-type (create-pointer-type type))
@@ -233,7 +241,8 @@
     (sham$app load
               (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
                             (list (sham$var 'index)))))))
-(define (set-array-type-at-index type type-p type-pp array-type array-type-p)
+
+(define (set-array-type-at-index type)
   (define fn-name (string->symbol (format "set-index-in-array<~a>" type)))
   (define p-type (create-pointer-type type))
   (define a-type (create-array-type type))
@@ -244,7 +253,7 @@
    (list a-type* i32 (sham:type:ref type)) (sham:type:ref 'void) 
    (sham$block
     (sham:stmt:exp
-     (sham$app store! v
+     (sham$app store! (sham$var 'v)
                (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
                              (list (sham$var 'index)))))
     (sham:stmt:return-void))))
@@ -259,91 +268,101 @@
    '()
    (list ) a-type*
    (sham:stmt:return
-    (sham$app ,(string->symbol (format "empty-array<~a>" type))
-              (nat-value 0)))))
+    (sham:exp:app (sham:rator:symbol (string->symbol (format "empty-array<~a>" type)))
+              (list (nat-value 0))))))
 
 (define array-functions
-  (list
-    ;; (sham$define
-    ;;   (make-array-array-nat (size : i32) (data : array-nat-pp) : array-array-nat-p)
-    ;;   (let ((ap : array-array-nat-p (#%app jit-malloc (#%type array-array-nat)))
-    ;;         (ap-size* : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat))))
-    ;;         (ap-data*
-    ;;          :
-    ;;          array-nat-ppp
-    ;;          (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
-    ;;     (block
-    ;;      (#%exp (#%app jit-store! size ap-size*))
-    ;;      (#%exp (#%app jit-store! data ap-data*))
-    ;;      (return ap))))
-
-   ))
+  (apply
+   append
+   (for/list [(t '(nat; real prob
+                   ))]
+     (list
+      (make-array t)
+      ;; (get-array-type t)
+      ;; (empty-array-type t)
+      ;; (index-array-type t)
+      ;; (set-array-type-at-index t)
+      ;; (empty-array-type-zero t)
+      ))))
 (define (basic-defines)
 
-    ;; (define-function
-    ;;   (#:attr AlwaysInline)
-    ;;   (get-array-array-nat (s : array-array-nat-p) : array-nat-pp)
-    ;;   (let ((atp : array-nat-p (#%gep s ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
-    ;;     (return (#%app jit-load atp))))
-    ;; (define-function
-    ;;   (#:attr AlwaysInline)
-    ;;   (empty-array-array-nat (size : i32) : array-array-nat-p)
-    ;;   (let ((ap : array-array-nat-p (#%app jit-malloc (#%type array-array-nat)))
-    ;;         (data : array-nat-pp (#%app jit-arr-malloc (#%type array-nat-p) size))
-    ;;         (atp : array-nat-ppp (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat))))
-    ;;         (sizep : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat)))))
-    ;;     (block
-    ;;      (#%exp (#%app jit-store! size sizep))
-    ;;      (#%exp (#%app jit-store! data atp))
-    ;;      (return ap))))
-    ;; (define-function
-    ;;   (#:attr AlwaysInline)
-    ;;   (empty-array-array-nat-zero : array-array-nat-p)
-    ;;   (return (#%app empty-array-array-nat (#%ui-value 0 nat))))
-    ;; (define-function
-    ;;   (#:attr AlwaysInline)
-    ;;   (size-array-array-nat-p (array-ptr : array-array-nat-p) : i32)
-    ;;   (return
-    ;;    (#%app jit-load (#%gep array-ptr ((#%ui-value 0 nat) (#%ui-value 0 nat))))))
-    ;; (define-function
-    ;;   (#:attr AlwaysInline)
-    ;;   (index-array-array-nat-p
-    ;;    (array-ptr : array-array-nat-p)
-    ;;    (index : i32)
-    ;;    :
-    ;;    array-nat-p)
-    ;;   (return
-    ;;    (#%app jit-load
-    ;;           (#%gep
-    ;;            (#%app jit-load (#%gep array-ptr ((#%ui-value 0 nat) (#%ui-value 1 nat))))
-    ;;            (index)))))
-    ;; (define-function
-    ;;   (#:attr AlwaysInline)
-    ;;   (set-array-array-nat-at-index
-    ;;    (arr : array-array-nat-p)
-    ;;    (in : nat)
-    ;;    (v : array-nat-p)
-    ;;    :
-    ;;    void)
-    ;;   (block
-    ;;    (#%exp
-    ;;     (#%app
-    ;;      jit-store!
-    ;;      v
-    ;;      (#%gep
-    ;;       (#%app jit-load (#%gep arr ((#%ui-value 0 nat) (#%ui-value 1 nat))))
-    ;;       (in))))
-    ;;    (return-void)))
+  ;; (sham$define
+  ;;   (make-array-array-nat (size : i32) (data : array-nat-pp) : array-array-nat-p)
+  ;;   (let ((ap : array-array-nat-p (#%app jit-malloc (#%type array-array-nat)))
+  ;;         (ap-size* : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat))))
+  ;;         (ap-data*
+  ;;          :
+  ;;          array-nat-ppp
+  ;;          (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
+  ;;     (block
+  ;;      (#%exp (#%app jit-store! size ap-size*))
+  ;;      (#%exp (#%app jit-store! data ap-data*))
+  ;;      (return ap))))
+
+  ;; (define-function
+  ;;   (#:attr AlwaysInline)
+  ;;   (get-array-array-nat (s : array-array-nat-p) : array-nat-pp)
+  ;;   (let ((atp : array-nat-p (#%gep s ((#%ui-value 0 nat) (#%ui-value 1 nat)))))
+  ;;     (return (#%app jit-load atp))))
+  ;; (define-function
+  ;;   (#:attr AlwaysInline)
+  ;;   (empty-array-array-nat (size : i32) : array-array-nat-p)
+  ;;   (let ((ap : array-array-nat-p (#%app jit-malloc (#%type array-array-nat)))
+  ;;         (data : array-nat-pp (#%app jit-arr-malloc (#%type array-nat-p) size))
+  ;;         (atp : array-nat-ppp (#%gep ap ((#%ui-value 0 nat) (#%ui-value 1 nat))))
+  ;;         (sizep : nat-p (#%gep ap ((#%ui-value 0 nat) (#%ui-value 0 nat)))))
+  ;;     (block
+  ;;      (#%exp (#%app jit-store! size sizep))
+  ;;      (#%exp (#%app jit-store! data atp))
+  ;;      (return ap))))
+  ;; (define-function
+  ;;   (#:attr AlwaysInline)
+  ;;   (empty-array-array-nat-zero : array-array-nat-p)
+  ;;   (return (#%app empty-array-array-nat (#%ui-value 0 nat))))
+  ;; (define-function
+  ;;   (#:attr AlwaysInline)
+  ;;   (size-array-array-nat-p (array-ptr : array-array-nat-p) : i32)
+  ;;   (return
+  ;;    (#%app jit-load (#%gep array-ptr ((#%ui-value 0 nat) (#%ui-value 0 nat))))))
+  ;; (define-function
+  ;;   (#:attr AlwaysInline)
+  ;;   (index-array-array-nat-p
+  ;;    (array-ptr : array-array-nat-p)
+  ;;    (index : i32)
+  ;;    :
+  ;;    array-nat-p)
+  ;;   (return
+  ;;    (#%app jit-load
+  ;;           (#%gep
+  ;;            (#%app jit-load (#%gep array-ptr ((#%ui-value 0 nat) (#%ui-value 1 nat))))
+  ;;            (index)))))
+  ;; (define-function
+  ;;   (#:attr AlwaysInline)
+  ;;   (set-array-array-nat-at-index
+  ;;    (arr : array-array-nat-p)
+  ;;    (in : nat)
+  ;;    (v : array-nat-p)
+  ;;    :
+  ;;    void)
+  ;;   (block
+  ;;    (#%exp
+  ;;     (#%app
+  ;;      jit-store!
+  ;;      v
+  ;;      (#%gep
+  ;;       (#%app jit-load (#%gep arr ((#%ui-value 0 nat) (#%ui-value 1 nat))))
+  ;;       (in))))
+  ;;    (return-void)))
 
 
-    ;; ,@(append*
-    ;;    (for/list ([type '(nat real prob)])
-    ;;      (let ((array-type (string->symbol (format "array-~a" type)))
-    ;;            (array-type-p (string->symbol (format "array-~a-p" type)))
-    ;;            (type-p (string->symbol (format "~a-p" type)))
-    ;;            (type-pp (string->symbol (format "~a-pp" type))))
-    ;;        (array-functions type type-p type-pp array-type array-type-p))))
-  (append types simple-funs))
+  ;; ,@(append*
+  ;;    (for/list ([type '(nat real prob)])
+  ;;      (let ((array-type (string->symbol (format "array-~a" type)))
+  ;;            (array-type-p (string->symbol (format "array-~a-p" type)))
+  ;;            (type-p (string->symbol (format "~a-p" type)))
+  ;;            (type-pp (string->symbol (format "~a-pp" type))))
+  ;;        (array-functions type type-p type-pp array-type array-type-p))))
+  (append types simple-funs array-functions))
 
 
 (module+ test
@@ -415,11 +434,13 @@
   (define test-real-array (list->cblock ta t-real))
   (define test-prob-array (list->cblock (map real->prob ta) t-prob))
 
-  (define make-array-nat (get-f 'make-array-nat))
-  (define index-array-nat (get-f 'index-array-nat-p))
-  (define size-nat (get-f 'size-array-nat-p))
-  (define set-array-nat-at-index! (get-f 'set-array-nat-at-index))
-  (define empty-array-nat (get-f 'empty-array-nat))
+  (define make-array-nat (get-f 'make-array<nat>))
+  (define get-ptr-array-nat (get-f 'get-ptr-array<nat>))
+  (define empty-array-nat (get-f 'empty-array<nat>))
+  (define size-nat (get-f 'size-array<nat>))
+  (define index-array-nat (get-f 'index-array<nat>))
+  (define set-array-nat-at-index! (get-f 'set-index-in-array<nat>))
+  (define empty-zero-array-nat (get-f 'empty-zero-array<nat>))
 
   (define tiarr (make-array-nat (length ti) test-nat-array))
   (define eti (empty-array-nat 5))
@@ -432,7 +453,7 @@
   (set-array-nat-at-index! eti 3 42)
   (check-eq? (index-array-nat eti 3) 42)
 
-  (define make-array-array-nat (get-f 'make-array-array-nat))
+  (define make-array-array-nat (get-f 'make-array-array<nat>))
   (define index-array-array-nat (get-f 'index-array-array-nat-p))
   (define size-array-array-nat (get-f 'size-array-array-nat-p))
   (define set-array-array-nat-at-index! (get-f 'set-array-array-nat-at-index))
