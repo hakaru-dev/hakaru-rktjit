@@ -29,15 +29,15 @@
 ;; efvp ::= (list? efv)
 (define-struct ufb (expr efvp) #:prefab)
 
+;;forces to form a let for `efv`'s having `var` as a free variable
 (define (get-ufb-without uf var)
   (define sefvp (sort-efvp (ufb-efvp uf)))
   (define-values (free bind)
     (splitf-at sefvp (λ (ef) (not (set-member? (efv-fvars ef) var)))))
-  ;; (printf "get-ufb-witout var: ~a\n" (expr-var-sym var))
-  ;; (printf "free: ~a\nbind: ~a\n"
-  ;;         (map (compose print-fvars efv-fvars) free)
-  ;;         (map (compose print-fvars efv-fvars) bind))
-  (ufb (combine-expr (ufb-expr uf) bind) free))
+
+  ;; (ufb (combine-expr (ufb-expr uf) bind) free)
+  (ufb (combine-expr (ufb-expr uf) sefvp) '()) ;;for no loop hoisting, essentially force all lets now
+  )
 
 
 
@@ -158,48 +158,3 @@
      (define nb (uf body))
      (for ([ef (ufb-efvp nb)]) (void))
      (expr-mod (expr-fun args ret-type (combine-ufb (uf body))) '())]))
-
-
-(define (stmt-let-block var val . stmts)
-  (stmt-lets (list var) (stmt-block (cons (fe val var) stmts))))
-
-(define (stmt-lets-block vars vals . stmts)
-  (stmt-lets vars
-             (stmt-block (append (for/list ([var vars] [val vals])
-                                   (fe val var))
-                                 stmts))))
-
-(define (fs s)
-  (match s
-    [(stmt-if tst thn els)
-     (stmt-if tst (fs thn) (fs els))]
-    [(stmt-for i start end body)
-     (stmt-for i (fs start) (fs end) (fs body))]
-    [(stmt-block stmts)
-     (stmt-block (map fs stmts))]
-    [(stmt-assign var val)
-     (fe val var)]
-    [s s]))
-(define (fe e to)
-  (define (do-assign v)
-    (if to
-        (stmt-assign to v)
-        (stmt-return v)))
-  (match e
-    [(expr-fun args ret-type body)
-     (expr-fun args ret-type (fe body #f))]
-    [(expr-let type var val body)
-     (stmt-let-block var val (fs (fe body to)))]
-    [(expr-lets type vars vals body)
-     (stmt-lets-block vars vals (fs (fe body to)))]
-    [(expr-if t tst thn els)
-     (stmt-if tst (fe thn to) (fe els to))]
-    [(expr-block t stmt val)
-     (stmt-block (list (fs stmt) (fe val to)))]
-    [e #:when (expr? e) (do-assign e)]
-    [(? stmt?) e]))
-
-(define (flatten-to-stmt e)
-  (match e
-    [(expr-mod main fns)
-     (expr-mod (fe main #f) (map (curryr fe #f) fns))]))
