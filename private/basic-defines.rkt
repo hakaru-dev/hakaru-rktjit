@@ -5,6 +5,7 @@
 (require (for-syntax racket/syntax))
 (provide basic-defines)
 
+;;TODO: make function creation on demand for compiling program
 (define i32 (sham:type:ref 'i32))
 (define f64 (sham:type:ref 'f64))
 (define nat i32)
@@ -282,8 +283,7 @@
 (define array-functions
   (apply
    append
-   (for/list [(t '(nat real prob ;array<nat>
-                       ))]
+   (for/list [(t '(nat real prob array<nat>*))]
      (list
       (make-array t)
       (get-array-type t)
@@ -291,32 +291,15 @@
       (size-array-type t)
       (index-array-type t)
       (set-array-type-at-index t)
-      (empty-array-type-zero t)
-      ))))
-(define double-array-functions
-  (list
-   (make-array 'array<nat>*)
-   (get-array-type 'array<nat>*)
-   (empty-array-type 'array<nat>*)
-   (size-array-type 'array<nat>*)
-   (index-array-type 'array<nat>*)
-   (set-array-type-at-index 'array<nat>*)
-   (empty-array-type-zero 'array<nat>*)))
+      (empty-array-type-zero t)))))
 
 (define (basic-defines)
-  (append types simple-funs array-functions double-array-functions))
-
+  (append types simple-funs array-functions))
 
 (module+ test
   (require rackunit)
   (require "utils.rkt")
-  ;(pretty-display (basic-defines))
-  (define
-    benv
-    (initialize-jit
-     (compile-module
-      (sham:module '()
-                   (basic-defines)))))
+  (define benv (initialize-jit (compile-module (sham:module '() (basic-defines)))))
   
   (jit-dump-module benv)
   (define (get-t t) (jit-get-racket-type (env-lookup t benv)))
