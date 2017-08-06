@@ -1,21 +1,32 @@
 #lang racket
 
-(require sham/private/ast)
+(require sham/ast)
 
-(require "ast.rkt")
-(require "utils.rkt")
+(require "ast.rkt"
+         "sham-utils.rkt"
+         "utils.rkt")
 
 (provide expand-to-lc)
 
+(define (get-var-sym var)
+  (match var
+    [(expr-var t sym o)
+     sym]))
+
+(define (get-sham-type t)
+  (match t
+    [`(array ,typ) (sham:type:pointer (sham:type:ref typ))]
+    [(? symbol?) (sham:type:ref t)]))
+
+(define (get-sham-var v)
+  (sham:exp:var (get-var-sym v)))
 (define (get-type tast)
   (match tast
     [`(array ,t) #:when (symbol? t)
      (symbol-append (symbol-append 'array- t) '-p)]
     [`(array ,t) (symbol-append 'array- (get-type t))]
     [`(measure ,t) (symbol-append t 'm)]
-    [(? symbol?) tast]
-    ;; [else tast]
-    ))
+    [(? symbol?) tast]))
 
 (define op-map
   (make-hash
@@ -24,46 +35,28 @@
 
 (define (get-value v type)
   (match type
-    ['nat (nat-value v)]
+    ['nat (nat-value (truncate (inexact->exact v)))]
     ['prob (sham:exp:app (sham:rator:symbol'real2prob)
                         (list (real-value (exact->inexact v))))]
-    ['real (real-value v)]))
+    ['real (real-value (exact->inexact v))]))
 
 (define (get-rator-sym t rator rands)
   (sham:rator:symbol
    (match rator
      [(expr-intrf 'empty)
-      (string->symbol (format "empty-~a-zero" (get-print-type t)))]
+      (string->symbol (format "empty-~a" (get-print-type t)))]
      [(expr-intrf s) s]
-
      [(expr-intr s)
-      (define r-type (get-print-type (expr-type (car rands))))
+      (define r-type (get-print-type (typeof (car rands))))
       (match s
-        ['index (string->symbol (format "index-~a-p" r-type))]
-        ['size  (string->symbol (format "size-~a-p" r-type))]
+        ['index (string->symbol (format "index-~a" r-type))]
+        ['size  (string->symbol (format "size-~a" r-type))]
         ['recip (symbol-append 'recip- r-type)]
         ['+ (string->symbol (format "add-~a-~a" (length rands) r-type))]
         ['* (string->symbol (format "mul-~a-~a" (length rands) r-type))]
         [else (hash-ref op-map s s)])])))
 
-(define (initial-value type)
-  (match type
-    ['prob (get-value 0.0 'prob)]
-    ['nat  (get-value 0   'nat)]
-    ['real (get-value 0.0 'real)]
-    [`(array ,t) (get-value 0 'nat)]))
-(define (value v type)
-  (match type
-    ['prob (get-value (exact->inexact v) 'prob)]
-    ['nat  (get-value (truncate (inexact->exact v)) 'nat)]
-    ['real (get-value (exact->inexact v) 'real)]))
-(define (empty-array type size)
-  (ast-exp-app (string->symbol (format "empty-array-~a" (cadr type))) (list (expand-exp size))))
-
 (define (expand-to-lc mod)
-  (define extra-funs (box '()))
-  (define (add-fun f)
-    (set-box extra-funs (cons f (unbox extra-funs))))
   (define (expand-exp b (env (make-immutable-hash)))
     (match b
       [(expr-app t rt rds)
@@ -106,7 +99,7 @@
       [(stmt-assign var val)
        (sham:stmt:set! (get-sham-var var) (expand-exp val))]
       [(stmt-void)
-       (ast-stmt-exp (ast-exp-void-value))]
+       (sham:stmt:exp (sham:exp:void-value))]
 
       ([stmt-for i start end body]
        (define end-sym (gensym^ 'end))
@@ -126,30 +119,15 @@
                                                (nat-value 1)))))))))
       [(stmt-return val)
        (sham:stmt:return (expand-exp val))]))
-  (ast-module
-   (cons
-    (match (expr-mod-main mod)
+  (define (expand-fun f)
+    (match f
       [(expr-fun args ret-type b)
-       (define ret (ast-exp-var (gensym^ 'ret)))
        (sham:def:function
         'main '() '(AlwaysInline)
-        (map get-args args) (map (compose get-type expr-var-type) args)
+        (map get-var-sym args) (map (compose get-type expr-var-type) args)
         (get-type ret-type)
-        (expand-stmt b))]) 
-    (for/list ([fnp (expr-mod-fns mod)])
-      (define fn-name (car fnp))
-      (define fn (cdr fnp))
-      (define ret (ast-exp-var (gensym^ 'ret)))
-      (match fn
-        [(expr-fun args ret-type b)
-         (ast-function-def
-          fn-name '() '(AlwaysInline)
-          (map expand-exp args) (map (compose get-type expr-var-type) args)
-          (get-type ret-type)
-          (ast-stmt-let
-           ret (get-type ret-type) (initial-value ret-type) ;;allocates twice for array
-           (ast-stmt-block
-            (list
-             (expand-fnb b ret)
-             (ast-stmt-ret ret)))))]))
-    )))
+        (expand-stmt b))]))
+  (sham:module
+   '()
+   (cons (expand-fun (expr-mod-main mod))
+         (map expand-fun (expr-mod-fns mod)))))

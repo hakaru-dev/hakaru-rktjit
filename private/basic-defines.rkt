@@ -1,8 +1,13 @@
 #lang racket
-(require ffi/unsafe)
-(require sham/jit)
-(require sham/private/ast)
+
 (require (for-syntax racket/syntax))
+
+(require ffi/unsafe)
+
+(require sham/jit
+         sham/ast)
+
+(require "sham-utils.rkt")
 (provide basic-defines)
 
 ;;TODO: make function creation on demand for compiling program
@@ -12,31 +17,6 @@
 (define int i32)
 (define real f64)
 (define prob f64)
-
-(define-syntax (sham$block stx)
-  (syntax-case stx ()
-    [(_ stmts ...)
-     #'(sham:stmt:block (list stmts ...))]))
-(define sham$var sham:exp:var)
-(define-syntax (sham$app stx)
-  (syntax-case stx ()
-    [(_ (str t) rands ...)
-     #'(sham:exp:app (sham:rator:intrinsic 'str
-                                           (sham:type:ref 't))
-                     (list rands ...))]
-    [(_ sym rands ...)
-     #'(sham:exp:app (sham:rator:symbol 'sym) (list rands ...))]))
-(define-syntax (sham$app-var stx)
-  (syntax-case stx ()
-    [(_ app rands ...)
-     #'(sham$app app (sham:exp:var 'rands) ...)]))
-(define-syntax (sham$define stx)
-  (syntax-case stx (return :)
-    [(_ (id (args : t) ... : rett) (return stmt))
-     #'(sham:def:function
-        'id '() '(AlwaysInline)
-        '(args ...) (list (sham:type:ref 't) ...) (sham:type:ref 'rett)
-        (sham:stmt:return stmt))]))
 (define pointer-format "~a*")
 (define array-format "array<~a>")
 (define (create-pointer-type t-sym)
@@ -58,7 +38,6 @@
     [(_ ptr ...)
      #'(list (create-ptr-def ptr) ...)]))
 
-
 (define-syntax (create-array-def stx)
   (syntax-case stx ()
     [(_ type)
@@ -69,10 +48,7 @@
   (syntax-case stx ()
     [(_ type ...)
      #'(list (create-array-def type) ...)]))
-(define (real-value v)
-  (sham:exp:fl-value v (sham:type:ref 'real)))
-(define (nat-value v)
-  (sham:exp:ui-value v (sham:type:ref 'nat)))
+
 (define types
   (append
    (list

@@ -6,7 +6,5 @@
 (provide add-fluff)
 
 (define (add-fluff fns)
-  `(#%module
-    (#:pass AlwaysInliner)
-    ,@(basic-defines)
-    ,@(map ast->sexp (ast-module-defs fns))))
+  (sham:module '(AlwaysInliner)
+               (append (basic-defines) fns)))
