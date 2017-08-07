@@ -3,8 +3,7 @@
 (require "ast.rkt")
 (require "utils.rkt")
 (require racket/trace)
-(provide flatten-anf
-         flatten-to-stmt)
+(provide flatten-anf)
 
 #|
  Does anf and let hoisting in single pass using sorting

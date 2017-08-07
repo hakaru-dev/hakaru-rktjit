@@ -1,20 +1,19 @@
 #lang racket
 
-(require sham/jit)
-(require sham/private/ast)
+(require sham/jit
+         sham/ast)
 
-(require "reduce-curry.rkt")
-(require "parse-sexp.rkt")
-(require "log-float.rkt")
-(require "interpret.rkt")
-(require "flatten.rkt")
-(require "expand-lc.rkt")
-(require "basic-fluff.rkt")
-(require "ast.rkt")
-(require "utils.rkt")
-(require "simplifications.rkt")
-(require "removals.rkt")
-(require "do-bucket.rkt")
+(require "reduce-curry.rkt"
+         "parse-sexp.rkt"
+         "flatten.rkt"
+         "expand-lc.rkt"
+         "basic-fluff.rkt"
+         "ast.rkt"
+         "utils.rkt"
+         "simplifications.rkt"
+         "removals.rkt"
+         "do-bucket.rkt")
+
 (provide (all-defined-out))
 
 (define (read-file filename)
@@ -31,17 +30,16 @@
         (cons flatten-anf        pp-expr)
 
         (cons bucket->for pp-expr)
-;        stop
+
         (cons remove-unit-lets   pp-expr)
 
         (cons simplify-lets pp-expr)
         (cons remove-empty-lets  pp-expr)
         (cons remove-unused-lets pp-expr)
         (cons remove-pairs pp-expr)
-
-        (cons flatten-to-stmt pp-expr)
-
-        (cons expand-to-lc (compose  pretty-display print-ast))
+        stop
+ 
+        (cons expand-to-lc (compose  pretty-display print-sham-ast))
         (cons add-fluff pretty-display)))
 
 (define (debug-program prg cmplrs)
@@ -91,13 +89,13 @@
 (module+ test
   (require ffi/unsafe)
   (require "jit-utils.rkt")
-  (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
+  (define nbgo-src (read-file "../hkr/nb_simpbucket.hkr"))
 ;  (define nbgo-src (read-file "../test/unit/bucket-nb.hkr"))
 ;  (define nbgo-src (read-file "../test/unit/bucket-index.hkr"))
   (define nbgo-mod-jit
-    (compile-src nbgo-src)
-    ;; (debug-program nbgo-src
-    ;;                passes)
+    ;; (compile-src nbgo-src)
+    (debug-program nbgo-src
+                   passes)
     )
   ;; (jit-dump-module nbgo-mod-jit)
   ;; (jit-write-bitcode nbgo-mod-jit "test.bc")

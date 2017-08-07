@@ -1,10 +1,10 @@
 #lang racket
-(require "ast.rkt")
-(require "utils.rkt")
+(require "ast.rkt"
+         "utils.rkt")
+
 (provide simplify-match
          simplify-lets
-         remove-pairs
-         )
+         remove-pairs)
 
 (define simplify-match
   (create-rpass
@@ -70,3 +70,12 @@
    (reducer)
    (stmt)
    (pat)))
+
+;; (define do-anf
+;;   (create-rpass
+;;    (expr [(expr-arr type index siz body)
+;;           (define nv (expr-var type (gensym^ 'aar) '_))
+;;           (expr-let type nv (expr-arr t index siz body) nv)]
+;;          [(expr-sum)]
+;;          [(expr-prd)]
+;;          [(expr-bucket)])))
