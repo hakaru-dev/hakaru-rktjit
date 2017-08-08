@@ -20,6 +20,7 @@
 
 (define (get-sham-var v)
   (sham:exp:var (get-var-sym v)))
+
 (define (get-type tast)
   (match tast
     [`(array ,t) #:when (symbol? t)

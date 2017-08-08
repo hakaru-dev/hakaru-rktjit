@@ -1,7 +1,7 @@
 #lang racket
 (require "ast.rkt"
          "utils.rkt")
-
+(provide folds->for)
 (define (folds->for e)
   (define fns (box '()))
   (define (add-to-fns fn)
@@ -9,21 +9,21 @@
   (define pass
     (create-rpass
      (expr [(expr-arr t index size body)
-            (define fvars (set->list (find-free-variables body)))
-            (define fname (gensym^ 'arrf))
-            (add-to-fns (expr-fun fname fvars t (do-arr index size body)))
+            (define fvars (set->list (set-remove (find-free-variables body) index)))
+
+            (define fname (gensym^ 'af))
+            (add-to-fns (cons fname (expr-fun fvars t (do-arr t index size body))))
             (expr-app t (expr-intrf fname) fvars)]
            [(expr-sum t index start end body)
-            (define fvars (set->list (find-free-variables body)))
-            (define fname (gensym^ 'sumf))
-            (add-to-fns (expr-fun fname fvars t (do-sum index start end body)))
+            (define fvars (set->list (set-remove (find-free-variables body) index)))
+            (define fname (gensym^ 'sf))
+            (add-to-fns (cons fname (expr-fun fvars t (do-sum t index start end body))))
             (expr-app t (expr-intrf fname) fvars)]
            [(expr-prd t index start end body)
-            (define fvars (set->list (find-free-variables body)))
-            (define fname (gensym^ 'prdf))
-            (add-to-fns (expr-fun fname fvars t (do-sum index start end body)))
-            (expr-app t fname fvars)]
-           )
+            (define fvars (set->list (set-remove (find-free-variables body) index)))
+            (define fname (gensym^ 'pf))
+            (add-to-fns (cons fname (expr-fun fvars t (do-sum t index start end body))))
+            (expr-app t (expr-intrf fname) fvars)])
      (reducer)
      (stmt)
      (pat)))
@@ -32,25 +32,28 @@
 
 (define (do-arr t index size body)
   (make-fold t
-             (expr-var t (gensym^ 'arr) '_)
+             (expr-var t (gensym^ 'ar) '_)
              (expr-app t (expr-intrf (symbol-append 'empty- (get-print-type t)))
-                              size)
+                       (list size))
              index (expr-val 0 'nat) size
-             (λ (index result) (stmt-assign (expr-app (expr-intr 'index) (list result index)) body))))
+             (λ (index result) (stmt-assign (expr-app t (expr-intr 'index)
+                                                      (list result index)) body))))
 
 (define (do-sum t index start end body)
   (make-fold t
-             (expr-var t (gensym^ 'sum) '_)
+             (expr-var t (gensym^ 'sr) '_)
              (expr-val 0 t)
              index start end
-             (λ (index result) (stmt-assign result (expr-app (expr-intr '+) result body)))))
+             (λ (index result) (stmt-assign result (expr-app t (expr-intr '+)
+                                                             (list result body))))))
 
 (define (do-prd t index start end body)
   (make-fold t
-             (expr-var t (gensym^ 'prd) '_)
+             (expr-var t (gensym^ 'pr) '_)
              (expr-val 1 t)
              index start end
-             (λ (index result) (stmt-assign result (expr-app (expr-intr '*) result body)))))
+             (λ (index result) (stmt-assign result (expr-app t (expr-intr '*)
+                                                             (list result body))))))
 
 (define (make-fold t result init-value index start end body-gen)
   (expr-let t result init-value

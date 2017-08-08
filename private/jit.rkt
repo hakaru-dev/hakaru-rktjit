@@ -11,6 +11,7 @@
          "ast.rkt"
          "utils.rkt"
          "simplifications.rkt"
+         "to-stmt.rkt"
          "removals.rkt"
          "do-bucket.rkt")
 
@@ -31,12 +32,15 @@
 
         (cons bucket->for pp-expr)
 
+        (cons folds->for pp-expr)
         (cons remove-unit-lets   pp-expr)
 
         (cons simplify-lets pp-expr)
         (cons remove-empty-lets  pp-expr)
         (cons remove-unused-lets pp-expr)
         (cons remove-pairs pp-expr)
+
+
         stop
  
         (cons expand-to-lc (compose  pretty-display print-sham-ast))

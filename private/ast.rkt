@@ -9,7 +9,7 @@
 #|
 (define-grammar hakaru
   (expr
-   (mod (main fns) [expr (* expr)])
+   (mod (main fns) [expr (* (symbol . expr))])
    (fun (args ret-type body) [(* expr) symbol expr])
    (let (type var val body) [symbol expr expr expr])
    (lets (types vars vals body) [symbol (* expr) (* expr) expr])
@@ -58,7 +58,7 @@
       #:methods gen:exprg
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-mod main fns) e^)
-         (expr-mod (f-expr main) (map f-expr fns)))))
+         (expr-mod (f-expr main) (map (λ (f) (cons (car f) (f-expr (cdr f)))) fns)))))
      (struct expr-fun expr (args ret-type body)
       #:methods gen:exprg
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
@@ -539,6 +539,8 @@
     [(stmt-if tst thn els) (set-union (ffv^ tst) (ffv^ thn) (ffv^ els))]
     [(stmt-for i start end body)
      (set-union (ffv^ start) (ffv^ end) (set-remove (ffv^ body) i))]
+    [(stmt-lets vars bstmt)
+     (set-subtract (ffv^ bstmt) (apply set vars))]
     [(stmt-block stmts)
      (apply set-union (map ffv^ stmts))]
 
