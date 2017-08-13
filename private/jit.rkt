@@ -32,7 +32,6 @@
 
         (cons bucket->for pp-expr)
 
-        (cons folds->for pp-expr)
         (cons remove-unit-lets   pp-expr)
 
         (cons simplify-lets pp-expr)
@@ -40,7 +39,10 @@
         (cons remove-unused-lets pp-expr)
         (cons remove-pairs pp-expr)
 
-
+        (cons folds->for pp-expr)
+        (cons to-stmt pp-expr)
+        (cons simplify-set pp-expr)
+        (cons remove-if-expr pp-expr)
         stop
  
         (cons expand-to-lc (compose  pretty-display print-sham-ast))

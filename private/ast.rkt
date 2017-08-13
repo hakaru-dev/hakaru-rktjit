@@ -63,7 +63,7 @@
       #:methods gen:exprg
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-fun args ret-type body) e^)
-         (expr-fun (map f-expr args) (f-symbol ret-type) (f-expr body)))))
+         (expr-fun (map f-expr args) (f-symbol ret-type) (if (stmt? body) (f-stmt body) (f-expr body))))))
      (struct expr-let expr (type var val body)
       #:methods gen:exprg
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
