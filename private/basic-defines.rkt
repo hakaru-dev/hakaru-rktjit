@@ -17,8 +17,6 @@
 (define int i32)
 (define real f64)
 (define prob f64)
-(define pointer-format "~a*")
-(define array-format "array<~a>")
 (define (create-pointer-type t-sym)
   (sham:type:pointer (sham:type:ref t-sym)))
 (define (create-array-type t)

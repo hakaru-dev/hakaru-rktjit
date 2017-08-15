@@ -43,10 +43,9 @@
         (cons to-stmt pp-expr)
         (cons simplify-set pp-expr)
         (cons remove-if-expr pp-expr)
-        stop
  
-        (cons expand-to-lc (compose  pretty-display print-sham-ast))
-        (cons add-fluff pretty-display)))
+        (cons expand-to-lc (compose pretty-display sham-ast->sexp))
+        (cons add-fluff (compose pretty-display sham-ast->sexp))))
 
 (define (debug-program prg cmplrs)
   (define prog-ast

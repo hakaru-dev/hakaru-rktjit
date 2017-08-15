@@ -2,7 +2,8 @@
 
 (require racket/splicing)
 
-(require "ast.rkt")
+(require "ast.rkt"
+         "sham-utils.rkt")
 
 (provide gensym^
          symbol-append
@@ -93,9 +94,7 @@
 
 (define (get-print-type t)
   (match t
-    [`(array ,tar) #:when (symbol? tar)
-     (symbol-append 'array- tar)]
-    [`(array ,tar) (symbol-append 'array- (get-print-type tar))]
+    [`(* ,tp) (string->symbol (format pointer-format (get-print-type tp)))]
+    [`(array ,tar) (string->symbol (format array-format (get-print-type tar)))]
+    [`(measure ,t) (string->symbol (format measure-format (get-print-type t)))]
     [symbol? t]))
-
-;;sham ast utils

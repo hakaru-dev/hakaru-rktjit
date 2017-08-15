@@ -39,14 +39,14 @@
              (expr-var t (gensym^ 'ar) '_)
              (expr-app t (expr-intrf (symbol-append 'empty- (get-print-type t)))
                        (list size))
-             index (expr-val 0 'nat) size
+             index (expr-val 'nat 0) size
              (λ (index result) (stmt-assign (expr-app t (expr-intr 'index)
                                                       (list result index)) body))))
 
 (define (do-sum t index start end body)
   (make-fold t
              (expr-var t (gensym^ 'sr) '_)
-             (expr-val 0 t)
+             (expr-val t 0)
              index start end
              (λ (index result) (stmt-assign result (expr-app t (expr-intr '+)
                                                              (list result body))))))
@@ -55,7 +55,7 @@
   (make-fold
    t
    (expr-var t (gensym^ 'pr) '_)
-   (expr-val 1 t)
+   (expr-val t 1)
    index start end
    (λ (index result)
      (expr->stmt body (λ (e)

@@ -13,21 +13,14 @@
     [(expr-var t sym o)
      sym]))
 
-(define (get-sham-type t)
-  (match t
-    [`(array ,typ) (sham:type:pointer (sham:type:ref typ))]
-    [(? symbol?) (sham:type:ref t)]))
+(define (get-sham-type tast)
+  (match tast
+    [`(array ,t) (sham:type:ref (get-print-type `(* ,tast)))]
+    [`(measure ,t) (sham:type:ref (get-print-type `(* ,tast)))]
+    [(? symbol?) (sham:type:ref (get-print-type tast))]))
 
 (define (get-sham-var v)
   (sham:exp:var (get-var-sym v)))
-
-(define (get-type tast)
-  (match tast
-    [`(array ,t) #:when (symbol? t)
-     (symbol-append (symbol-append 'array- t) '-p)]
-    [`(array ,t) (symbol-append 'array- (get-type t))]
-    [`(measure ,t) (symbol-append t 'm)]
-    [(? symbol?) tast]))
 
 (define op-map
   (make-hash
@@ -59,6 +52,7 @@
 
 (define (expand-to-lc mod)
   (define (expand-exp b (env (make-immutable-hash)))
+    ;; (printf "expanding expr\n") (display-expr b)
     (match b
       [(expr-app t rt rds)
        (sham:exp:app (get-rator-sym t rt rds) (map (curryr expand-exp env) rds))]
@@ -73,12 +67,13 @@
       [(expr-val t v) (get-value v t)]
       [else (error "cannot expand expression" b)]))
   (define (expand-stmt stmt)
+    ;; (printf "expanding-stmt: \n") (display-stmt stmt)
     (match stmt
       [(stmt-lets vars bstmt)
        (sham:stmt:let
         (map get-var-sym vars)
         (map (compose get-sham-type typeof) vars)
-        (map (const (sham:exp:void-value)) (in-range (length vars)))
+        (make-list (length vars) (sham:exp:void-value))
         (expand-stmt bstmt))]
 
       [(stmt-if tst thn els)
@@ -94,7 +89,7 @@
         (sham:exp:app
          (sham:rator:symbol
           (string->symbol
-           (format "set-index-in-" (get-print-type (typeof arr)))))
+           (format "set-index-in-~a" (get-print-type (typeof arr)))))
          (map expand-exp (list arr ind val))))]
 
       [(stmt-assign var val)
@@ -120,15 +115,16 @@
                                                (nat-value 1)))))))))
       [(stmt-return val)
        (sham:stmt:return (expand-exp val))]))
-  (define (expand-fun f)
-    (match f
+  (define (expand-fun p)
+    (printf "expanding function: ~a\n" (car p))
+    (match (cdr p)
       [(expr-fun args ret-type b)
        (sham:def:function
-        'main '() '(AlwaysInline)
-        (map get-var-sym args) (map (compose get-type expr-var-type) args)
-        (get-type ret-type)
+        (car p) '() '(AlwaysInline)
+        (map get-var-sym args) (map (compose get-sham-type expr-var-type) args)
+        (get-sham-type ret-type)
         (expand-stmt b))]))
   (sham:module
    '()
-   (cons (expand-fun (expr-mod-main mod))
+   (cons (expand-fun (cons 'main (expr-mod-main mod) ))
          (map expand-fun (expr-mod-fns mod)))))

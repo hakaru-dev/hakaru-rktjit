@@ -5,6 +5,8 @@
 
 (provide add-fluff)
 
-(define (add-fluff fns)
-  (sham:module '(AlwaysInliner)
-               (append (basic-defines) fns)))
+(define (add-fluff m)
+  (match m
+    [(sham:module p fns)
+     (sham:module '(AlwaysInliner)
+                  (append (basic-defines) fns))]))
