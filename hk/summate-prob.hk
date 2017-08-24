@@ -1,4 +1,9 @@
-fn a array(prob):
-   fn b nat:
-      summate i from 0 to size(a):
-      	   a[i] + nat2prob(b)
+fn topic_prior array(prob):
+  fn word_prior array(prob):
+    fn z array(nat):
+     fn w array(nat): 
+      fn doc array(nat):
+        fn docUpdate nat:
+	  array zNew of size(topic_prior):
+	    summate i from 0 to size(topic_prior):
+              topic_prior[i]

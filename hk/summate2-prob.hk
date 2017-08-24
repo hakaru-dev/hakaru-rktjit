@@ -1,5 +1,10 @@
-fn a array(prob):
-   fn b array(prob):
-      summate i from 0 to size(a):
-        summate j from 0 to size(b):
- 	  a[i] * b[j]
+fn topic_prior array(prob):
+  fn word_prior array(prob):
+    fn z array(nat):
+     fn w array(nat): 
+      fn doc array(nat):
+        fn docUpdate nat:
+	  array zNew of size(topic_prior):
+	    summate i from 0 to size(topic_prior):
+              summate j from 0 to size(z):
+                topic_prior[i] * z[j]
