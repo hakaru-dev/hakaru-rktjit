@@ -19,158 +19,164 @@ import qualified Data.Text.IO as TIO
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
 
+prog ::
+  ((MayBoxVec Prob Prob) ->
+   ((MayBoxVec Prob Prob) ->
+    ((MayBoxVec Int Int) ->
+     ((MayBoxVec Int Int) ->
+      ((MayBoxVec Int Int) -> (Int -> (MayBoxVec Prob Prob)))))))
 prog =
-  lam $ \ topic_prior0 ->
-  lam $ \ word_prior1 ->
-  lam $ \ z2 ->
-  lam $ \ w3 ->
-  lam $ \ doc4 ->
-  lam $ \ docUpdate5 ->
-  case_ (docUpdate5 < size z2)
+  lam $ \ topic_prior21 ->
+  lam $ \ word_prior22 ->
+  lam $ \ z23 ->
+  lam $ \ w24 ->
+  lam $ \ doc25 ->
+  lam $ \ docUpdate26 ->
+  case_ (docUpdate26 < size z23)
         [branch ptrue
-                ((array (size topic_prior0) $
-                        \ zNew6 ->
+                ((array (size topic_prior21) $
+                        \ zNew27 ->
                         product (nat_ 0)
-                                (size topic_prior0)
-                                (\ i7 ->
+                                (size topic_prior21)
+                                (\ i28 ->
                                  product (nat_ 0)
-                                         (size word_prior1)
-                                         (\ i_a8 ->
+                                         (size word_prior22)
+                                         (\ i_a29 ->
                                           product (nat_ 0)
                                                   (let_ (bucket (nat_ 0)
-                                                                (size w3)
+                                                                (size w24)
                                                                 ((r_fanout (r_index (\ () ->
-                                                                                     size z2)
-                                                                                    (\ (i_b11,()) ->
-                                                                                     doc4
-                                                                                     ! i_b11)
-                                                                                    (r_index (\ (docUpdate12,()) ->
-                                                                                              size word_prior1)
-                                                                                             (\ (i_b11,(docUpdate12,())) ->
-                                                                                              w3
-                                                                                              ! i_b11)
-                                                                                             (r_add (\ (i_b11,(i_a13,(docUpdate12,()))) ->
+                                                                                     size z23)
+                                                                                    (\ (i_b32,()) ->
+                                                                                     doc25
+                                                                                     ! i_b32)
+                                                                                    (r_index (\ (docUpdate33,()) ->
+                                                                                              size word_prior22)
+                                                                                             (\ (i_b32,(docUpdate33,())) ->
+                                                                                              w24
+                                                                                              ! i_b32)
+                                                                                             (r_add (\ (i_b32,(i_a34,(docUpdate33,()))) ->
                                                                                                      nat_ 1))))
-                                                                           r_nop))) $ \ summary10 ->
-                                                   case_ (i7 == zNew6)
+                                                                           r_nop))) $ \ summary31 ->
+                                                   case_ (i28 == zNew27)
                                                          [branch ptrue
-                                                                 (case_ summary10
+                                                                 (case_ summary31
                                                                         [branch (ppair PVar PVar)
-                                                                                (\ y14 z15 -> y14)]
-                                                                  ! docUpdate5
-                                                                  ! i_a8),
+                                                                                (\ y35 z36 -> y35)]
+                                                                  ! docUpdate26
+                                                                  ! i_a29),
                                                           branch pfalse (nat_ 0)])
-                                                  (\ j9 ->
+                                                  (\ j30 ->
                                                    nat2prob (let_ (bucket (nat_ 0)
-                                                                          (size w3)
-                                                                          ((r_split (\ (i_b17,()) ->
-                                                                                     doc4 ! i_b17
-                                                                                     == docUpdate5)
+                                                                          (size w24)
+                                                                          ((r_split (\ (i_b38,()) ->
+                                                                                     doc25 ! i_b38
+                                                                                     == docUpdate26)
                                                                                     r_nop
                                                                                     (r_index (\ () ->
-                                                                                              size word_prior1)
-                                                                                             (\ (i_b17,()) ->
-                                                                                              w3
-                                                                                              ! i_b17)
-                                                                                             (r_index (\ (i_a18,()) ->
-                                                                                                       size topic_prior0)
-                                                                                                      (\ (i_b17,(i_a18,())) ->
-                                                                                                       z2
-                                                                                                       ! (doc4
-                                                                                                          ! i_b17))
-                                                                                                      (r_add (\ (i_b17,(i19,(i_a18,()))) ->
-                                                                                                              nat_ 1))))))) $ \ summary16 ->
-                                                             case_ summary16
+                                                                                              size word_prior22)
+                                                                                             (\ (i_b38,()) ->
+                                                                                              w24
+                                                                                              ! i_b38)
+                                                                                             (r_index (\ (i_a39,()) ->
+                                                                                                       size topic_prior21)
+                                                                                                      (\ (i_b38,(i_a39,())) ->
+                                                                                                       z23
+                                                                                                       ! (doc25
+                                                                                                          ! i_b38))
+                                                                                                      (r_add (\ (i_b38,(i40,(i_a39,()))) ->
+                                                                                                              nat_ 1))))))) $ \ summary37 ->
+                                                             case_ summary37
                                                                    [branch (ppair PVar PVar)
-                                                                           (\ y20 z21 -> z21)]
-                                                             ! i_a8
-                                                             ! i7) +
-                                                   nat2prob j9 +
-                                                   word_prior1 ! i_a8))) *
+                                                                           (\ y41 z42 -> z42)]
+                                                             ! i_a29
+                                                             ! i28) +
+                                                   nat2prob j30 +
+                                                   word_prior22 ! i_a29))) *
                         ((let_ (bucket (nat_ 0)
-                                       (size z2)
-                                       ((r_split (\ (i_b23,()) -> i_b23 == docUpdate5)
+                                       (size z23)
+                                       ((r_split (\ (i_b44,()) -> i_b44 == docUpdate26)
                                                  r_nop
-                                                 (r_index (\ () -> size topic_prior0)
-                                                          (\ (i_b23,()) -> z2 ! i_b23)
-                                                          (r_add (\ (i_b23,(zNew24,())) ->
-                                                                  nat_ 1)))))) $ \ summary22 ->
-                          nat2prob (case_ summary22
-                                          [branch (ppair PVar PVar) (\ y25 z26 -> z26)]
-                                    ! zNew6)) +
-                         topic_prior0 ! zNew6) *
+                                                 (r_index (\ () -> size topic_prior21)
+                                                          (\ (i_b44,()) -> z23 ! i_b44)
+                                                          (r_add (\ (i_b44,(zNew45,())) ->
+                                                                  nat_ 1)))))) $ \ summary43 ->
+                          nat2prob (case_ summary43
+                                          [branch (ppair PVar PVar) (\ y46 z47 -> z47)]
+                                    ! zNew27)) +
+                         topic_prior21 ! zNew27) *
                         recip (nat2prob (summate (nat_ 0)
-                                                 (size z2)
-                                                 (\ i_b27 ->
-                                                  case_ (i_b27 == docUpdate5)
+                                                 (size z23)
+                                                 (\ i_b48 ->
+                                                  case_ (i_b48 == docUpdate26)
                                                         [branch ptrue (nat_ 0),
                                                          branch pfalse
-                                                                (case_ (z2 ! i_b27 < nat_ 0)
+                                                                (case_ (z23 ! i_b48 < nat_ 0)
                                                                        [branch ptrue (nat_ 0),
                                                                         branch pfalse
                                                                                (nat_ 1)])])) +
                                summate (nat_ 0)
-                                       (size topic_prior0)
-                                       (\ i_b28 -> topic_prior0 ! i_b28)) *
+                                       (size topic_prior21)
+                                       (\ i_b49 -> topic_prior21 ! i_b49)) *
                         recip (product (nat_ 0)
-                                       (size topic_prior0)
-                                       (\ i29 ->
+                                       (size topic_prior21)
+                                       (\ i50 ->
                                         product (nat_ 0)
                                                 (let_ (bucket (nat_ 0)
-                                                              (size w3)
-                                                              ((r_fanout (r_split (\ (i_b32,()) ->
-                                                                                   w3 ! i_b32
+                                                              (size w24)
+                                                              ((r_fanout (r_split (\ (i_b53,()) ->
+                                                                                   w24 ! i_b53
                                                                                    < nat_ 0)
                                                                                   r_nop
                                                                                   (r_index (\ () ->
-                                                                                            size z2)
-                                                                                           (\ (i_b32,()) ->
-                                                                                            doc4
-                                                                                            ! i_b32)
-                                                                                           (r_add (\ (i_b32,(docUpdate33,())) ->
+                                                                                            size z23)
+                                                                                           (\ (i_b53,()) ->
+                                                                                            doc25
+                                                                                            ! i_b53)
+                                                                                           (r_add (\ (i_b53,(docUpdate54,())) ->
                                                                                                    nat_ 1))))
-                                                                         r_nop))) $ \ summary31 ->
-                                                 case_ (i29 == zNew6)
+                                                                         r_nop))) $ \ summary52 ->
+                                                 case_ (i50 == zNew27)
                                                        [branch ptrue
-                                                               (case_ (case_ summary31
+                                                               (case_ (case_ summary52
                                                                              [branch (ppair PVar
                                                                                             PVar)
-                                                                                     (\ y34 z35 ->
-                                                                                      y34)])
+                                                                                     (\ y55 z56 ->
+                                                                                      y55)])
                                                                       [branch (ppair PVar PVar)
-                                                                              (\ y36 z37 -> z37)]
-                                                                ! docUpdate5),
+                                                                              (\ y57 z58 -> z58)]
+                                                                ! docUpdate26),
                                                         branch pfalse (nat_ 0)])
-                                                (\ i_a30 ->
+                                                (\ i_a51 ->
                                                  nat2prob (let_ (bucket (nat_ 0)
-                                                                        (size w3)
-                                                                        ((r_split (\ (i_b39,()) ->
-                                                                                   w3 ! i_b39
+                                                                        (size w24)
+                                                                        ((r_split (\ (i_b60,()) ->
+                                                                                   w24 ! i_b60
                                                                                    < nat_ 0)
                                                                                   r_nop
-                                                                                  (r_split (\ (i_b39,()) ->
-                                                                                            doc4
-                                                                                            ! i_b39
-                                                                                            == docUpdate5)
+                                                                                  (r_split (\ (i_b60,()) ->
+                                                                                            doc25
+                                                                                            ! i_b60
+                                                                                            == docUpdate26)
                                                                                            r_nop
                                                                                            (r_index (\ () ->
-                                                                                                     size topic_prior0)
-                                                                                                    (\ (i_b39,()) ->
-                                                                                                     z2
-                                                                                                     ! (doc4
-                                                                                                        ! i_b39))
-                                                                                                    (r_add (\ (i_b39,(i40,())) ->
-                                                                                                            nat_ 1))))))) $ \ summary38 ->
-                                                           case_ (case_ summary38
+                                                                                                     size topic_prior21)
+                                                                                                    (\ (i_b60,()) ->
+                                                                                                     z23
+                                                                                                     ! (doc25
+                                                                                                        ! i_b60))
+                                                                                                    (r_add (\ (i_b60,(i61,())) ->
+                                                                                                            nat_ 1))))))) $ \ summary59 ->
+                                                           case_ (case_ summary59
                                                                         [branch (ppair PVar PVar)
-                                                                                (\ y41 z42 -> z42)])
+                                                                                (\ y62 z63 -> z63)])
                                                                  [branch (ppair PVar PVar)
-                                                                         (\ y43 z44 -> z44)]
-                                                           ! i29) +
-                                                 nat2prob i_a30 +
+                                                                         (\ y64 z65 -> z65)]
+                                                           ! i50) +
+                                                 nat2prob i_a51 +
                                                  summate (nat_ 0)
-                                                         (size word_prior1)
-                                                         (\ i_b45 -> word_prior1 ! i_b45)))))),
+                                                         (size word_prior22)
+                                                         (\ i_b66 -> word_prior22 ! i_b66)))))),
          branch pfalse (UV.empty)]
 main :: IO ()
 main = do

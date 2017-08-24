@@ -1,14 +1,15 @@
 {-# LANGUAGE DataKinds, NegativeLiterals #-}
 module Main where
 
-import           Data.Number.LogFloat hiding (product)
-import           Prelude              hiding (product, exp, log, (**))
-
+import           Data.Number.LogFloat (LogFloat)
+import           Prelude hiding (product, exp, log, (**))
 import           Language.Hakaru.Runtime.LogFloatPrelude
+
+import           Language.Hakaru.Runtime.CmdLine
 import           Language.Hakaru.Types.Sing
 import qualified System.Random.MWC                as MWC
 import           Control.Monad
-import           Data.Number.LogFloat hiding (product)
+import           System.Environment (getArgs)
 
 import qualified Data.Time.Clock as C
 import qualified System.Environment as SE
@@ -17,7 +18,14 @@ import qualified Data.Vector.Unboxed as UV
 import qualified Data.Text.IO as TIO
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
-prog = 
+
+prog ::
+  ((MayBoxVec Prob Prob) ->
+   ((MayBoxVec Prob Prob) ->
+    ((MayBoxVec Int Int) ->
+     ((MayBoxVec Int Int) ->
+      ((MayBoxVec Int Int) -> (Int -> (MayBoxVec Prob Prob)))))))
+prog =
   lam $ \ topic_prior0 ->
   lam $ \ word_prior1 ->
   lam $ \ z2 ->
@@ -64,6 +72,7 @@ prog =
 main :: IO ()
 main = do
   twds <- SE.getArgs
+  print twds
   let [tps, wps, vf, wf, df, du, ouf] = twds
   v_st <- TIO.readFile vf
   words_st <- TIO.readFile wf

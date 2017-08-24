@@ -19,21 +19,23 @@ import qualified Data.Text.IO as TIO
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
 
-prog ::
-  ((MayBoxVec Prob Prob) ->
-   ((MayBoxVec Prob Prob) ->
-    ((MayBoxVec Int Int) ->
-     ((MayBoxVec Int Int) ->
-      ((MayBoxVec Int Int) -> (Int -> (MayBoxVec Prob Prob)))))))
+prog :: (Measure ((Double, Double), (Prob, Prob)))
 prog =
-  lam $ \ topic_prior0 ->
-  lam $ \ word_prior1 ->
-  lam $ \ z2 ->
-  lam $ \ w3 ->
-  lam $ \ doc4 ->
-  lam $ \ docUpdate5 ->
-  (array (size topic_prior0) $
-         \ zNew6 -> nat2prob (nat_ 1) * recip (nat2prob (nat_ 2)))
+  let_ (uniform (nat2real (nat_ 3))
+                (nat2real (nat_ 8)) >>= \ noiseT_1 ->
+        uniform (nat2real (nat_ 1)) (nat2real (nat_ 4)) >>= \ noiseE_2 ->
+        let_ (unsafeProb noiseT_1) $ \ noiseT3 ->
+        let_ (unsafeProb noiseE_2) $ \ noiseE4 ->
+        normal (nat2real (nat_ 0)) noiseT3 >>= \ x15 ->
+        normal x15 noiseE4 >>= \ m16 ->
+        normal x15 noiseT3 >>= \ x27 ->
+        normal x27 noiseE4 >>= \ m28 ->
+        dirac (ann_ (SData (STyApp (STyApp (STyCon (SingSymbol :: Sing "Pair")) (SData (STyApp (STyApp (STyCon (SingSymbol :: Sing "Pair")) SReal) SReal) (SPlus (SEt (SKonst SReal) (SEt (SKonst SReal) SDone)) SVoid))) (SData (STyApp (STyApp (STyCon (SingSymbol :: Sing "Pair")) SProb) SProb) (SPlus (SEt (SKonst SProb) (SEt (SKonst SProb) SDone)) SVoid))) (SPlus (SEt (SKonst (SData (STyApp (STyApp (STyCon (SingSymbol :: Sing "Pair")) SReal) SReal) (SPlus (SEt (SKonst SReal) (SEt (SKonst SReal) SDone)) SVoid))) (SEt (SKonst (SData (STyApp (STyApp (STyCon (SingSymbol :: Sing "Pair")) SProb) SProb) (SPlus (SEt (SKonst SProb) (SEt (SKonst SProb) SDone)) SVoid))) SDone)) SVoid))
+                    ((pair (ann_ (SData (STyApp (STyApp (STyCon (SingSymbol :: Sing "Pair")) SReal) SReal) (SPlus (SEt (SKonst SReal) (SEt (SKonst SReal) SDone)) SVoid))
+                                 ((pair m16 m28)))
+                           (ann_ (SData (STyApp (STyApp (STyCon (SingSymbol :: Sing "Pair")) SProb) SProb) (SPlus (SEt (SKonst SProb) (SEt (SKonst SProb) SDone)) SVoid))
+                                 ((pair noiseT3 noiseE4))))))) $ \ easyroad0 ->
+  easyroad0
 main :: IO ()
 main = do
   twds <- SE.getArgs

@@ -33,7 +33,8 @@ prog =
   lam $ \ doc4 ->
   lam $ \ docUpdate5 ->
   (array (size topic_prior0) $
-         \ zNew6 -> nat2prob (nat_ 1) * recip (nat2prob (nat_ 2)))
+         \ zNew6 ->
+         summate (nat_ 0) (size topic_prior0) (\ i7 -> topic_prior0 ! i7))
 main :: IO ()
 main = do
   twds <- SE.getArgs

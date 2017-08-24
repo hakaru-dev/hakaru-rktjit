@@ -1,0 +1,1 @@
+[(let (easyroad (measure (pair (pair real real) (pair prob prob))) [(MBindSConsTODO) : (measure (pair (pair real real) (pair prob prob)))]) [easyroad : (measure (pair (pair real real) (pair prob prob)))]) : (measure (pair (pair real real) (pair prob prob)))]

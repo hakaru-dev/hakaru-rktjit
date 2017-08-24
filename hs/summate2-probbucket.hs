@@ -26,14 +26,20 @@ prog ::
      ((MayBoxVec Int Int) ->
       ((MayBoxVec Int Int) -> (Int -> (MayBoxVec Prob Prob)))))))
 prog =
-  lam $ \ topic_prior0 ->
-  lam $ \ word_prior1 ->
-  lam $ \ z2 ->
-  lam $ \ w3 ->
-  lam $ \ doc4 ->
-  lam $ \ docUpdate5 ->
-  (array (size topic_prior0) $
-         \ zNew6 -> nat2prob (nat_ 1) * recip (nat2prob (nat_ 2)))
+  lam $ \ topic_prior9 ->
+  lam $ \ word_prior10 ->
+  lam $ \ z11 ->
+  lam $ \ w12 ->
+  lam $ \ doc13 ->
+  lam $ \ docUpdate14 ->
+  (array (size topic_prior9) $
+         \ zNew15 ->
+         summate (nat_ 0)
+                 (size topic_prior9)
+                 (\ i16 ->
+                  summate (nat_ 0)
+                          (size z11)
+                          (\ j17 -> topic_prior9 ! i16 * nat2prob (z11 ! j17))))
 main :: IO ()
 main = do
   twds <- SE.getArgs
