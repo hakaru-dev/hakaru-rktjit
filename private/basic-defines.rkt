@@ -60,13 +60,16 @@
     prob prob* prob**)
    (create-array-defs real prob nat)
    (create-ptr-defs array<nat> array<real> array<prob>)
-   (create-array-defs array<nat> array<real> array<prob>)))
+   (create-ptr-defs array<nat>* array<real>* array<prob>*)
+   (create-array-defs array<nat>* array<real>* array<prob>*)
+
+   (create-ptr-defs array<array<nat>*> array<array<real>*> array<array<prob>*>)))
 (define simple-funs
   (list
    (sham$define
     (nat2prob (v : nat) : prob)
     (return
-     (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real)))))
+     (sham$app real2prob (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real))))))
 
    (sham$define
     (prob2real (v : prob) : real)
@@ -303,6 +306,7 @@
   (define mul-4-prob (get-f 'mul-4-prob))
 
   (define e 0.00000000001)
+  (check-= (c-nat2prob 8) (c-real2prob 8.0) e)
   (check-= (c-real2prob 1.2345) (real->prob 1.2345) e)
   (check-= (c-prob2real 1.2345) (prob->real 1.2345) e)
 
