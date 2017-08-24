@@ -34,9 +34,9 @@
   (define-values (free bind)
     (splitf-at sefvp (λ (ef) (not (set-member? (efv-fvars ef) var)))))
 
-  ;; (ufb (combine-expr (ufb-expr uf) bind) free)
-  (ufb (combine-expr (ufb-expr uf) sefvp) '()) ;;for no loop hoisting, essentially force all lets now
-  )
+  (ufb (combine-expr (ufb-expr uf) bind) free)
+;  (ufb (combine-expr (ufb-expr uf) sefvp) '()) ;;for no loop hoisting, essentially force all lets now
+)
 
 
 

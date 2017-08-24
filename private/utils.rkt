@@ -95,6 +95,8 @@
 (define (get-print-type t)
   (match t
     [`(* ,tp) (string->symbol (format pointer-format (get-print-type tp)))]
-    [`(array ,tar) (string->symbol (format array-format (get-print-type tar)))]
+    [`(array ,tar) (string->symbol (format array-format (if (pair? tar)
+                                                            (get-print-type `(* ,tar))
+                                                            (get-print-type tar))))]
     [`(measure ,t) (string->symbol (format measure-format (get-print-type t)))]
     [symbol? t]))

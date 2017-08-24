@@ -18,6 +18,7 @@
 (provide (all-defined-out))
 
 (define (read-file filename)
+  ;file->value
   (call-with-input-file filename
     (lambda (in)
       (read in))))
@@ -40,6 +41,7 @@
         (cons remove-pairs pp-expr)
 
         (cons folds->for pp-expr)
+        ;stop
         (cons to-stmt pp-expr)
         (cons simplify-set pp-expr)
         (cons remove-if-expr pp-expr)
@@ -57,8 +59,10 @@
      (let ([p (compiler prg)])
        (unless (member (object-name compiler)
                        '(;reduce-curry
-                         ;parse-exp flatten-anf
-                         ;simplify-match
+                         ;parse-exp
+                         
+                         ;; flatten-anf
+                         ;; simplify-match
                          ;expand-to-lc
                          ;add-fluff
                          ))
@@ -71,7 +75,9 @@
            (printer p)))
        p)))
   (define module-env (compile-module prog-ast))
+  (jit-verify-module module-env)
   (jit-optimize-module module-env #:opt-level 3)
+
   ;; (jit-dump-module module-env)
   ;; (jit-dump-function module-env 'main)
   (define mod-env (initialize-jit module-env #:opt-level 3))
@@ -89,12 +95,15 @@
      (compiler prg)))
   (define module-env (compile-module prog-module))
   (jit-optimize-module module-env #:opt-level 3)
+  (jit-verify-module module-env)
   (initialize-jit module-env #:opt-level 3))
 
 (module+ test
   (require ffi/unsafe)
   (require "jit-utils.rkt")
-  (define nbgo-src (read-file "../hkr/nb_simpbucket.hkr"))
+  ;; (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
+  ;; (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
+  (define nbgo-src (read-file "../hkr/easyroad_d_s.hkr"))
 ;  (define nbgo-src (read-file "../test/unit/bucket-nb.hkr"))
 ;  (define nbgo-src (read-file "../test/unit/bucket-index.hkr"))
   (define nbgo-mod-jit
@@ -102,6 +111,8 @@
     (debug-program nbgo-src
                    passes)
     )
+
+
   ;; (jit-dump-module nbgo-mod-jit)
   ;; (jit-write-bitcode nbgo-mod-jit "test.bc")
   (define main (jit-get-function 'main nbgo-mod-jit))
@@ -110,7 +121,7 @@
   ;; (define nat-array (make-c-array-nat (replicate-vector 100 1)))
   ;; (define raw (main nat-array))
   ;; (pretty-display (cblock->vector (get-array-nat raw) nat-type (size-array-nat raw)))
-  ;; (error 'stop)
+
 
 
   (define read-from-csv (compose make-c-array-nat read-vector-from-csv))
