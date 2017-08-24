@@ -14,7 +14,8 @@ echo "running with args: $tps $wps $siz $du"
 runhs () {
     if [[ ! -a ./test/hs/$hk ]]; then
 	echo "executable not found compiling again"
-	stack ghc -- -O2 "hs/"$hk".hs" -o "test/hs/"$hk
+	ghc -O2 "hs/"$hk".hs" -o "test/hs/"$hk
+	# stack ghc -- -O2 "hs/"$hk".hs" -o "test/hs/"$hk
     fi
     echo "running haskell"
     ./test/hs/$hk $tps $wps ./test/input/$siz-arg3.csv ./test/input/$siz-arg4.csv ./test/input/$siz-arg5.csv $du ./test/output/$siz.csv > ./test/output/$siz.hs

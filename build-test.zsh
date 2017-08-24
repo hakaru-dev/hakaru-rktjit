@@ -62,19 +62,17 @@ haskellcode () {
 }
 
 compilehaskell () {
-    # ghc "hs/"$hk".hs" -o "test/hs/"$hk
+    ghc "hs/"$hk".hs" -o "test/hs/"$hk
     # stack ghc -- "hs/"$hk".hs" -o "test/hs/"$hk
 }
 
 buildhk () {
     echo "generating hkr"
-    if [[ -z "$opt" ]]
-    then
-	prettysexpr $inp > "hkr/"$hk".hkr"
-    else
-	prettysexpr --opt $inp > "hkr/"$hk".hkr"
-    fi
-    # racketcode
+
+
+    prettysexpr $opt $inp > "hkr/"$hk".hkr"
+
+    racketcode
     haskellcode
     compilehaskell
 }
