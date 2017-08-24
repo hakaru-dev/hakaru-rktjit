@@ -42,6 +42,8 @@
     [`(bind ,v ,e)
      (define ve (expr-var 'bind (gensym^ 'bi) v))
      (expr-bind ve (sa e (hash-set env v ve)))]
+    [`((datum ,k ,v) : ,typ)
+     (expr-intrf 'datumtodo)]
     [`((,rator ,rands ...) : ,type)
      (define randse (map (curryr sa env) rands))
      (expr-app type (sa rator env) randse)]
@@ -55,6 +57,7 @@
      (hash-ref env e)]
     [(? symbol?)
      (expr-intrf e)]
+    [(? number?) (expr-val 'int e)]
     [else (error (format "match: no matching clause found for ~a" e))]))
 
 (define (sr r env)
@@ -68,12 +71,14 @@
     [`r_nop
      (reducer-nop)]
     [`(r_index ,i ,e ,rb)
-     (reducer-index (sa i env) (sa e env) (sr rb env))]))
+     (reducer-index (sa i env) (sa e env) (sr rb env))]
+    [else (error "unknown reducer " r)]))
 
 (define (sb b env)
   (match b
     [`(,pat ,e)
-     (expr-branch (sp pat env) (sa e env))]))
+     (expr-branch (sp pat env) (sa e env))]
+    [else (error "unknown match branch format " b)]))
 
 (define (sp pat env)
   (define (pf f)

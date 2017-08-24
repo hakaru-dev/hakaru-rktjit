@@ -519,10 +519,11 @@
     [(expr-bucket t s e r)
      (set-union (ffv^ s) (ffv^ e) (ffv^ r))]
     [(expr-match t tst brns)
-     (set-union (ffv^ tst) (apply set-union (map ffv^ brns)))]
+     (apply set-union (cons (ffv^ tst) (map ffv^ brns)))]
     [(expr-branch pat b) (ffv^ b)]
     [(expr-if t tst thn els) (set-union (ffv^ tst) (ffv^ thn) (ffv^ els))]
-    [(expr-app t rator rands) (apply set-union (map ffv^ rands))]
+    [(expr-app t rator rands)
+     (apply set-union (cons (ffv^ rator) (map ffv^ rands)))]
     [(expr-block t st bd) (set-union (ffv^ st) (ffv^ bd))]
     [(expr-val t v) (set)]
     [(expr-intr sym) (set)]
@@ -542,7 +543,9 @@
     [(stmt-lets vars bstmt)
      (set-subtract (ffv^ bstmt) (apply set vars))]
     [(stmt-block stmts)
-     (apply set-union (map ffv^ stmts))]
+     (if (empty? stmts)
+         (set)
+         (apply set-union (map ffv^ stmts)))]
 
     [(stmt-void) (set)]
     [(stmt-assign to val) (set-union (ffv^ to) (ffv^ val))]))
