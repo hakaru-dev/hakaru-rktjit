@@ -1,0 +1,48 @@
+fn x9 pair(real, real):
+match x9:
+(r3, r1):
+  weight
+    (1/ pi * (1/2),
+     noiseT_d <~ uniform(+3/1, +8/1)
+     noiseE_b <~ uniform(+1/1, +4/1)
+     weight
+       (exp
+          (1/ (noiseE_b ^ 4
+               + noiseE_b ^ 2 * noiseT_d ^ 2 * (+3/1)
+               + noiseT_d ^ 4)
+           * r1 ^ 2
+           * noiseE_b ^ 2
+           * (-1/2))
+        * exp
+            (1/ (noiseE_b ^ 4
+                 + noiseE_b ^ 2 * noiseT_d ^ 2 * (+3/1)
+                 + noiseT_d ^ 4)
+             * r1 ^ 2
+             * noiseT_d ^ 2
+             * (-1/2))
+        * exp
+            (1/ (noiseE_b ^ 4
+                 + noiseE_b ^ 2 * noiseT_d ^ 2 * (+3/1)
+                 + noiseT_d ^ 4)
+             * r1
+             * r3
+             * noiseT_d ^ 2)
+        * exp
+            (1/ (noiseE_b ^ 4
+                 + noiseE_b ^ 2 * noiseT_d ^ 2 * (+3/1)
+                 + noiseT_d ^ 4)
+             * r3 ^ 2
+             * noiseE_b ^ 2
+             * (-1/2))
+        / exp
+            (1/ (noiseE_b ^ 4
+                 + noiseE_b ^ 2 * noiseT_d ^ 2 * (+3/1)
+                 + noiseT_d ^ 4)
+             * r3 ^ 2
+             * noiseT_d ^ 2)
+        / sqrt
+            (real2prob
+               (noiseE_b ^ 4
+                + noiseE_b ^ 2 * noiseT_d ^ 2 * (+3/1)
+                + noiseT_d ^ 4)),
+        return (real2prob(noiseT_d), real2prob(noiseE_b))))

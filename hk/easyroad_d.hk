@@ -1,0 +1,21 @@
+fn x9 pair(real, real):
+match x9:
+(x28, x29):
+  noiseT_ <~ uniform(+3/1, +8/1)
+  noiseE_ <~ uniform(+1/1, +4/1)
+  noiseT = real2prob(noiseT_)
+  noiseE = real2prob(noiseE_)
+  x1 <~ normal(+0/1, noiseT)
+  x31 <~ weight
+           (exp((-(x28 - x1) ^ 2) / prob2real(2/1 * noiseE ^ 2))
+            / noiseE
+            / sqrt(2/1 * pi),
+            return ())
+  x2 <~ normal(x1, noiseT)
+  x30 <~ weight
+           (exp((-(x29 - x2) ^ 2) / prob2real(2/1 * noiseE ^ 2))
+            / noiseE
+            / sqrt(2/1 * pi),
+            return ())
+  return (noiseT, noiseE)
+_: reject. measure(pair(prob, prob))
