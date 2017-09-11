@@ -8,49 +8,49 @@
 
 (provide expand-to-lc)
 
-(define (get-var-sym var)
-  (match var
-    [(expr-var t sym o)
-     sym]))
-
-(define (get-sham-type tast)
-  (match tast
-    [`(array ,t) (sham:type:ref (get-print-type `(* ,tast)))]
-    [`(measure ,t) (sham:type:ref (get-print-type `(* ,tast)))]
-    [(? symbol?) (sham:type:ref (get-print-type tast))]))
-
-(define (get-sham-var v)
-  (sham:exp:var (get-var-sym v)))
-
-(define op-map
-  (make-hash
-   '((< . icmp-ult)
-     (== . icmp-eq))))
-
-(define (get-value v type)
-  (match type
-    ['nat (nat-value (truncate (inexact->exact v)))]
-    ['prob (sham:exp:app (sham:rator:symbol'real2prob)
-                        (list (real-value (exact->inexact v))))]
-    ['real (real-value (exact->inexact v))]))
-
-(define (get-rator-sym t rator rands)
-  (sham:rator:symbol
-   (match rator
-     [(expr-intrf 'empty)
-      (string->symbol (format "empty-~a" (get-print-type t)))]
-     [(expr-intrf s) s]
-     [(expr-intr s)
-      (define r-type (get-print-type (typeof (car rands))))
-      (match s
-        ['index (string->symbol (format "index-~a" r-type))]
-        ['size  (string->symbol (format "size-~a" r-type))]
-        ['recip (symbol-append 'recip- r-type)]
-        ['+ (string->symbol (format "add-~a-~a" (length rands) r-type))]
-        ['* (string->symbol (format "mul-~a-~a" (length rands) r-type))]
-        [else (hash-ref op-map s s)])])))
-
 (define (expand-to-lc mod)
+  (define prelude-defines (box '()))
+  (define (add-to-prelude defn)
+    (set-box! prelude-defines (cons defn (unbox prelude-defines))))
+  (define (get-rator-sym t rator rands)
+    (sham:rator:symbol
+     (match rator
+       [(expr-intrf 'empty)
+        (string->symbol (format "empty-~a" (get-print-type t)))]
+       [(expr-intrf s) s]
+       [(expr-intr s)
+        (define rand-type (typeof (car rands)))
+        (define r-type (get-print-type rand-type))
+        (printf "r-type: ~a\n" r-type)
+        (match s
+          ['index (string->symbol (format "index-~a" r-type))]
+          ['size  (string->symbol (format "size-~a" r-type))]
+          ['recip (symbol-append 'recip- r-type)]
+          ['+ (string->symbol (format "add-~a-~a" (length rands) r-type))]
+          ['* (string->symbol (format "mul-~a-~a" (length rands) r-type))]
+          [else (hash-ref op-map s s)])])))
+  (define (get-var-sym var)
+    (match var
+      [(expr-var t sym o) sym]))
+  (define (get-sham-var v) (sham:exp:var (get-var-sym v)))
+
+  (define (get-sham-type tast)
+    (match tast
+      [`(array ,t) (sham:type:ref (get-print-type `(* ,tast)))]
+      [`(measure ,t) (sham:type:ref (get-print-type `(* ,tast)))]
+      [(? symbol?) (sham:type:ref (get-print-type tast))]))
+
+  (define op-map
+    (make-hash
+     '((< . icmp-ult)
+       (== . icmp-eq))))
+
+  (define (get-value v type)
+    (match type
+      ['nat (nat-value (truncate (inexact->exact v)))]
+      ['prob (sham:exp:app (sham:rator:symbol'real2prob)
+                           (list (real-value (exact->inexact v))))]
+      ['real (real-value (exact->inexact v))]))
   (define (expand-exp b (env (make-immutable-hash)))
     ;; (printf "expanding expr\n") (display-expr b)
     (match b
@@ -127,4 +127,5 @@
   (sham:module
    '()
    (cons (expand-fun (cons 'main (expr-mod-main mod) ))
-         (map expand-fun (expr-mod-fns mod)))))
+         (append (map expand-fun (expr-mod-fns mod))
+                 (unbox prelude-defines)))))
