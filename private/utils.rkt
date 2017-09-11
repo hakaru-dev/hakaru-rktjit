@@ -98,5 +98,8 @@
     [`(array ,tar) (string->symbol (format array-format (if (pair? tar)
                                                             (get-print-type `(* ,tar))
                                                             (get-print-type tar))))]
-    [`(measure ,t) (string->symbol (format measure-format (get-print-type t)))]
+    [`(measure ,t) (get-print-type t)]
+    [`(pair ,t1 ,t2) (string->symbol (format pair-format
+                                             (get-print-type `(* ,t1))
+                                             (get-print-type `(* ,t2))))]
     [symbol? t]))

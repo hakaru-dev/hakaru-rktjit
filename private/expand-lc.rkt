@@ -85,17 +85,18 @@
        (sham:stmt:block (map expand-stmt stmts))]
 
       [(stmt-assign (expr-app t (expr-intr 'index) (list arr ind)) val)
-       (sham:stmt:exp
+       (sham:stmt:exp-stmt
         (sham:exp:app
          (sham:rator:symbol
           (string->symbol
            (format "set-index-in-~a" (get-print-type (typeof arr)))))
-         (map expand-exp (list arr ind val))))]
+         (map expand-exp (list arr ind val)))
+        (sham:stmt:void))]
 
       [(stmt-assign var val)
        (sham:stmt:set! (get-sham-var var) (expand-exp val))]
       [(stmt-void)
-       (sham:stmt:exp (sham:exp:void-value))]
+       (sham:stmt:void)]
 
       ([stmt-for i start end body]
        (define end-sym (gensym^ 'end))

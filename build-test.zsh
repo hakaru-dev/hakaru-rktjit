@@ -1,6 +1,8 @@
 #!/usr/bin/zsh
 
 export PATH=$PATH:~/.cabal/bin/
+export PATH=$PATH:~/.local/bin
+
 hk=$1
 inp="hk/$hk.hk"
 echo "input=$inp"
@@ -62,8 +64,8 @@ haskellcode () {
 }
 
 compilehaskell () {
-    ghc "hs/"$hk".hs" -o "test/hs/"$hk
-    # stack ghc -- "hs/"$hk".hs" -o "test/hs/"$hk
+    # ghc "hs/"$hk".hs" -o "test/hs/"$hk
+    stack ghc -- "hs/"$hk".hs" -o "test/hs/"$hk
 }
 
 buildhk () {

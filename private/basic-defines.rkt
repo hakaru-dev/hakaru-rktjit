@@ -5,9 +5,9 @@
 (require ffi/unsafe)
 
 (require sham/jit
-         sham/ast)
-
-(require "sham-utils.rkt")
+         sham/ast
+         "sham-utils.rkt")
+(require (for-syntax "sham-utils.rkt"))
 (provide basic-defines)
 
 ;;TODO: make function creation on demand for compiling program
@@ -29,7 +29,7 @@
 (define-syntax (create-ptr-def stx)
   (syntax-case stx ()
     [(_ ptr)
-     (with-syntax ([ptr* (format-id stx "~a*"  #'ptr)])
+     (with-syntax ([ptr* (format-id stx pointer-format  #'ptr)])
        #'(sham:def:type 'ptr* (create-pointer-type 'ptr)))]))
 (define-syntax (create-ptr-defs stx)
   (syntax-case stx ()
@@ -39,8 +39,8 @@
 (define-syntax (create-array-def stx)
   (syntax-case stx ()
     [(_ type)
-     (with-syntax ([type* (format-id stx "~a*"  #'type)]
-                   [atype (format-id stx "array<~a>" #'type)])
+     (with-syntax ([type* (format-id stx pointer-format  #'type)]
+                   [atype (format-id stx array-format #'type)])
        #'(sham:def:type 'atype (create-array-type 'type*)))]))
 (define-syntax (create-array-defs stx)
   (syntax-case stx ()
@@ -237,10 +237,11 @@
    '(array-ptr index v)
    (list a-type* i32 (sham:type:ref type)) (sham:type:ref 'void) 
    (sham$block
-    (sham:stmt:exp
+    (sham:stmt:exp-stmt
      (sham$app store! (sham$var 'v)
                (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
-                             (list (sham$var 'index)))))
+                             (list (sham$var 'index))))
+     (sham:stmt:void))
     (sham:stmt:return-void))))
 
 (define (empty-array-type-zero type)
@@ -269,7 +270,13 @@
       (index-array-type t)
       (set-array-type-at-index t)
       (empty-array-type-zero t)))))
-
+;; (define probability-functions
+;;   (list
+;;    (sham$define
+;;     (uniform (v1 : real) (v2 : real) : prob)
+;;     (return
+;;      (sham$app real2prob (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real))))))
+;; ))
 (define (basic-defines)
   (append types simple-funs array-functions))
 
@@ -277,8 +284,9 @@
   (require rackunit)
   (require "utils.rkt")
   (define benv (initialize-jit (compile-module (sham:module '() (basic-defines)))))
-  
+  (jit-verify-module benv)
   (jit-dump-module benv)
+  
   (define (get-t t) (jit-get-racket-type (env-lookup t benv)))
   (define (get-f f) (jit-get-function f benv))
   

@@ -4,6 +4,8 @@
 
 (provide simplify-match
          simplify-lets
+         mbind->let
+         macro-functions
          remove-pairs)
 
 (define simplify-match
@@ -60,22 +62,42 @@
 (define (simplify-lets e)
   (sl e (make-immutable-hash)))
 
-(define remove-pairs 
+(define (remove-pairs e)
+  (define vars (mutable-set))
+  (define pass
+    (create-rpass
+     (expr [(expr-app t (expr-intrf s) rands)
+            (match s
+              ['car
+               (define var-sym (expr-var-sym (car rands)))
+               (define nv (expr-var t (symbol-append var-sym 'a) '_))
+               (if (string-prefix? (symbol->string var-sym) "bk")
+                   nv
+                   (expr-app t (expr-intrf s) rands))]
+              ['cdr
+               (define var-sym (expr-var-sym (car rands)))
+               (define nv (expr-var t (symbol-append var-sym 'b) '_))
+               (if (string-prefix? (symbol->string var-sym) "bk")
+                   nv
+                   (expr-app t (expr-intrf s) rands))]
+              [else  (expr-app t (expr-intrf s) rands)])])
+     (reducer)
+     (stmt)
+     (pat)))
+  (pass e))
+
+(define mbind->let
   (create-rpass
-   (expr [(expr-app t (expr-intrf s) rands)
-          (match s
-            ['car (expr-var t (symbol-append (expr-var-sym (car rands)) 'a) '_)]
-            ['cdr (expr-var t (symbol-append (expr-var-sym (car rands)) 'b) '_)]
-            [else  (expr-app t (expr-intrf s) rands)])])
+   (expr [(expr-app t (expr-intrf 'mbind) (list val (expr-bind var body)))
+          (expr-let t var val body)])
    (reducer)
    (stmt)
    (pat)))
 
-;; (define do-anf
-;;   (create-rpass
-;;    (expr [(expr-arr type index siz body)
-;;           (define nv (expr-var type (gensym^ 'aar) '_))
-;;           (expr-let type nv (expr-arr t index siz body) nv)]
-;;          [(expr-sum)]
-;;          [(expr-prd)]
-;;          [(expr-bucket)])))
+(define macro-functions
+  (create-rpass
+   (expr [(expr-app t (expr-intrf 'empty) '())
+          (expr-app t (expr-intrf 'empty) (list (expr-val 'nat 0)))])
+   (reducer)
+   (stmt)
+   (pat)))

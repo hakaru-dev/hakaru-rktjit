@@ -29,6 +29,7 @@
         (cons parse-sexp         pp-expr)
 
         (cons simplify-match     pp-expr)
+        (cons mbind->let         pp-expr)
         (cons flatten-anf        pp-expr)
 
         (cons bucket->for pp-expr)
@@ -36,6 +37,7 @@
         (cons remove-unit-lets   pp-expr)
 
         (cons simplify-lets pp-expr)
+        (cons macro-functions pp-expr)
         (cons remove-empty-lets  pp-expr)
         (cons remove-unused-lets pp-expr)
         (cons remove-pairs pp-expr)
@@ -47,7 +49,7 @@
         (cons remove-if-expr pp-expr)
  
         (cons expand-to-lc (compose pretty-display sham-ast->sexp))
-        (cons add-fluff (compose pretty-display sham-ast->sexp))))
+        (cons add-fluff (compose pretty-display print-sham-ast))))
 
 (define (debug-program prg cmplrs)
   (define prog-ast
@@ -76,8 +78,9 @@
        p)))
   (define module-env (compile-module prog-ast))
   (jit-verify-module module-env)
-  (jit-optimize-module module-env #:opt-level 3)
 
+  (jit-optimize-module module-env #:opt-level 3)
+  (jit-optimize-function module-env #:opt-level 3)
   ;; (jit-dump-module module-env)
   ;; (jit-dump-function module-env 'main)
   (define mod-env (initialize-jit module-env #:opt-level 3))
@@ -89,12 +92,13 @@
   (define prog-module
    (for/fold ([prg src])
              ([p passes])
-     (define compiler (car p))
+     (define compiler (car p))p
      (define printer (cdr p))
      (printf "\n\napplying ~a\n" (object-name compiler))
      (compiler prg)))
   (define module-env (compile-module prog-module))
   (jit-optimize-module module-env #:opt-level 3)
+  (jit-optimize-function module-env #:opt-level 3)
   (jit-verify-module module-env)
   (initialize-jit module-env #:opt-level 3))
 
@@ -102,8 +106,9 @@
   (require ffi/unsafe)
   (require "jit-utils.rkt")
   ;; (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
-  ;; (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
-  (define nbgo-src (read-file "../hkr/easyroad_d_s.hkr"))
+;;  (define nbgo-src (read-file "../hkr/nb_simpbucket.hkr"))
+ (define nbgo-src (read-file "../hkr/easyroad.hkr"))
+;; (define nbgo-src (read-file "../hkr/easyroad_d_s.hkr"))
 ;  (define nbgo-src (read-file "../test/unit/bucket-nb.hkr"))
 ;  (define nbgo-src (read-file "../test/unit/bucket-index.hkr"))
   (define nbgo-mod-jit
@@ -114,7 +119,8 @@
 
 
   ;; (jit-dump-module nbgo-mod-jit)
-  ;; (jit-write-bitcode nbgo-mod-jit "test.bc")
+  ;; (jit-write-bitcode nbgo-mod-jit "nb_simpbucket.bc")
+  (jit-write-module nbgo-mod-jit "nb_simpbucket.ll")
   (define main (jit-get-function 'main nbgo-mod-jit))
   (hakaru-defines nbgo-mod-jit)
 
@@ -125,14 +131,30 @@
 
 
   (define read-from-csv (compose make-c-array-nat read-vector-from-csv))
-  (define topic-prior (make-c-array-prob (replicate-vector 10 1.0)))
-  (define word-prior (make-c-array-prob (replicate-vector 100 1.0)))
-  (define v (read-from-csv "../test/input/small-arg3.csv")) ;;size 40x0   ;; values 0-20
-  (define words (read-from-csv "../test/input/small-arg4.csv")) ;;size 47049 ;; values 0-7022
-  (define docs (read-from-csv "../test/input/small-arg5.csv")) ;;size 47049 ;; values 0-400
+  (define topic-prior (make-c-array-prob (replicate-vector 20 1.0))) ;big 20  ;small 10
+  (define word-prior (make-c-array-prob (replicate-vector 7022 1.0))) ;big 7022;small 100
+  (define v (read-from-csv "../test/input/big-arg3.csv")) ;;size 40x0   ;; values 0-20
+  (define words (read-from-csv "../test/input/big-arg4.csv")) ;;size 47049 ;; values 0-7022
+  (define docs (read-from-csv "../test/input/big-arg5.csv")) ;;size 47049 ;; values 0-400
   (define docUpdate 0) ;; value 0-400
   (define result-raw (time (main topic-prior word-prior v words docs docUpdate)))
   (define result-vector
     (cblock->vector (get-array-prob result-raw) prob-type (size-array-prob result-raw)))
   (pretty-display result-vector)
+
+
+  ;;vectorized
+  (require sham/private/types
+           sham/private/env)
+  (define flib (ffi-lib "nbs.so"))
+  (define fref (env-lookup 'main nbgo-mod-jit))
+  (define f-type (internal-type-racket (env-type-prim (env-jit-function-type fref))))
+  (define nmain (get-ffi-obj "main" flib f-type))
+  (define nresult-raw (time (nmain topic-prior word-prior v words docs docUpdate)))
+  (define nresult-vector
+    (cblock->vector (get-array-prob result-raw) prob-type (size-array-prob nresult-raw)))
+  (pretty-display nresult-vector)
   )
+
+
+

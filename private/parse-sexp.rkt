@@ -43,7 +43,14 @@
      (define ve (expr-var 'bind (gensym^ 'bi) v))
      (expr-bind ve (sa e (hash-set env v ve)))]
     [`((datum ,k ,v) : ,typ)
-     (expr-intrf 'datumtodo)]
+     (printf "datum: k ~a, v ~a, typ: ~a\n" k v typ)
+     (define (get-datum kind val type)
+       (match kind
+         ['pair
+          (match val
+            [`(inl (et (konst ,v1) (et (konst ,v2) done)))
+             (expr-app typ (expr-intrf 'cons) (list (sa v1 env) (sa v2 env)))])]))
+     (get-datum k v typ)]
     [`((,rator ,rands ...) : ,type)
      (define randse (map (curryr sa env) rands))
      (expr-app type (sa rator env) randse)]
@@ -94,9 +101,9 @@
       [`(pc_inr ,c) (pc c)]
       [`(pc_inl ,s) (ps s)]))
   (match pat
-    [`(datum true ,_)  (pat-true)]
-    [`(datum false ,_) (pat-false)]
-    [`(datum pair ,c)  (match-define (list a b) (pc c)) (pat-pair a b)]))
+    [`(pdatum true ,_)  (pat-true)]
+    [`(pdatum false ,_) (pat-false)]
+    [`(pdatum pair ,c)  (match-define (list a b) (pc c)) (pat-pair a b)]))
 
 ;;S-expression to ast struct
 (define (parse-sexp expr)

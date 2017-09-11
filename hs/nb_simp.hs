@@ -141,7 +141,6 @@ prog =
                                                          (size word_prior1)
                                                          (\ i_b19 -> word_prior1 ! i_b19)))))),
          branch pfalse ((array (nat_ 0) $ \ i20 -> prob_ 0))]
-
 main :: IO ()
 main = do
   twds <- SE.getArgs

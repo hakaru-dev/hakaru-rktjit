@@ -8,6 +8,6 @@
 (define (add-fluff m)
   (match m
     [(sham:module p fns)
-     (sham:module '((passes . (AlwaysInliner))
-                    (ffi-libs . '()))
+     (sham:module '((passes . (AlwaysInliner LoopVectorize))
+                    (ffi-libs . ()))
                   (append (basic-defines) fns))]))

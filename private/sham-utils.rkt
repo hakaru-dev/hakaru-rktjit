@@ -7,6 +7,7 @@
 (define pointer-format "~a*")
 (define array-format "array<~a>")
 (define measure-format "measure<~a>")
+(define pair-format "pair<~a,~a>")
 
 (define type-nat (sham:type:ref 'nat))
 (define type-real (sham:type:ref 'real))
