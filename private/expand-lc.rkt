@@ -9,7 +9,7 @@
 (provide expand-to-lc)
 
 (define (expand-to-lc mod)
-  (define prelude-defines (box '()))
+  (define prelude-defines (make-hash))
   (define (add-to-prelude defn)
     (set-box! prelude-defines (cons defn (unbox prelude-defines))))
   (define (get-rator-sym t rator rands)

@@ -270,20 +270,29 @@
       (index-array-type t)
       (set-array-type-at-index t)
       (empty-array-type-zero t)))))
-;; (define probability-functions
-;;   (list
-;;    (sham$define
-;;     (uniform (v1 : real) (v2 : real) : prob)
-;;     (return
-;;      (sham$app real2prob (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real))))))
-;; ))
+(define probability-functions
+  (list
+   (sham:def:function
+    'uniform '() '()
+    '(v1 v2) (list real real) real
+    (sham:stmt:let
+     '(rng) (list (sham:type:ref 'void*))
+     (list (sham:exp:app (sham:rator:external 'libgsl 'gsl_rng_alloc (sham:type:ref 'void*))
+                         (list (sham:exp:external 'libgsl 'gsl_rng_taus (sham:type:ref 'void*)))))
+     (sham:stmt:return
+      (sham:exp:app (sham:rator:external 'libgsl 'gsl_ran_flat real)
+                    (list (sham:exp:var 'rng) (sham:exp:var 'v1) (sham:exp:var 'v2))))))))
+
 (define (basic-defines)
-  (append types simple-funs array-functions))
+  (append types simple-funs array-functions probability-functions))
 
 (module+ test
   (require rackunit)
   (require "utils.rkt")
-  (define benv (initialize-jit (compile-module (sham:module '() (basic-defines)))))
+  (define benv (initialize-jit (compile-module
+                                (sham:module
+                                 '((passes . ())
+                                   (ffi-libs . ((libgsl . ("libgsl"))))) (basic-defines)))))
   (jit-verify-module benv)
   (jit-dump-module benv)
   
