@@ -272,16 +272,33 @@
       (empty-array-type-zero t)))))
 (define probability-functions
   (list
+   (sham:def:global 'gsl-rng (sham:type:ref 'void*))
+   (sham:def:function
+    'init-rng '() '() '() '() (sham:type:ref 'void)
+    (sham:stmt:block
+     (list
+      (sham:stmt:set!
+       (sham:exp:var 'gsl-rng)
+       (sham:exp:app (sham:rator:external 'libgsl 'gsl_rng_alloc (sham:type:ref 'void*))
+                     (list (sham:exp:external 'libgsl 'gsl_rng_taus (sham:type:ref 'void*)))))
+      (sham:stmt:return-void))))
    (sham:def:function
     'uniform '() '()
     '(v1 v2) (list real real) real
-    (sham:stmt:let
-     '(rng) (list (sham:type:ref 'void*))
-     (list (sham:exp:app (sham:rator:external 'libgsl 'gsl_rng_alloc (sham:type:ref 'void*))
-                         (list (sham:exp:external 'libgsl 'gsl_rng_taus (sham:type:ref 'void*)))))
-     (sham:stmt:return
-      (sham:exp:app (sham:rator:external 'libgsl 'gsl_ran_flat real)
-                    (list (sham:exp:var 'rng) (sham:exp:var 'v1) (sham:exp:var 'v2))))))))
+    (sham:stmt:return
+     (sham:exp:app (sham:rator:external 'libgsl 'gsl_ran_flat real)
+                   (list (sham:exp:var 'gsl-rng) (sham:exp:var 'v1) (sham:exp:var 'v2)))))
+   (sham:def:function
+    'normal '() '()
+    '(mean sigma) (list real prob) real
+    (sham:stmt:return
+     (sham:exp:app (sham:rator:symbol 'add-2-real)
+                   (list
+                    (sham:exp:var 'mean)
+                    (sham:exp:app (sham:rator:external 'libgsl 'gsl_ran_gaussian real)
+                                  (list (sham:exp:var 'gsl-rng)
+                                        (sham:exp:app (sham:rator:symbol 'prob2real)
+                                                      (list (sham:exp:var 'sigma)))))))))))
 
 (define (basic-defines)
   (append types simple-funs array-functions probability-functions))
@@ -292,7 +309,9 @@
   (define benv (initialize-jit (compile-module
                                 (sham:module
                                  '((passes . ())
-                                   (ffi-libs . ((libgsl . ("libgsl"))))) (basic-defines)))))
+                                   (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
+                                                (libgsl . ("libgsl")))))
+                                 (basic-defines)))))
   (jit-verify-module benv)
   (jit-dump-module benv)
   
@@ -419,4 +438,12 @@
   (set-array-array-nat-at-index! etai 2 eti)
   (define etib (index-array-array-nat etai 2))
   (check ptr-equal? etib eti)
-  (check-eq? (index-array-nat etib 3) 42))
+  (check-eq? (index-array-nat etib 3) 42)
+  (define init-rng (get-f 'init-rng))
+  (init-rng)
+  (define uniform (get-f 'uniform))
+  (define normal (get-f 'normal))
+
+  (printf "random normal mu=0, sd=1: ~a\n" (normal 0.0 (c-real2prob 1.0)))
+  (printf "random uniform 1-5: ~a\n" (uniform 1.0 500.0))
+  )
