@@ -270,6 +270,43 @@
       (index-array-type t)
       (set-array-type-at-index t)
       (empty-array-type-zero t)))))
+
+(define (pair-type t1 t2)
+  (define pair-type-str (format pair-format t1 t2))
+  (define pt-ref (sham:type:ref (string->symbol pair-type-str)))
+  (define st1 (sham:type:ref t1))
+  (define st2 (sham:type:ref t2))
+  (list
+   (sham:def:type (string->symbol pair-type-str)
+                  (sham:type:struct (list pair-car-sym
+                                          pair-cdr-sym)
+                                    (list (sham:type:ref t1)
+                                          (sham:type:ref t2))))
+   (sham:def:type (string->symbol (string-append pair-type-str "*"))
+                  (sham:type:pointer pt-ref))
+   (sham:def:function
+    (string->symbol (string-append "make-" pair-type-str))
+    '() '(AlwaysInline)
+    '(a b) (list st1 st2) (sham:type:pointer pt-ref)
+    (sham:stmt:let
+     '(pp ap bp)
+     (list (sham:type:pointer pt-ref)
+           (sham:type:pointer st1)
+           (sham:type:pointer st2))
+     (list (sham$app malloc (sham:exp:type pt-ref))
+           (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 0)))
+           (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 1))))
+    (sham$block
+     (sham:stmt:exp (sham$app-var store! ap a))
+     (sham:stmt:exp (sham$app-var store! bp b))
+     (sham:stmt:return (sham$var 'pp)))))))
+(define pair-defns
+  (append
+   (pair-type 'real 'real)
+   (pair-type 'prob 'prob)
+   (pair-type (string->symbol "pair<real,real>*") (string->symbol "pair<prob,prob>*"))
+
+   ))
 (define probability-functions
   (list
    (sham:def:global 'gsl-rng (sham:type:ref 'void*))
@@ -298,20 +335,51 @@
                     (sham:exp:app (sham:rator:external 'libgsl 'gsl_ran_gaussian real)
                                   (list (sham:exp:var 'gsl-rng)
                                         (sham:exp:app (sham:rator:symbol 'prob2real)
-                                                      (list (sham:exp:var 'sigma)))))))))))
+                                                      (list (sham:exp:var 'sigma)))))))))
+   (sham:def:function
+    'beta '() '()
+    '(a b) (list prob prob) prob
+    (sham:stmt:return
+     (sham:exp:app (sham:rator:symbol 'real2prob)
+                   (list
+                    (sham:exp:app (sham:rator:external 'libgsl 'gsl_ran_beta real)
+                                  (list (sham:exp:var 'gsl-rng)
+                                        (sham:exp:app (sham:rator:symbol 'prob2real)
+                                                      (list (sham:exp:var 'a)))
+                                        (sham:exp:app (sham:rator:symbol 'prob2real)
+                                                      (list (sham:exp:var 'b)))))))))
+   (sham:def:function
+    'gamma '() '()
+    '(a b) (list prob prob) prob
+    (sham:stmt:return
+     (sham:exp:app (sham:rator:symbol 'real2prob)
+                   (list
+                    (sham:exp:app (sham:rator:external 'libgsl 'gsl_ran_gamma real)
+                                  (list (sham:exp:var 'gsl-rng)
+                                        (sham:exp:app (sham:rator:symbol 'prob2real)
+                                                      (list (sham:exp:var 'a)))
+                                        (sham:exp:app (sham:rator:symbol 'prob2real)
+                                                      (list (sham:exp:var 'b)))))))))
+   ;; (sham:def:function
+   ;;  'categorical '() '()
+   ;;  '(a) (list (sham:type:ref 'array<prob>)) prob
+   ;;  (sham:stmt:return 0))
+   ))
 
 (define (basic-defines)
-  (append types simple-funs array-functions probability-functions))
+  (append types simple-funs array-functions pair-defns probability-functions))
 
 (module+ test
   (require rackunit)
   (require "utils.rkt")
-  (define benv (initialize-jit (compile-module
-                                (sham:module
-                                 '((passes . ())
-                                   (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
-                                                (libgsl . ("libgsl")))))
-                                 (basic-defines)))))
+  (define bmod (compile-module
+                (sham:module
+                 '((passes . ())
+                   (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
+                                (libgsl . ("libgsl")))))
+                 (basic-defines))))
+;  (jit-optimize-module bmod #:opt-level 3)
+  (define benv (initialize-jit bmod))
   (jit-verify-module benv)
   (jit-dump-module benv)
   

@@ -9,6 +9,9 @@
 (define measure-format "measure<~a>")
 (define pair-format "pair<~a,~a>")
 
+(define pair-car-sym 'a)
+(define pair-cdr-sym 'b)
+
 (define type-nat (sham:type:ref 'nat))
 (define type-real (sham:type:ref 'real))
 (define type-prob (sham:type:ref 'prob))
