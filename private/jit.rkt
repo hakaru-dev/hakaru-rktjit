@@ -92,7 +92,7 @@
   (define prog-module
    (for/fold ([prg src])
              ([p passes])
-     (define compiler (car p))p
+     (define compiler (car p))
      (define printer (cdr p))
      (printf "\n\napplying ~a\n" (object-name compiler))
      (compiler prg)))
@@ -122,6 +122,8 @@
   ;; (jit-write-bitcode nbgo-mod-jit "nb_simpbucket.bc")
   (jit-write-module nbgo-mod-jit "nb_simpbucket.ll")
   (define main (jit-get-function 'main nbgo-mod-jit))
+  (printf "easyroad: ~a" (main))
+  (error 'stop)
   (hakaru-defines nbgo-mod-jit)
 
   ;; (define nat-array (make-c-array-nat (replicate-vector 100 1)))

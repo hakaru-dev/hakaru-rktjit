@@ -9,5 +9,6 @@
   (match m
     [(sham:module p fns)
      (sham:module '((passes . (AlwaysInliner LoopVectorize))
-                    (ffi-libs . ()))
+                    (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
+                                 (libgsl . ("libgsl")))))
                   (append (basic-defines) fns))]))

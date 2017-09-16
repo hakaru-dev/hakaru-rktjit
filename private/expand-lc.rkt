@@ -11,17 +11,19 @@
 (define (expand-to-lc mod)
   (define prelude-defines (make-hash))
   (define (add-to-prelude defn)
-    (set-box! prelude-defines (cons defn (unbox prelude-defines))))
+    (hash-set! prelude-defines defn)
+    (set-box! prelude-defines (cons defn ((unbox prelude-defines)))))
   (define (get-rator-sym t rator rands)
     (sham:rator:symbol
      (match rator
        [(expr-intrf 'empty)
         (string->symbol (format "empty-~a" (get-print-type t)))]
+       [(expr-intrf 'cons)
+        (string->symbol (format "make-~a" (get-print-type t)))]
        [(expr-intrf s) s]
        [(expr-intr s)
         (define rand-type (typeof (car rands)))
         (define r-type (get-print-type rand-type))
-        (printf "r-type: ~a\n" r-type)
         (match s
           ['index (string->symbol (format "index-~a" r-type))]
           ['size  (string->symbol (format "size-~a" r-type))]
@@ -37,7 +39,7 @@
   (define (get-sham-type tast)
     (match tast
       [`(array ,t) (sham:type:ref (get-print-type `(* ,tast)))]
-      [`(measure ,t) (sham:type:ref (get-print-type `(* ,tast)))]
+      [`(measure ,t) (sham:type:ref (get-print-type tast))]
       [(? symbol?) (sham:type:ref (get-print-type tast))]))
 
   (define op-map
@@ -129,4 +131,5 @@
    '()
    (cons (expand-fun (cons 'main (expr-mod-main mod) ))
          (append (map expand-fun (expr-mod-fns mod))
-                 (unbox prelude-defines)))))
+                 ;; (unbox prelude-defines)
+                 ))))

@@ -100,6 +100,12 @@
                                                             (get-print-type tar))))]
     [`(measure ,t) (get-print-type t)]
     [`(pair ,t1 ,t2) (string->symbol (format pair-format
-                                             (get-print-type `(* ,t1))
-                                             (get-print-type `(* ,t2))))]
+                                             (get-print-type
+                                              (if (pair? t1)
+                                                  `(* ,t1)
+                                                  t1))
+                                             (get-print-type
+                                              (if (pair? t2)
+                                                  `(* ,t2)
+                                                  t2))))]
     [symbol? t]))

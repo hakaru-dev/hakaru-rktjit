@@ -88,8 +88,9 @@
 
 (define mbind->let
   (create-rpass
-   (expr [(expr-app t (expr-intrf 'mbind) (list val (expr-bind var body)))
-          (expr-let t var val body)])
+   (expr [(expr-app t (expr-intrf 'mbind) (list val (expr-bind (expr-var vt var org-sym) body)))
+          (printf "mbind ~a: ~a\n" var (typeof val))
+          (expr-let t (expr-var (typeof val) var org-sym) val body)])
    (reducer)
    (stmt)
    (pat)))
@@ -97,7 +98,9 @@
 (define macro-functions
   (create-rpass
    (expr [(expr-app t (expr-intrf 'empty) '())
-          (expr-app t (expr-intrf 'empty) (list (expr-val 'nat 0)))])
+          (expr-app t (expr-intrf 'empty) (list (expr-val 'nat 0)))]
+         [(expr-app t (expr-intrf 'dirac) (list val))
+          val])
    (reducer)
    (stmt)
    (pat)))

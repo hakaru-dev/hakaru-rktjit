@@ -72,6 +72,11 @@
      (sham$app real2prob (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real))))))
 
    (sham$define
+    (nat2real (v : nat) : real)
+    (return
+     (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real)))))
+
+   (sham$define
     (prob2real (v : prob) : real)
     (return (sham$app-var (llvm.exp.f64 prob) v)))
    
