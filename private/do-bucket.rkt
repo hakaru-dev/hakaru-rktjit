@@ -3,7 +3,8 @@
 (require "utils.rkt")
 (require "ast.rkt")
 
-(provide bucket->for)
+(provide bucket->for
+         combine-loops)
 
 (define bucket->for
   (expr/pass
@@ -124,3 +125,79 @@
          (define body (assign-binds (cdr vars) b))
          (expr-let (typeof body) v (car vars)
                    body)])))
+
+(define (combine-loops e)
+  (define (loop-ends e) ;; assuming every loop starts at 0
+    (match e
+      [(expr-arr _ _ e _) (values (expr-val 'nat 0) e)]
+      [(expr-sum _ _ s e _) (values s e)]
+      [(expr-prd _ _ s e _) (values s e)]
+      [(expr-bucket _ s e _) (values s e)]))
+  (define (group-same-size var-map)
+    (group-by (λ (vv)
+                (define-values (start end) (loop-ends (second vv)))
+                (if (and (expr-val? start)
+                         (eq? (expr-val-v start) 0)
+                         (eq? (expr-val-type start) 'nat))
+                    (begin
+                      (match end
+                       [(expr-app _ (expr-intr 'size) (list (expr-var _ sym _))) sym]
+                       (print-expr end)))
+                    (print-expr (expr-app (expr-intr '-) (list end start)))))
+              var-map))
+  (define (get-loop-stuff var val index)
+    (match val
+      [(expr-bucket t start end reducer)
+       (define-values (nt v l) (get-init '() var t reducer))
+       (values nt v l (get-accum index (list index) var t reducer))]
+      [(expr-sum t i s e b)
+       (values (list t) (list var) (list (expr-val t 0))
+               (stmt-assign var (expr-app t (expr-intr '+) (list var b))))]
+      [(expr-prd t i s e b)
+       (values (list t) (list var) (list (expr-val t 1))
+               (stmt-assign var (expr-app t (expr-intr '*) (list var b))))]
+      [(expr-arr t i s b)
+       (values
+        (list t)
+        (list var)
+        (list (expr-app t (expr-intrf (symbol-append 'empty- (get-print-type t)))
+                        (list s)))
+        (stmt-assign (expr-app t (expr-intr 'index) (list var index))
+                     b))]))
+  (define (wrap-index index body stmt)
+    (if (expr-bucket? body)
+        stmt
+        (let [(bi (match body
+                 [(expr-sum t i s e b) i]
+                 [(expr-prd t i s e b) i]
+                 [(expr-arr t i s b)   i]))]
+          (stmt-lets (list bi) (stmt-block (list (stmt-assign bi index) stmt))))))
+  (define pass
+    (create-rpass
+    (expr
+     [(expr-lets type vars vals body)
+      (define var-map-groups (group-same-size (for/list ([vr vars] [vl vals]) (list vr vl))))
+      (define new-vars (map first (apply append var-map-groups)))
+      (define new-vals (map second (apply append var-map-groups)))
+      (define new-b
+        (for/fold ([b body]) ([vmg var-map-groups])
+          (define index (expr-var 'nat (gensym^ 'ci) '_))
+          (define-values (start end)
+            (match (cadar vmg)
+              [(expr-bucket _ start end _) (values start end)]
+              [(expr-sum t i s e b) (values s e)]
+              [(expr-prd t i s e b) (values s e)]
+              [(expr-arr t i s b) (values (expr-val 'nat 0) s)]))
+          (define-values (ntypes nvars nvals nstmts)
+            (for/fold ([ntyps '()] [nvars '()] [nvals '()] [nstmt '()]) ([vm vmg])
+              (define-values (nt nv nl ns) (get-loop-stuff (first vm) (second vm) index))
+              (values (append nt ntyps) (append nv nvars) (append nl nvals)
+                      (cons (wrap-index index (second vm) ns) nstmt))))
+          (expr-lets ntypes nvars nvals
+                     (expr-block type (stmt-for index start end (stmt-block nstmts)) b))))
+      new-b])
+    (reducer)
+    (stmt)
+    (pat)))
+  (pass e))
+

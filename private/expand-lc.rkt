@@ -39,6 +39,7 @@
   (define (get-sham-type tast)
     (match tast
       [`(array ,t) (sham:type:ref (get-print-type `(* ,tast)))]
+      [`(pair ,t1 ,t2) (sham:type:ref (get-print-type `(* ,tast)))]
       [`(measure ,t) (sham:type:ref (get-print-type tast))]
       [(? symbol?) (sham:type:ref (get-print-type tast))]))
 

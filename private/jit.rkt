@@ -18,73 +18,37 @@
 (provide (all-defined-out))
 
 (define (read-file filename)
-  ;file->value
-  (call-with-input-file filename
-    (lambda (in)
-      (read in))))
+  (file->value filename))
+
 (define pp-expr (compose pretty-display print-expr))
 (define stop (cons (λ (e) (error 'stop)) pp-expr))
 (define passes
-  (list (cons reduce-curry pretty-display)
+  (list (cons reduce-curry       pretty-display)
         (cons parse-sexp         pp-expr)
 
         (cons simplify-match     pp-expr)
         (cons mbind->let         pp-expr)
         (cons flatten-anf        pp-expr)
 
-        (cons bucket->for pp-expr)
-
+;        (cons combine-loops      pp-expr)
+        ;stop
+        (cons bucket->for        pp-expr)
         (cons remove-unit-lets   pp-expr)
-
-        (cons simplify-lets pp-expr)
-        (cons macro-functions pp-expr)
+        (cons simplify-lets      pp-expr)
+        (cons macro-functions    pp-expr)
         (cons remove-empty-lets  pp-expr)
         (cons remove-unused-lets pp-expr)
-        (cons remove-pairs pp-expr)
+        (cons remove-pairs       pp-expr)
 
-        (cons folds->for pp-expr)
-        ;stop
-        (cons to-stmt pp-expr)
-        (cons simplify-set pp-expr)
-        (cons remove-if-expr pp-expr)
+        (cons folds->for         pp-expr)
+        (cons to-stmt            pp-expr)
+        (cons simplify-set       pp-expr)
+        (cons remove-if-expr     pp-expr)
  
-        (cons expand-to-lc (compose pretty-display sham-ast->sexp))
-        (cons add-fluff (compose pretty-display print-sham-ast))))
+        (cons expand-to-lc       (compose pretty-display sham-ast->sexp))
+        (cons add-fluff          (compose pretty-display print-sham-ast))))
 
-(define (debug-program prg cmplrs)
-  (define prog-ast
-   (for/fold ([prg prg])
-             ([c cmplrs])
-     (define compiler (car c))
-     (define printer (cdr c))
-     (printf "\n\napplying ~a\n" (object-name compiler))
-     (let ([p (compiler prg)])
-       (unless (member (object-name compiler)
-                       '(;reduce-curry
-                         ;parse-exp
-                         
-                         ;; flatten-anf
-                         ;; simplify-match
-                         ;expand-to-lc
-                         ;add-fluff
-                         ))
-         (parameterize ([pretty-print-current-style-table
-                         (pretty-print-extend-style-table
-                          (pretty-print-current-style-table)
-                          '(block define-variables define-function assign while)
-                          '(begin let lambda set! do))]
-                        [pretty-print-columns 100])
-           (printer p)))
-       p)))
-  (define module-env (compile-module prog-ast))
-  (jit-verify-module module-env)
 
-  (jit-optimize-module module-env #:opt-level 3)
-  (jit-optimize-function module-env #:opt-level 3)
-  ;; (jit-dump-module module-env)
-  ;; (jit-dump-function module-env 'main)
-  (define mod-env (initialize-jit module-env #:opt-level 3))
-  mod-env)
 
 (define debug-pass (make-parameter #f))
 
@@ -93,37 +57,52 @@
    (for/fold ([prg src])
              ([p passes])
      (define compiler (car p))
-     (define printer (cdr p))
-     (printf "\n\napplying ~a\n" (object-name compiler))
-     (compiler prg)))
+     (define new-p (compiler prg))
+     (when (debug-pass)
+       (define printer (cdr p))
+       (printf "\n\napplying ~a\n" (object-name compiler))
+       (parameterize ([pretty-print-current-style-table
+                         (pretty-print-extend-style-table
+                          (pretty-print-current-style-table)
+                          '(block define-variables define-function assign while function)
+                          '(begin let lambda set! do mbind))]
+                        [pretty-print-columns 100])
+         (printer new-p)))
+     new-p))
   (define module-env (compile-module prog-module))
   (jit-optimize-module module-env #:opt-level 3)
   (jit-optimize-function module-env #:opt-level 3)
   (jit-verify-module module-env)
   (initialize-jit module-env #:opt-level 3))
+(define (compile-file fname)
+  (define src (read-file fname))
+  (compile-src src))
+
+(define (debug-src src)
+  (parameterize ([debug-pass #t])
+    (compile-src src)))
 
 (module+ test
   (require ffi/unsafe)
   (require "jit-utils.rkt")
   ;; (define nbgo-src (read-file "../hkr/nb_simp.hkr"))
-;;  (define nbgo-src (read-file "../hkr/nb_simpbucket.hkr"))
- (define nbgo-src (read-file "../hkr/easyroad.hkr"))
-;; (define nbgo-src (read-file "../hkr/easyroad_d_s.hkr"))
-;  (define nbgo-src (read-file "../test/unit/bucket-nb.hkr"))
-;  (define nbgo-src (read-file "../test/unit/bucket-index.hkr"))
+   (define nbgo-src (read-file "../hkr/nb_simpbucket.hkr"))
+  ;; (define nbgo-src (read-file "../hkr/easyroad.hkr"))
+  ;; (define nbgo-src (read-file "../hkr/easyroad_d_s.hkr"))
+  ;; (define nbgo-src (read-file "../test/unit/bucket-nb.hkr"))
+  ;; (define nbgo-src (read-file "../test/unit/bucket-index.hkr"))
   (define nbgo-mod-jit
-    ;; (compile-src nbgo-src)
-    (debug-program nbgo-src
-                   passes)
-    )
+    (debug-src nbgo-src))
 
-
-  ;; (jit-dump-module nbgo-mod-jit)
+  (jit-dump-module nbgo-mod-jit)
   ;; (jit-write-bitcode nbgo-mod-jit "nb_simpbucket.bc")
   (jit-write-module nbgo-mod-jit "nb_simpbucket.ll")
   (define main (jit-get-function 'main nbgo-mod-jit))
-  (printf "easyroad: ~a" (main))
-  (error 'stop)
+  (define init-rng (jit-get-function 'init-rng nbgo-mod-jit))
+  (init-rng)
+  ;; (printf "f: ~a" (env-lookup 'main nbgo-mod-jit))
+  ;; (printf "easyroad: ~a" (main))
+  ;; (error 'stop)
   (hakaru-defines nbgo-mod-jit)
 
   ;; (define nat-array (make-c-array-nat (replicate-vector 100 1)))

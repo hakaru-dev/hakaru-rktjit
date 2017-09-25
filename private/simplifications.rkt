@@ -100,7 +100,11 @@
    (expr [(expr-app t (expr-intrf 'empty) '())
           (expr-app t (expr-intrf 'empty) (list (expr-val 'nat 0)))]
          [(expr-app t (expr-intrf 'dirac) (list val))
-          val])
+          val]
+         [(expr-app t (expr-intrf 'pose) (list arg1 arg2))
+          arg2])
    (reducer)
    (stmt)
    (pat)))
+
+

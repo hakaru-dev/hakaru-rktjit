@@ -302,16 +302,14 @@
            (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 0)))
            (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 1))))
     (sham$block
-     (sham:stmt:exp (sham$app-var store! ap a))
-     (sham:stmt:exp (sham$app-var store! bp b))
+     (sham:stmt:exp (sham$app-var store! a ap))
+     (sham:stmt:exp (sham$app-var store! b bp))
      (sham:stmt:return (sham$var 'pp)))))))
 (define pair-defns
   (append
    (pair-type 'real 'real)
    (pair-type 'prob 'prob)
-   (pair-type (string->symbol "pair<real,real>*") (string->symbol "pair<prob,prob>*"))
-
-   ))
+   (pair-type (string->symbol "pair<real,real>*") (string->symbol "pair<prob,prob>*"))))
 (define probability-functions
   (list
    (sham:def:global 'gsl-rng (sham:type:ref 'void*))
@@ -372,17 +370,23 @@
    ))
 
 (define (basic-defines)
-  (append types simple-funs array-functions pair-defns probability-functions))
+  (append types
+          simple-funs
+          array-functions
+          pair-defns
+          probability-functions
+          ))
 
 (module+ test
   (require rackunit)
   (require "utils.rkt")
-  (define bmod (compile-module
-                (sham:module
+  (define mod (sham:module
                  '((passes . ())
                    (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
                                 (libgsl . ("libgsl")))))
-                 (basic-defines))))
+                 (basic-defines)))
+  (print-sham-ast mod)
+  (define bmod (compile-module mod))
 ;  (jit-optimize-module bmod #:opt-level 3)
   (define benv (initialize-jit bmod))
   (jit-verify-module benv)
