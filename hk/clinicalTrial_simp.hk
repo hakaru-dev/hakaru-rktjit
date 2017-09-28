@@ -1,0 +1,27 @@
+fn n nat:
+fn x18 pair(array(bool), array(bool)):
+match x18:
+(a5, a3):
+  weight
+    (betaFunc
+       (nat2prob(summate x46 from 0 to n: [0, 1][if a5[x46]: 0 else: 1])
+        + 1/1,
+        nat2prob(summate x46 from 0 to n: [1, 0][if a5[x46]: 0 else: 1])
+        + 1/1)
+     * betaFunc
+         (nat2prob(summate x46 from 0 to n: [0, 1][if a3[x46]: 0 else: 1])
+          + 1/1,
+          nat2prob(summate x46 from 0 to n: [1, 0][if a3[x46]: 0 else: 1])
+          + 1/1)
+     * (1/16),
+     return true) <|>
+  weight
+    (betaFunc
+       (nat2prob(summate x46 from 0 to n: [0, 1][if a5[x46]: 0 else: 1])
+        + nat2prob(summate x46 from 0 to n: [0, 1][if a3[x46]: 0 else: 1])
+        + 1/1,
+        nat2prob(summate x46 from 0 to n: [1, 0][if a5[x46]: 0 else: 1])
+        + nat2prob(summate x46 from 0 to n: [1, 0][if a3[x46]: 0 else: 1])
+        + 1/1)
+     * (1/16),
+     return false)

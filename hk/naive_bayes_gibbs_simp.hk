@@ -1,0 +1,69 @@
+fn topic_prior array(prob):
+fn word_prior array(prob):
+fn z array(nat):
+fn w array(nat):
+fn doc array(nat):
+fn docUpdate nat:
+if docUpdate < size(z):
+  (array zNewf of size(topic_prior):
+        real2prob
+          ((int2real
+              (summary = rbucket
+                           (0, size(z),
+                            rindex(: size(topic_prior), iF: z[iF], radd(iF, zNewf: 1)))
+               nat2int
+                 (if nat2int(z[docUpdate]) <= nat2int(size(topic_prior)) + (-1) &&
+                     zNewf == z[docUpdate]:
+                    1
+                  else: 0)
+               * (-1)
+               + nat2int(summary[zNewf]))
+            + prob2real(topic_prior[zNewf]))
+           * prob2real
+               (product i from 0 to size(topic_prior):
+                product iB from 0 to size(word_prior):
+                product j
+                from 0
+                to summary = rbucket
+                               (0, size(w),
+                                rfanout
+                                  (rindex
+                                     (: size(z), iF: doc[iF],
+                                      rindex
+                                        (docUpdate: size(word_prior), iF, docUpdate: w[iF],
+                                         radd(iF, iB, docUpdate: 1))),
+                                   rnop))
+                   if i == zNewf: (match summary: (y, z): y)[docUpdate][iB] else: 0:
+                nat2prob
+                  (summary = rbucket
+                               (0, size(w),
+                                rsplit
+                                  (iF: doc[iF] == docUpdate, rnop,
+                                   rindex
+                                     (: size(word_prior), iF: w[iF],
+                                      rindex
+                                        (iB: size(topic_prior), iF, iB: z[doc[iF]],
+                                         radd(iF, i, iB: 1)))))
+                   (match summary: (y, z): z)[iB][i])
+                + nat2prob(j)
+                + word_prior[iB])
+           * prob2real
+               (1/ (product i from 0 to size(topic_prior):
+                    product iB
+                    from 0
+                    to summary = rbucket
+                                   (0, size(w),
+                                    rfanout
+                                      (rindex(: size(z), iF: doc[iF], radd(iF, docUpdate: 1)),
+                                       rnop))
+                       if i == zNewf: (match summary: (y, z): y)[docUpdate] else: 0:
+                    nat2prob
+                      (summary = rbucket
+                                   (0, size(w),
+                                    rsplit
+                                      (iF: doc[iF] == docUpdate, rnop,
+                                       rindex(: size(topic_prior), iF: z[doc[iF]], radd(iF, i: 1))))
+                       (match summary: (y, z): z)[i])
+                    + nat2prob(iB)
+                    + (summate iF from 0 to size(word_prior): word_prior[iF])))))
+else: array i of 0: 0.0

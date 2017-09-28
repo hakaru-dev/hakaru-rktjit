@@ -1,0 +1,50 @@
+fn as array(prob):
+fn z array(nat):
+fn t array(real):
+fn docUpdate nat:
+if size(z) == size(t) &&
+   docUpdate < size(z) &&
+   z[docUpdate] < size(as):
+  (array zNewb of size(as):
+        real2prob
+          ((int2real
+              (summary = rbucket
+                           (0, size(t), rindex(: size(as), _a: z[_a], radd(_a, zNewb: 1)))
+               nat2int(if zNewb == z[docUpdate]: 1 else: 0) * (-1)
+               + nat2int(summary[zNewb]))
+            + prob2real(as[zNewb]))
+           * prob2real
+               (exp
+                  ((summate _a from 0 to size(as):
+                    (summary = rbucket
+                                 (0, size(t), rindex(: size(as), i: z[i], radd(i, _a: t[i])))
+                     (if _a == zNewb: t[docUpdate] else: +0/1)
+                     + (if _a == z[docUpdate]: t[docUpdate] else: +0/1) * (-1/1)
+                     + summary[_a]) ^
+                    2
+                    / int2real
+                        (+1
+                         + (summary = rbucket
+                                        (0, size(t), rindex(: size(as), i: z[i], radd(i, _a: 1)))
+                            nat2int(if _a == zNewb: 1 else: 0)
+                            + nat2int(if _a == z[docUpdate]: 1 else: 0) * (-1)
+                            + nat2int(summary[_a]))))
+                   * (+1/2)))
+           * prob2real
+               (1/ sqrt
+                     (nat2prob
+                        (int2nat
+                           (product _b from 0 to size(as):
+                            +2
+                            + (summary = rbucket
+                                           (0, size(t),
+                                            rindex(: size(as), _a: z[_a], radd(_a, _b: 1)))
+                               nat2int(if _b == zNewb: 1 else: 0)
+                               + nat2int(if _b == z[docUpdate]: 1 else: 0) * (-1)
+                               + nat2int(summary[_b]))
+                              * (+2)))))))
+else:
+  if size(z) /= size(t): array i of 0: 0.0
+  else:
+    if size(z) <= docUpdate: array i of 0: 0.0
+    else: array i of 0: 0.0

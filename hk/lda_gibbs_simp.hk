@@ -1,0 +1,60 @@
+fn topic_prior array(prob):
+fn word_prior array(prob):
+fn numDocs nat:
+fn w array(nat):
+fn doc array(nat):
+fn z array(nat):
+fn wordUpdate nat:
+if wordUpdate < size(w) &&
+   doc[wordUpdate] < numDocs &&
+   w[wordUpdate] < size(word_prior):
+  (array zNewh of size(topic_prior):
+        real2prob
+          ((int2real
+              (summary = rbucket
+                           (0, size(w),
+                            rindex
+                              (: size(topic_prior), iB: z[iB],
+                               rsplit
+                                 (iB, zNewh: doc[wordUpdate] == doc[iB], radd(iB, zNewh: 1), rnop)))
+               nat2int
+                 (if nat2int(z[wordUpdate]) <= nat2int(size(topic_prior)) + (-1) &&
+                     zNewh == z[wordUpdate]:
+                    1
+                  else: 0)
+               * (-1)
+               + nat2int(match summary[zNewh]: (y, z): y))
+            + prob2real(topic_prior[zNewh]))
+           * (int2real
+                (summary = rbucket
+                             (0, size(w),
+                              rindex
+                                (: size(topic_prior), iB: z[iB],
+                                 rsplit
+                                   (iB, zNewh: w[wordUpdate] == w[iB], radd(iB, zNewh: 1), rnop)))
+                 nat2int
+                   (if nat2int(z[wordUpdate]) <= nat2int(size(topic_prior)) + (-1) &&
+                       zNewh == z[wordUpdate]:
+                      1
+                    else: 0)
+                 * (-1)
+                 + nat2int(match summary[zNewh]: (y, z): y))
+              + prob2real(word_prior[w[wordUpdate]]))
+           / (int2real
+                (summary = rbucket
+                             (0, size(w),
+                              rindex(: size(topic_prior), iB: z[iB], radd(iB, zNewh: 1)))
+                 nat2int
+                   (if nat2int(z[wordUpdate]) <= nat2int(size(topic_prior)) + (-1) &&
+                       zNewh == z[wordUpdate]:
+                      1
+                    else: 0)
+                 * (-1)
+                 + nat2int(summary[zNewh]))
+              + prob2real
+                  (summate iB from 0 to size(word_prior): word_prior[iB]))))
+else:
+  if size(w) <= wordUpdate: array i of 0: 0.0
+  else:
+    if numDocs <= doc[wordUpdate]: array i of 0: 0.0
+    else: array i of 0: 0.0
