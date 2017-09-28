@@ -171,7 +171,7 @@
                  [(expr-sum t i s e b) i]
                  [(expr-prd t i s e b) i]
                  [(expr-arr t i s b)   i]))]
-          (stmt-lets (list bi) (stmt-block (list (stmt-assign bi index) stmt))))))
+          (stmt-elets (list bi) (list index) stmt))))
   (define pass
     (create-rpass
     (expr
@@ -193,6 +193,7 @@
               (define-values (nt nv nl ns) (get-loop-stuff (first vm) (second vm) index))
               (values (append nt ntyps) (append nv nvars) (append nl nvals)
                       (cons (wrap-index index (second vm) ns) nstmt))))
+          (define indexv (expr-var '? (gensym^ 'civ) '_))
           (expr-lets ntypes nvars nvals
                      (expr-block type (stmt-for index start end (stmt-block nstmts)) b))))
       new-b])

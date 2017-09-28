@@ -36,6 +36,7 @@
   (stmt
    (if (tst thn els) (expr stmt stmt))
    (lets (vars bstmt) ((* expr) stmt))
+   (elets (vars vals bstmt) ((* expr) (* expr) stmt))
    (for (i start end body) (expr expr expr stmt))
    (block (stmts) ((* stmt)))
    (assign (var val) (expr expr))
@@ -210,6 +211,11 @@
        ((define (map-stmt f-expr f-reducer f-stmt f-pat e^)
           (match-define (stmt-lets vars bstmt) e^)
           (stmt-lets (map f-expr vars) (f-stmt bstmt)))))
+     (struct stmt-elets stmt (vars vals bstmt)
+       #:methods gen:stmtg
+       ((define (map-stmt f-expr f-reducer f-stmt f-pat e^)
+          (match-define (stmt-lets vars vals bstmt) e^)
+          (stmt-elets (map f-expr vars) (map f-expr vals) (f-stmt bstmt)))))
      (struct stmt-return stmt (val)
        #:methods gen:stmtg
        ((define (map-stmt f-expr f-reducer f-stmt f-pat e^)

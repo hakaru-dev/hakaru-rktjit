@@ -30,7 +30,7 @@
         (cons mbind->let         pp-expr)
         (cons flatten-anf        pp-expr)
 
-;        (cons combine-loops      pp-expr)
+        (cons combine-loops      pp-expr)
         ;stop
         (cons bucket->for        pp-expr)
         (cons remove-unit-lets   pp-expr)
