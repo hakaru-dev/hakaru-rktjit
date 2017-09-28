@@ -3,95 +3,65 @@ fn x6 array(real):
    invNoiseb <~ gamma
                   (1/1 + nat2prob(size(dataX)) * (1/2),
                    real2prob
-                     (((summate x18 from 0 to size(dataX): dataX[x18]) ^ 2
-                       * (-260416666666666666665744493201597451618/1)
-                       + prob2real
-                           (nat2prob(size(dataX))
-                            + 39062500000000000000000000000000000000
-                              /130208333333333333332872246600798725809)
-                         * ((summate x18 from 0 to size(dataX): dataX[x18] ^ 2) + (+1/1))
-                         * (+260416666666666666665744493201597451618/1))
-                      / (((summate x18 from 0 to size(dataX): dataX[x18] ^ 2)
-                          * (-130208333333333333332872246600798725809/1)
-                          + (-130208333333333333332872246600798725809/1))
-                         * (summate x18 from 0 to size(dataX): x6[x18]) ^ 2
-                         + ((summate x18 from 0 to size(dataX): x6[x18] * dataX[x18])
-                            * (summate x18 from 0 to size(dataX): dataX[x18])
-                            * (+260416666666666666665744493201597451618/1)
-                            + (summate x18 from 0 to size(dataX): dataX[x18] ^ 2)
-                              * (-390625000000000000000000000000000000000/1)
-                            + (-390625000000000000000000000000000000000/1))
-                           * (summate x18 from 0 to size(dataX): x6[x18])
-                         + int2real
-                             (nat2int(size(dataX)) * (-130208333333333333332872246600798725809)
-                              + (-39062500000000000000000000000000000000))
+                     ((nat2real(size(dataX) * 20 + 6)
+                       * (summate x18 from 0 to size(dataX): dataX[x18] ^ 2)
+                       + (summate x18 from 0 to size(dataX): dataX[x18]) ^ 2 * (-20/1)
+                       + nat2real(size(dataX) * 20)
+                       + (+6/1))
+                      / ((nat2real(size(dataX) * 10 + 3)
+                          * (summate x18 from 0 to size(dataX): x6[x18] ^ 2)
+                          + (summate x18 from 0 to size(dataX): x6[x18]) ^ 2 * (-10/1)
+                          + nat2real(size(dataX) * 95)
+                          + (summate x18 from 0 to size(dataX): x6[x18]) * (-30/1)
+                          + (+6/1))
+                         * (summate x18 from 0 to size(dataX): dataX[x18] ^ 2)
+                         + ((summate x18 from 0 to size(dataX): dataX[x18]) ^ 2 * (-10/1)
+                            + nat2real(size(dataX) * 10)
+                            + (+3/1))
+                           * (summate x18 from 0 to size(dataX): x6[x18] ^ 2)
+                         + nat2real(size(dataX))
                            * (summate x18 from 0 to size(dataX): x6[x18] * dataX[x18]) ^ 2
+                           * (-10/1)
                          + (summate x18 from 0 to size(dataX): x6[x18] * dataX[x18])
                            * (summate x18 from 0 to size(dataX): dataX[x18])
-                           * (+390625000000000000000000000000000000000/1)
-                         + ((summate x18 from 0 to size(dataX): dataX[x18]) ^ 2
-                            * (-130208333333333333332872246600798725809/1)
-                            + prob2real
-                                (nat2prob(size(dataX))
-                                 + 39062500000000000000000000000000000000
-                                   /130208333333333333332872246600798725809)
-                              * ((summate x18 from 0 to size(dataX): dataX[x18] ^ 2) + (+1/1))
-                              * (+130208333333333333332872246600798725809/1))
-                           * (summate x18 from 0 to size(dataX): x6[x18] ^ 2)
-                         + (summate x18 from 0 to size(dataX): dataX[x18]) ^ 2
-                           * (-1236979166666666666665744493201597451618/1)
-                         + ((summate x18 from 0 to size(dataX): dataX[x18] ^ 2) + (+1/1))
-                           * prob2real
-                               (nat2prob(size(dataX))
-                                + 39062500000000000000000000000000000000
-                                  /618489583333333333332872246600798725809)
-                           * (+1236979166666666666665744493201597451618/1))))
+                           * (summate x18 from 0 to size(dataX): x6[x18])
+                           * (+20/1)
+                         + (summate x18 from 0 to size(dataX): x6[x18]) ^ 2 * (-10/1)
+                         + (summate x18 from 0 to size(dataX): dataX[x18]) ^ 2 * (-95/1)
+                         + (summate x18 from 0 to size(dataX): x6[x18] * dataX[x18])
+                           * (summate x18 from 0 to size(dataX): dataX[x18])
+                           * (+30/1)
+                         + (summate x18 from 0 to size(dataX): x6[x18] * dataX[x18]) ^ 2
+                           * (-3/1)
+                         + nat2real(size(dataX) * 95)
+                         + (summate x18 from 0 to size(dataX): x6[x18]) * (-30/1)
+                         + (+6/1))))
    a9 <~ normal
            (((summate x18 from 0 to size(dataX): x6[x18] * dataX[x18])
-             * (nat2real(size(dataX))
-                * (+130208333333333333332872246600798725809/1)
-                + (+39062500000000000000000000000000000000/1))
-             + ((summate x18 from 0 to size(dataX): x6[x18])
-                * (-130208333333333333332872246600798725809/1)
-                + (-195312500000000000000000000000000000000/1))
+             * (nat2real(size(dataX)) * (+10/1) + (+3/1))
+             + ((summate x18 from 0 to size(dataX): x6[x18]) * (-10/1)
+                + (-15/1))
                * (summate x18 from 0 to size(dataX): dataX[x18]))
-            / ((summate x18 from 0 to size(dataX): dataX[x18]) ^ 2
-               * (-130208333333333333332872246600798725809/1)
-               + prob2real
-                   (nat2prob(size(dataX))
-                    + 39062500000000000000000000000000000000
-                      /130208333333333333332872246600798725809)
-                 * ((summate x18 from 0 to size(dataX): dataX[x18] ^ 2) + (+1/1))
-                 * (+130208333333333333332872246600798725809/1)),
+            / (nat2real(size(dataX) * 10 + 3)
+               * (summate x18 from 0 to size(dataX): dataX[x18] ^ 2)
+               + (summate x18 from 0 to size(dataX): dataX[x18]) ^ 2 * (-10/1)
+               + nat2real(size(dataX) * 10)
+               + (+3/1)),
             1/ sqrt(invNoiseb)
             * sqrt
                 (real2prob
-                   (nat2real
-                      (size(dataX) * 130208333333333333332872246600798725809
-                       + 39062500000000000000000000000000000000)
-                    / (nat2real
-                         (size(dataX) * 130208333333333333332872246600798725809
-                          + 39062500000000000000000000000000000000)
+                   (nat2real(size(dataX) * 10 + 3)
+                    / (nat2real(size(dataX) * 10 + 3)
                        * (summate x18 from 0 to size(dataX): dataX[x18] ^ 2)
-                       + (summate x18 from 0 to size(dataX): dataX[x18]) ^ 2
-                         * (-130208333333333333332872246600798725809/1)
-                       + nat2real(size(dataX) * 130208333333333333332872246600798725809)
-                       + (+39062500000000000000000000000000000000/1)))))
+                       + (summate x18 from 0 to size(dataX): dataX[x18]) ^ 2 * (-10/1)
+                       + nat2real(size(dataX) * 10)
+                       + (+3/1)))))
    b7 <~ normal
-           (((summate x18 from 0 to size(dataX): dataX[x18])
-             * a9
-             * (-130208333333333333332872246600798725809/1)
-             + (summate x18 from 0 to size(dataX): x6[x18])
-               * (+130208333333333333332872246600798725809/1)
-             + (+195312500000000000000000000000000000000/1))
-            * prob2real
-                (1/ nat2prob
-                      (size(dataX) * 130208333333333333332872246600798725809
-                       + 39062500000000000000000000000000000000)),
-            1/ sqrt(invNoiseb)
-            * sqrt
-                (1/ nat2prob
-                      (size(dataX) * 130208333333333333332872246600798725809
-                       + 39062500000000000000000000000000000000))
-            * (11410886614690960697/1))
+           (((summate x18 from 0 to size(dataX): dataX[x18]) * a9 * (-10/1)
+             + (summate x18 from 0 to size(dataX): x6[x18]) * (+10/1)
+             + (+15/1))
+            * prob2real(1/ nat2prob(size(dataX) * 10 + 3)),
+            sqrt(10/1)
+            / sqrt(invNoiseb)
+            * sqrt(1/ nat2prob(size(dataX) * 10 + 3)))
    return [a9, b7, prob2real(invNoiseb)]
