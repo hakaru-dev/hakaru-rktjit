@@ -78,6 +78,11 @@
         (map (compose get-sham-type typeof) vars)
         (make-list (length vars) (sham:exp:void-value))
         (expand-stmt bstmt))]
+      [(stmt-elets vars vals bstmt)
+       (sham:stmt:let (map get-var-sym vars)
+                      (map (compose get-sham-type typeof) vars)
+                      (map expand-exp vals)
+                      (expand-stmt bstmt))]
 
       [(stmt-if tst thn els)
        (sham:stmt:if (expand-exp tst)

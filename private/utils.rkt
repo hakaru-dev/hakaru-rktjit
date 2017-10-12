@@ -5,19 +5,12 @@
 (require "ast.rkt"
          "sham-utils.rkt")
 
-(provide gensym^
-         symbol-append
-         get-print-type
-         map-ast
-         real->prob
-         prob->real
-         logsumexp2
-         logspace-add
-         one-of-type
-         read-vector-from-csv
-         write-vector-to-csv
-         replicate-vector
-         zero-of-type)
+(provide (all-defined-out))
+
+(define debug-pass (make-parameter #f))
+(define-syntax-rule (debug-printf args ...)
+  (when (debug-pass)
+    (printf args ...)))
 
 (splicing-let ([gensym-hash (make-hash)])
   (define (gensym^ sym [sep ""])
@@ -29,35 +22,6 @@
 (define (symbol-append s1 s2)
   (string->symbol (string-append (symbol->string s1)
 				 (symbol->string s2))))
-
-;; func: ast -> ast, should return the same ast if no change
-;; this map will call the func on each ast node
-;; and then recursively call it again in on the output from the func
-(define (map-ast func ast)
-  (define (m body)
-    (match (func body)
-      [(expr-fun args ret-type body)
-       (expr-fun args ret-type (m body))]
-      [(expr-if t tst thn els)
-       (expr-if t (m tst) (m thn) (m els))]
-      [(expr-app t rt rds)
-       (expr-app t (m rt) (map m rds))]
-      [(expr-let type var val b)
-       (expr-let type var (m val) (m b))]
-      [(expr-sum t i start end b)
-       (expr-sum t i (m start) (m end) (m b))]
-      [(expr-prd t i start end b)
-       (expr-prd t i (m start) (m end) (m b))]
-      [(expr-arr t i end b)
-       (expr-arr t i (m end) (m b))]
-      [(expr-val t v)
-       (expr-val t v)]
-      [(expr-intr s)
-       (expr-intr s)]
-      [(expr-var t s o)
-       (expr-var t s o)]))
-  (m ast))
-
 
 (define (prob->real x) (exp x))
 (define (real->prob x) (log x))
@@ -90,7 +54,6 @@
 
 (define (write-vector-to-csv fname)
   (void))
-
 
 (define (get-print-type t)
   (match t

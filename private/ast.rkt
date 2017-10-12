@@ -214,7 +214,7 @@
      (struct stmt-elets stmt (vars vals bstmt)
        #:methods gen:stmtg
        ((define (map-stmt f-expr f-reducer f-stmt f-pat e^)
-          (match-define (stmt-lets vars vals bstmt) e^)
+          (match-define (stmt-elets vars vals bstmt) e^)
           (stmt-elets (map f-expr vars) (map f-expr vals) (f-stmt bstmt)))))
      (struct stmt-return stmt (val)
        #:methods gen:stmtg
@@ -429,6 +429,7 @@
 (define (ps stmt)
   (match stmt
     [(stmt-lets vars stmt) `(let-stmt ,(map pe vars) ,(ps stmt))]
+    [(stmt-elets vars vals stmt) `(let-stmt (,@(for/list ([var vars] [val vals]) `(,(pe var) ,(pe val)))) ,(ps stmt))]
     [(stmt-if tst thn els) `(if-stmt ,(pe tst) ,(ps thn) ,(ps els))]
     [(stmt-for i start end body) `(for-stmt (,(pe i) ,(pe start) ,(pe end)) ,(ps body))]
     [(stmt-block stmts) `(block-stmt ,@(map ps stmts))]
@@ -437,59 +438,6 @@
     [(stmt-void) '<void>]))
 (define print-stmt ps)
 (define display-stmt (compose pretty-display print-stmt))
-
-(define-syntax (expr/pass stx)
-  (syntax-case stx ()
-      [(_ mps ...)
-       #'(λ (e)
-           (letrec
-               ((f (λ (e)
-                     (define ne (match e mps ... [else e]))
-                     (fill-expr-pass f ne))))
-             (f e)))]))
-
-(define-syntax (fill-expr-pass stx)
-  (syntax-case stx ()
-    [(_ f e mps ...)
-     #'(match e
-         mps ...
-         [(expr-mod main fns)
-          (expr-mod (f main) (map f fns))]
-         [(expr-fun args ret-type body)
-          (expr-fun args ret-type (f body))]
-         [(expr-let type var val body)
-          (expr-let type var (f val) (f body))]
-         [(expr-lets types vars vals body)
-          (expr-lets types vars (map f vals) (f body))]
-         [(expr-arr t i s b)
-          (expr-arr t (f i) (f s) (f b))]
-         [(expr-sum t i s e b)
-          (expr-sum t (f i) (f s) (f e) (f b))]
-         [(expr-prd t i s e b)
-          (expr-prd t (f i) (f s) (f e) (f b))]
-         [(expr-bucket t s e r)
-          (expr-bucket t (f s) (f e) r)]
-         [(expr-branch pat body)
-          (expr-branch pat (f body))]
-         [(expr-match t tst brs)
-          (expr-match t (f tst) (map f brs))]
-         [(expr-bind v b)
-          (expr-bind v (f b))]
-         [(expr-if t tst thn els)
-          (expr-if t (f tst) (f thn) (f els))]
-         [(expr-app t ra rs)
-          (expr-app t (f ra) (map f rs))]
-         [(expr-block t stmt e)
-          (expr-block t (f stmt) (f e))]
-         [(stmt-if tst thn els)
-          (stmt-if (f tst) (f thn) (f els))]
-         [(stmt-for i start end body)
-          (stmt-for i (f start) (f end) (f body))]
-         [(stmt-block stmts)
-          (stmt-block (map f stmts))]
-         [(stmt-assign var val)
-          (stmt-assign var (f val))]
-         [else e])]))
 
 (define (is-complex? expr)
   (match expr
@@ -552,7 +500,6 @@
      (if (empty? stmts)
          (set)
          (apply set-union (map ffv^ stmts)))]
-
     [(stmt-void) (set)]
     [(stmt-assign to val) (set-union (ffv^ to) (ffv^ val))]))
 

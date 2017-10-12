@@ -7,28 +7,29 @@
          combine-loops)
 
 (define bucket->for
-  (expr/pass
-   [(expr-lets typs vars vals body)
-    (define-values  (ntyps nvars nvals stmts)
-      (for/fold ([ntyps '()]
-                 [nvars '()]
-                 [nvals '()]
-                 [stmts '()])
-                ([t typs]
-                 [var vars]
-                 [val vals])
-        (match val
-          [(expr-bucket t start end reducer)
-           (define-values (typs vars vals stmt) (do-bucket var t start end reducer))
-           (values (append typs ntyps) (append vars nvars) (append vals nvals)
-                   (cons stmt stmts))]
-          [else (values (cons t ntyps) (cons var nvars) (cons val nvals) stmts)])))
-    (define nbody (expr-block (typeof body) (stmt-block stmts) body))
-    (expr-lets (typeof nbody) nvars nvals nbody)]
-   [(expr-let t var (expr-bucket t start end reducer) body)
-    (define-values (typs vars vals stmt) (do-bucket var t start end reducer))
-    (define nbody (expr-block t stmt body))
-    (expr-lets (typeof nbody) vars vals nbody)]))
+  (create-rpass
+   (expr [(expr-lets typs vars vals body)
+     (define-values  (ntyps nvars nvals stmts)
+       (for/fold ([ntyps '()]
+                  [nvars '()]
+                  [nvals '()]
+                  [stmts '()])
+                 ([t typs]
+                  [var vars]
+                  [val vals])
+         (match val
+           [(expr-bucket t start end reducer)
+            (define-values (typs vars vals stmt) (do-bucket var t start end reducer))
+            (values (append typs ntyps) (append vars nvars) (append vals nvals)
+                    (cons stmt stmts))]
+           [else (values (cons t ntyps) (cons var nvars) (cons val nvals) stmts)])))
+     (define nbody (expr-block (typeof body) (stmt-block stmts) body))
+     (expr-lets (typeof nbody) nvars nvals nbody)]
+    [(expr-let t var (expr-bucket t start end reducer) body)
+     (define-values (typs vars vals stmt) (do-bucket var t start end reducer))
+     (define nbody (expr-block t stmt body))
+     (expr-lets (typeof nbody) vars vals nbody)])
+   (reducer) (stmt) (pat)))
 
 (define (do-bucket result t start end reducer)
     (define ind (expr-var 'nat (gensym^ (symbol-append (expr-var-sym result) 'i)) '_))

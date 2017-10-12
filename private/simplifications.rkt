@@ -55,9 +55,22 @@
     [v #:when (hash-has-key? env v)
        (printf "\treplaced: ~a with ~a\n" (print-expr v) (print-expr (hash-ref env v)))
        (hash-ref env v)]
-    [else (define f-expr (curryr sl env))
-          (define f-stmt (λ (e) (map-stmt f-expr identity f-stmt identity e)))
-          (map-expr f-expr identity f-stmt identity e)]))
+    [(stmt-elets vars vals bstmt)
+     (define-values (nvars nvals ne)
+       (for/fold ([nvars '()] [nvals '()] [e env])
+                 ([var vars] [val vals])
+         (if (expr-var? val)
+             (begin
+               (printf "replacing: ~a with ~a\n" (print-expr var) (print-expr val))
+               (values nvars nvals (hash-set e var val)))
+             (values (cons var nvars) (cons (sl val e) nvals) e))))
+            (stmt-elets nvars nvals (sl bstmt ne))]
+    [(? expr?)
+     (define fsl (curryr sl env))
+     (map-expr fsl identity fsl identity e)]
+    [(? stmt?)
+     (define fsl (curryr sl env))
+     (map-stmt fsl identity fsl identity e)]))
 
 (define (simplify-lets e)
   (sl e (make-immutable-hash)))
