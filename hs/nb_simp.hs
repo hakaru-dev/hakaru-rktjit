@@ -19,6 +19,14 @@ import qualified Data.Text.IO as TIO
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
 
+import qualified Data.Time.Clock as C
+import qualified System.Environment as SE
+import qualified Data.Number.LogFloat as LF
+import qualified Data.Vector.Unboxed as UV
+import qualified Data.Text.IO as TIO
+import qualified Data.Text as T
+import qualified Data.Text.Read as TR
+
 prog ::
   ((MayBoxVec Prob Prob) ->
    ((MayBoxVec Prob Prob) ->
@@ -141,6 +149,28 @@ prog =
                                                          (size word_prior1)
                                                          (\ i_b19 -> word_prior1 ! i_b19)))))),
          branch pfalse ((array (nat_ 0) $ \ i20 -> prob_ 0))]
+main :: IO ()
+main = do
+  twds <- SE.getArgs
+  print twds
+  let [tps, wps, vf, wf, df, du, ouf] = twds
+  v_st <- TIO.readFile vf
+  words_st <- TIO.readFile wf
+  docs_st <- TIO.readFile df
+  let topic_prior = UV.map LF.logFloat $ UV.replicate (read tps) 1.0
+  let word_prior = UV.map LF.logFloat  $ UV.replicate (read wps) 1.0
+  let v = UV.fromList $ (Prelude.map (read . T.unpack) (T.lines v_st) :: [Int])
+  let words = UV.fromList $ ((Prelude.map (read . T.unpack) (T.lines words_st)) :: [Int])
+  let docs = UV.fromList $ ((Prelude.map (read . T.unpack) (T.lines docs_st)) :: [Int])
+  let docUpdate = (read du :: Int)
+  start_time <- C.getCurrentTime
+  result <- return $! (prog topic_prior word_prior v words docs docUpdate)
+  end_time <- C.getCurrentTime
+  print "result:"
+  print (UV.map LF.logFromLogFloat result)
+  TIO.writeFile ouf $ T.unlines $ Prelude.map T.pack $ Prelude.map show $ UV.toList $ UV.map LF.logFromLogFloat result 
+  print "time:"
+  print $ C.diffUTCTime end_time start_time
 main :: IO ()
 main = do
   twds <- SE.getArgs

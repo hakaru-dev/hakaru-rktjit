@@ -7,18 +7,17 @@
 (require "../private/jit-utils.rkt")
 (require "example-vectors.rkt")
 
+(define src (read-file "hkr/nb_simp.hkr"))
 (define mod-env (parameterize ([debug-pass #f])
-                  (compile-file "hkr/nb_simp.hkr")))
+                  (compile-src src)))
 (hakaru-defines mod-env)
 (define main (jit-get-function 'main mod-env))
 
 (define (get-argument i)
   (vector-ref (current-command-line-arguments) i))
 
-(define topic-prior
-  (make-c-array-prob (replicate-vector (string->number (get-argument 0)) (real->prob 1.0))))
-(define word-prior
-  (make-c-array-prob (replicate-vector (string->number (get-argument 1)) (real->prob 1.0))))
+(define topic-prior (make-c-array-prob (replicate-vector (string->number (get-argument 0)) (real->prob 1.0))))
+(define word-prior (make-c-array-prob (replicate-vector (string->number (get-argument 1)) (real->prob 1.0))))
 (define v (make-c-array-nat (read-vector-from-csv (get-argument 2))))
 (define words (make-c-array-nat (read-vector-from-csv (get-argument 3))))
 (define docs (make-c-array-nat (read-vector-from-csv (get-argument 4))))

@@ -65,7 +65,8 @@ haskellcode () {
 
 compilehaskell () {
     # ghc "hs/"$hk".hs" -o "test/hs/"$hk
-    stack ghc -- "hs/"$hk".hs" -o "test/hs/"$hk
+    cd ../hakaru/
+    stack exec -- ghc -O2 "../hakaru-rktjit/hs/"$hk".hs" -o "../hakaru-rktjit/test/hs/"$hk
 }
 
 buildhk () {

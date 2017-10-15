@@ -13,9 +13,7 @@ du=$3
 echo "running with args: $tps $wps $siz $du"
 runhs () {
     if [[ ! -a ./test/hs/$hk ]]; then
-	echo "executable not found compiling again"
-	# ghc -O2 "hs/"$hk".hs" -o "test/hs/"$hk
-	stack ghc -- -O2 "hs/"$hk".hs" -o "test/hs/"$hk
+	echo "executable not found build test again"
     fi
 
     echo "running haskell"
