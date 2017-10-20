@@ -375,7 +375,7 @@
     [(expr-fun args ret-type body)
      `(function ,(map pe args) ,(pe body))]
 
-    [(expr-var type sym orig) sym #;(string->symbol (format "~a|~a" sym orig))]
+    [(expr-var type sym orig) sym];(string->symbol (format "~a|~a" sym orig))]
     [(expr-arr type index size body)
      `(array ,(pe index) ,(pe size) ,(pe body))]
     [(expr-sum type index start end body)
@@ -397,7 +397,7 @@
     [(expr-let type var val body)
      `(let (,(pe var) ,(pe val)) ,(pe body))]
     [(expr-lets types vars vals body)
-     `(let (,@(for/list ( [var vars] [val vals])
+     `(lets (,@(for/list ( [var vars] [val vals])
                 `(,(pe var) ,(pe val))))
         ,(pe body))]
     [(expr-block t stmt e)
@@ -429,7 +429,7 @@
 (define (ps stmt)
   (match stmt
     [(stmt-lets vars stmt) `(let-stmt ,(map pe vars) ,(ps stmt))]
-    [(stmt-elets vars vals stmt) `(let-stmt (,@(for/list ([var vars] [val vals]) `(,(pe var) ,(pe val)))) ,(ps stmt))]
+    [(stmt-elets vars vals stmt) `(elet-stmt (,@(for/list ([var vars] [val vals]) `(,(pe var) ,(pe val)))) ,(ps stmt))]
     [(stmt-if tst thn els) `(if-stmt ,(pe tst) ,(ps thn) ,(ps els))]
     [(stmt-for i start end body) `(for-stmt (,(pe i) ,(pe start) ,(pe end)) ,(ps body))]
     [(stmt-block stmts) `(block-stmt ,@(map ps stmts))]
@@ -446,6 +446,7 @@
     [(expr-arr _ _ _ _) #t]
     [(expr-bucket _ _ _ _) #t]
     [(expr-let _ _ v b) (or (is-complex? v) (is-complex? b))]
+    [(expr-lets _ _ vs b) (or (is-complex? b) (ormap is-complex? vs))]
     [(expr-match _ _ brs) (ormap is-complex? brs)]
     [(expr-branch _ b) (is-complex? b)]
     [(expr-bind _ b) (is-complex? b)]
@@ -496,6 +497,8 @@
      (set-union (ffv^ start) (ffv^ end) (set-remove (ffv^ body) i))]
     [(stmt-lets vars bstmt)
      (set-subtract (ffv^ bstmt) (apply set vars))]
+    [(stmt-elets vars vals stmt)
+     (set-subtract (ffv^ stmt) (apply set vars))]
     [(stmt-block stmts)
      (if (empty? stmts)
          (set)

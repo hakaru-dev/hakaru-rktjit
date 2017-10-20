@@ -6,7 +6,8 @@
          simplify-lets
          mbind->let
          macro-functions
-         remove-pairs)
+         remove-pairs
+         remove-array-literals)
 
 (define simplify-match
   (create-rpass
@@ -35,14 +36,17 @@
   (define cdr-type (caddr (typeof tst)))
   (define car-bind (expr-branch-body (car brs)))
   (define cdr-bind (expr-bind-body car-bind))
+  (define body (expr-bind-body cdr-bind))
   (define car-var (expr-bind-var car-bind))
   (define cdr-var (expr-bind-var cdr-bind))
   (printf "match-pair: \n\tbr: ~a\n\tat: ~a, bt: ~a\n"
           (pe (car brs))
           car-type cdr-type)
-  (expr-let t car-var (expr-app car-type (expr-intrf 'car) (list tst))
-            (expr-let t cdr-var (expr-app cdr-type (expr-intrf 'cdr) (list tst))
-                      (expr-bind-body cdr-bind))))
+  (expr-lets (list car-type cdr-type)
+            (list car-var cdr-var)
+            (list (expr-app car-type (expr-intrf 'car) (list tst))
+                  (expr-app cdr-type (expr-intrf 'cdr) (list tst)))
+            body))
 
 (define (sl e env)
   (match e
@@ -64,7 +68,7 @@
                (printf "replacing: ~a with ~a\n" (print-expr var) (print-expr val))
                (values nvars nvals (hash-set e var val)))
              (values (cons var nvars) (cons (sl val e) nvals) e))))
-            (stmt-elets nvars nvals (sl bstmt ne))]
+     (stmt-elets nvars nvals (sl bstmt ne))]
     [(? expr?)
      (define fsl (curryr sl env))
      (map-expr fsl identity fsl identity e)]
@@ -121,3 +125,27 @@
    (pat)))
 
 
+
+
+(define (remove-array-literals e)
+  (define pass (create-rpass
+                (expr [(expr-app ta (expr-intrf 'index)
+                                 (list (expr-app t (expr-intrf 'array-literal) aargs) iarg))
+                       (define ab (expr-app ta (expr-intrf 'index)
+                                            (list (expr-app t (expr-intrf 'array-literal) aargs) iarg)))
+                       (if (< (length aargs) 5)
+                           (check-if-remove aargs iarg ab)
+                           ab)])
+                (reducer)
+                (stmt)
+                (pat)))
+  (pass e))
+                           
+(define (check-if-remove arr-vals indexer orig-b)
+  (printf "checking if can be removed\n")
+  (if (complex? indexer)
+      orig-b
+      (match indexer
+        [(expr-if t chk (expr-val 'nat vthn) (expr-val 'nat vels)) (expr-if t chk (list-ref arr-vals vthn)
+                                                                          (list-ref arr-vals vels))]
+        [else orig-b])))

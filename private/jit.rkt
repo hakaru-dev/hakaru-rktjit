@@ -28,8 +28,9 @@
 
         (cons simplify-match     pp-expr)
         (cons mbind->let         pp-expr)
+        (cons remove-array-literals pp-expr)
         (cons flatten-anf        pp-expr)
-
+        stop
         (cons combine-loops      pp-expr)
         ;stop
         (cons bucket->for        pp-expr)
@@ -58,11 +59,11 @@
        (define printer (cdr p))
        (printf "applying ~a\n" (object-name compiler))
        (parameterize ([pretty-print-current-style-table
-                         (pretty-print-extend-style-table
-                          (pretty-print-current-style-table)
-                          '(block define-variables define-function assign while function)
-                          '(begin let lambda set! do mbind))]
-                        [pretty-print-columns 100])
+                       (pretty-print-extend-style-table
+                        (pretty-print-current-style-table)
+                        '(block define-variables define-function assign while function)
+                        '(begin let lambda set! do mbind))]
+                      [pretty-print-columns 100])
          (printer new-p)))
      new-p))
   (define module-env (compile-module prog-module))
@@ -78,7 +79,8 @@
   (parameterize ([debug-pass #t])
     (compile-src src)))
 (define debug-file  (compose debug-src read-file))
-
+(module+ test
+  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr"))
 ;; (debug-file "../hkr/nb_simpbucket.hkr")
 ;; (module+ test
 ;;   (require ffi/unsafe)

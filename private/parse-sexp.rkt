@@ -42,6 +42,12 @@
     [`(bind ,v ,e)
      (define ve (expr-var 'bind (gensym^ 'bi) v))
      (expr-bind ve (sa e (hash-set env v ve)))]
+    [`((superpose (,p ,m) ...) : ,type)
+     (expr-app type (expr-intrf "superpose")
+               (for/fold ([out '()])
+                         [(prob p)
+                          (meas m)]
+                 (cons (sa prob env) (cons (sa meas env) out))))]
     [`((datum ,k ,v) : ,typ)
      (printf "datum: k ~a, v ~a, typ: ~a\n" k v typ)
      (define (get-datum kind val type)
@@ -49,22 +55,22 @@
          ['pair
           (match val
             [`(inl (et (konst ,v1) (et (konst ,v2) done)))
-             (expr-app typ (expr-intrf 'cons) (list (sa v1 env) (sa v2 env)))])]))
+             (expr-app typ (expr-intrf 'cons) (list (sa v1 env) (sa v2 env)))])]
+         ['true (expr-val 'nat 1)]
+         ['false (expr-val 'nat 0)]))
      (get-datum k v typ)]
     [`((,rator ,rands ...) : ,type)
      (define randse (map (curryr sa env) rands))
      (expr-app type (sa rator env) randse)]
     [`(,s : ,type) #:when (symbol? s)
-     (hash-ref env s s)]
-    [(? symbol?) #:when (set-member? internal-ops e)
-     (expr-intr e)]
+                   (hash-ref env s s)]
     [`(,s : ,type) #:when (number? s)
-     (expr-val type s)]
+                   (expr-val type s)]
     [(? symbol?) #:when (hash-has-key? env e)
-     (hash-ref env e)]
+                 (hash-ref env e)]
     [(? symbol?)
      (expr-intrf e)]
-    [(? number?) (expr-val 'int e)]
+    [(? number?) (expr-val 'nat e)]
     [else (error (format "match: no matching clause found for ~a" e))]))
 
 (define (sr r env)
@@ -431,7 +437,7 @@
           :
           (array prob)))
         :
-        (measure nat)))))
+        (measure nat))))))
   ;; (define ps
   ;;   (parse-sexp
   ;;    '(fn
@@ -446,5 +452,5 @@
   ;;          (topic_prior : (array prob)))
   ;;        :
   ;;        (array prob)))))
-)
+
 
