@@ -93,68 +93,28 @@
   (define dep-hash (for/hash ([dl dep-list])
                      (values (car dl) (list->set (cadr dl)))))
   (define size-hash (for/hash ([dl dep-list])
-                     (values (car dl) (cddr dl))))
-  (define opdep-hash (make-hash))
-  (for ([(k v) (in-hash dep-hash)])
-    (for ([v^ (in-set v)])
-      (hash-set! opdep-hash v^ (cons k (hash-ref opdep-hash v^ '())))))
+                      (values (car dl) (cddr dl))))
   (pretty-print dep-hash)
-  (pretty-print opdep-hash)
   (pretty-print size-hash)
-
+  (define (combine out-part curr)
+    ;;TODO combine loops of same size in out-part and curr
+    ;; if they don't have any conflicting dependencies
+    (append out-part (list curr)))
   (define (rec left deps out-part)
-    (define curr-clear (for/list ([(k v) (in-hash deps)]
-                                  #:when (empty? (car v)))
-                         k))
-    (define currc-size
-      (for/list ([g (group-by (λ (c) (cdr (hash-ref deps c)))
-                              curr-clear)])
-        (cons (cdr (hash-ref deps (first g))) (list->set g))))      
-    (printf "curr-clear: ~a\n" curr-clear)
-    (printf "currc-size: ~a\n" currc-size)
-    (define new-left (filter (λ (k) (not (member k curr-clear))) left))
-    (printf "new-left~a\n" new-left)
+    (define curr
+      (for/hash ([g (group-by (λ (c) (hash-ref size-hash c))
+                              (for/list ([(k v) (in-hash deps)]
+                                         #:when (set-empty? v))
+                                k))])
+        (values (hash-ref size-hash (first g)) (list->set g))))
+    (define curr-set (apply set-union (cons (set) (hash-values curr))))
+    (define new-left (filter (λ (k) (not (set-member? curr-set k))) left))
     (define new-deps
-      (for/hash ([c new-left])
-        (define old (hash-ref deps c))
-        (values c (cons (filter (λ (c^) (not (member c^ curr-clear)))
-                                (car old))
-                        (cdr old)))))
-    (printf "new-dep-hash\n")(pretty-display new-deps)
-    (printf "old-out-part: ~a\n" out-part)
-    (define new-out-part
-      (for/fold ([op out-part])
-                ([cs currc-size])
-        (printf "cs: ~a\n" cs)
-        (append-map (λ (o) (printf "o: ~a\n" o)
-                       (match o
-                         [`(,a ... (,k . ,od) ,b ...)
-                          #:when (equal? k (car cs))
-                          (define abd (apply set-union (map cdr (append a b))))
-                          (define next-set (set))
-                          (for ([c (cdr cs)])
-                            (if (set-empty? (set-intersect abd
-                                                           (hash-ref dep-hash c)))
-                                (set-add! od c)
-                                (set-add! next-set c))
-                            (printf "c: ~a\n" c))
-                          (printf "newod: ~a, next-set: ~a" od next-set)
-                          (if (set-empty? next-set)
-                              (list o)
-                              (list o (cons (car k) next-set)))]
-                          
-                          
-                         [else (list o)]))
-                    op)))
-        
-    (if (empty? new-left)
-        currc-size
-        (rec new-left new-deps (list currc-size))))
+      (for/hash ([c new-left]) (values c (set-subtract (hash-ref deps c) curr-set))))
+    (if (empty? left)
+        out-part
+        (rec new-left new-deps (combine out-part curr))))
   (rec (hash-keys dep-hash) dep-hash '()))
-  
-  
-
-
 (part-dep testd)
 
 (define (expr-weight e)
