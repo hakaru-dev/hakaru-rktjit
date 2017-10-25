@@ -2,3 +2,6 @@ hs/*hi
 hs/*o
 test/hs/*
 test/output/*
+compiled/
+private/compiled/
+test/compiled/
