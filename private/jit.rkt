@@ -80,7 +80,7 @@
     (compile-src src)))
 (define debug-file  (compose debug-src read-file))
 (module+ test
-  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr"))
+  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr"))
 ;; (debug-file "../hkr/nb_simpbucket.hkr")
 ;; (module+ test
 ;;   (require ffi/unsafe)

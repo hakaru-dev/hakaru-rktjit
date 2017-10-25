@@ -13,36 +13,40 @@
  ffv: find-free-variables : recursively finds free variables,
       no memoization so slow.
 
- efv: sort of information for let, var -> expr, with expr having
-      fvars free-variables, fvars: (seteqv <free-variables>)
- ufb: struct used to pass around information while doing anf
-      expr: output expression,
-      efvp: list of efv objects which are still left to be placed.
  uf: returns a ufb record which is the output of anf and remaining
      expressions with the variable name and free variables.
  sort-efvp: sorts a list of efv based on dependency order, uses the
             free-variable set and the variable bound in efv.
 |#
 
+
+;; efv: let binding information,
+;; var -> expr,
+;; with expr having fvars free-variables,
+;; fvars: (seteqv <var>)
 (define-struct efv (var expr fvars) #:prefab)
 ;; efvp ::= (list? efv)
+(define (print-efv e)
+  (cons (print-expr (efv-var e)) (list (map print-expr (set->list (efv-fvars e))))))
+
+
+;; ufb: pair of expression and a list of required let bindings
+;;  expr: expression,
+;;  efvp: list of bindings needed by expr
 (define-struct ufb (expr efvp) #:prefab)
 
+(define hakrit-loop-hoist? (make-parameter #t))
 ;;forces to form a let for `efv`'s having `var` as a free variable
 (define (get-ufb-without uf . vars)
   (define sefvp (sort-efvp (ufb-efvp uf)))
   (define-values (free bind)
-    (splitf-at sefvp (λ (ef) (not (ormap (λ (v) (set-member? (efv-fvars ef) v)) vars)))))
+    (splitf-at sefvp
+               (λ (ef)
+                 (not (ormap (λ (v) (set-member? (efv-fvars ef) v)) vars)))))
 
   (ufb (combine-expr (ufb-expr uf) bind) free))
-;  (ufb (combine-expr (ufb-expr uf) sefvp) '()) ;;for no loop hoisting, essentially force all lets now
-
-
-
-
-(define (print-fvars fvarset)
-  (define l (set->list fvarset))
-  (map expr-var-sym l))
+;  (ufb (combine-expr (ufb-expr uf) sefvp) '()) ;;for no loop hoisting,
+;; essentially force all lets now
 
 (define (sort-efvp efvp)
   ;; (printf "sort before: ~a\n" (map (compose print-fvars efv-fvars) efvp))
@@ -54,37 +58,153 @@
   ;; (printf "sort after: ~a\n" (map (compose print-fvars efv-fvars) ret))
   ret)
 
-;; (define (combine-expr-old expr efvp)
-;;   (for/fold ([b expr])
-;;             ([ef (reverse efvp)])
-;;     (expr-let (typeof (efv-expr ef)) (efv-var ef) (efv-expr ef) b)))
+
+(define (split-list s? l)
+  (define (rec out l^)
+    (if (empty? l^)
+        out
+        (if (s? (car l^) (caar out))
+            (rec (cons (list (car l^)) out) (cdr l^))
+            (rec (cons (cons (car l^) (car out)) (cdr out)) (cdr l^)))))
+  (define rl (reverse l))
+  (rec `((,(car rl))) (cdr rl)))
+(define testd
+  '((ar1 . ((bk5 bk7 bk4 bk8 sm6 bk6) . topic_prior))
+    (bk1 . (() . w))
+    (bk2 . (() . z))
+    (bk3 . (() . w))
+    (bk4 . (() . w))
+    (bk5 . (() . w))
+    (bk6 . (() . z))
+    (bk7 . (() . w))
+    (bk8 . (() . w))
+    (pr1 . ((bk1) . topic_prior))
+    (pr4 . ((bk2) . topic_prior))
+    (pr6 . ((sm2 sm1) . ?))
+    (pr7 . ((bk3 sm3) . topic_prior))
+    (sm1 . (() . topic_prior))
+    (sm2 . (() . z))
+    (sm3 . (() . word_prior))
+    (sm4 . (() . z))
+    (sm5 . (() . topic_prior))
+    (sm6 . (() . word_prior))))
+
+(define (part-dep dep-list)
+  (define dep-hash (for/hash ([dl dep-list])
+                     (values (car dl) (list->set (cadr dl)))))
+  (define size-hash (for/hash ([dl dep-list])
+                     (values (car dl) (cddr dl))))
+  (define opdep-hash (make-hash))
+  (for ([(k v) (in-hash dep-hash)])
+    (for ([v^ (in-set v)])
+      (hash-set! opdep-hash v^ (cons k (hash-ref opdep-hash v^ '())))))
+  (pretty-print dep-hash)
+  (pretty-print opdep-hash)
+  (pretty-print size-hash)
+
+  (define (rec left deps out-part)
+    (define curr-clear (for/list ([(k v) (in-hash deps)]
+                                  #:when (empty? (car v)))
+                         k))
+    (define currc-size
+      (for/list ([g (group-by (λ (c) (cdr (hash-ref deps c)))
+                              curr-clear)])
+        (cons (cdr (hash-ref deps (first g))) (list->set g))))      
+    (printf "curr-clear: ~a\n" curr-clear)
+    (printf "currc-size: ~a\n" currc-size)
+    (define new-left (filter (λ (k) (not (member k curr-clear))) left))
+    (printf "new-left~a\n" new-left)
+    (define new-deps
+      (for/hash ([c new-left])
+        (define old (hash-ref deps c))
+        (values c (cons (filter (λ (c^) (not (member c^ curr-clear)))
+                                (car old))
+                        (cdr old)))))
+    (printf "new-dep-hash\n")(pretty-display new-deps)
+    (printf "old-out-part: ~a\n" out-part)
+    (define new-out-part
+      (for/fold ([op out-part])
+                ([cs currc-size])
+        (printf "cs: ~a\n" cs)
+        (append-map (λ (o) (printf "o: ~a\n" o)
+                       (match o
+                         [`(,a ... (,k . ,od) ,b ...)
+                          #:when (equal? k (car cs))
+                          (define abd (apply set-union (map cdr (append a b))))
+                          (define next-set (set))
+                          (for ([c (cdr cs)])
+                            (if (set-empty? (set-intersect abd
+                                                           (hash-ref dep-hash c)))
+                                (set-add! od c)
+                                (set-add! next-set c))
+                            (printf "c: ~a\n" c))
+                          (printf "newod: ~a, next-set: ~a" od next-set)
+                          (if (set-empty? next-set)
+                              (list o)
+                              (list o (cons (car k) next-set)))]
+                          
+                          
+                         [else (list o)]))
+                    op)))
+        
+    (if (empty? new-left)
+        currc-size
+        (rec new-left new-deps (list currc-size))))
+  (rec (hash-keys dep-hash) dep-hash '()))
+  
+  
+
+
+(part-dep testd)
+
+(define (expr-weight e)
+  (match e
+    [(expr-arr _ _ (expr-app 'nat (expr-intrf 'size) (list (expr-var _ a _))) _) a]
+    [(expr-sum _ _ (expr-val 'nat 0)
+               (expr-app 'nat (expr-intrf 'size) (list (expr-var _ a _))) _)
+     a]
+    [(expr-prd _ _ (expr-val 'nat 0)
+               (expr-app 'nat (expr-intrf 'size) (list (expr-var _ a _))) _)
+     a]
+    [(expr-bucket _ (expr-val 'nat 0)
+                  (expr-app 'nat (expr-intrf 'size) (list (expr-var _ a _))) _)
+     a]
+    [else '?]))
+(define (partition-dependency efvp)
+  (if (empty? efvp)
+      '()
+      (let ([global-vars (set-subtract (apply set-union (map efv-fvars efvp))
+                                    (list->set (map efv-var efvp)))])
+        (define dep-efv (for/list ([e efvp])
+                          (efv (efv-var e)
+                               (efv-expr e)
+                               (set-subtract (efv-fvars e) global-vars))))
+        (define dep-map (for/hash ([e efvp])
+                          (values (print-expr (efv-var e))
+                                  (cons (map print-expr (set->list (set-subtract (efv-fvars e) global-vars)))
+                                        (expr-weight (efv-expr e))))))
+        (printf "dep-map ~a\n" dep-map)
+        (printf "dep-efv: ~a\n" (map print-efv dep-efv))
+        (define sorted-efvs (sort dep-efv
+                                  (λ (p1 p2) (not (set-member? (efv-fvars p1) (efv-var p2))))))
+        (printf "sorted-efv: ~a\n" (map print-efv
+                                       sorted-efvs))
+        (define grouped-efvs (split-list
+                              (λ (p1 p2)
+                                (set-member? (efv-fvars p2) (efv-var p1)))
+                              sorted-efvs))
+        (printf "grouped-efvs: ~a\n" (map (λ (g)
+                                            (map (λ (gp) (print-expr (efv-var gp))) g))
+                                          grouped-efvs))
+        grouped-efvs)))
+
+;; encapsulate the expr with the list of let bindings
+;; does it in sets based on their dependency
 
 (define (combine-expr expr efvp)
-  (define (partition to out)
-    (if (empty? to)
-        out
-        (partition
-         (cdr to)
-         (if (empty? out)
-             `((,(car to)))
-             (begin
-               (let*
-                   ([curr (car to)]
-                    [tout (car out)]
-                    [rout (cdr out)]
-                    [top-fvars (apply set-union (cons (apply set (map efv-var tout))
-                                                      (map efv-fvars tout)))])
-                 (printf "top-fvars: ~a\n" (map (λ (e) (print-expr e)) (set->list top-fvars)))
-                 (if (and (set-empty? (set-intersect (efv-fvars (car to)) top-fvars))
-                          (not (set-member? top-fvars (efv-var curr))))
-                     `((,curr . ,tout) . ,rout)
-                     `((,curr) . ,out))))))))
-  (printf "efvp: ~a\n" (map (λ (e) (cons (print-expr (efv-var e))
-                                         (list (map print-expr (set->list (efv-fvars e)))))) efvp))
-  (printf "efvp after partition:~a\n" (partition (reverse efvp) '()))
   (for/fold ([b expr])
-            ([ef (reverse (partition (reverse efvp) '()))])
-    (printf "ef: ~a\n" (map (λ (e) (print-expr (efv-var e))) ef))
+            ([ef (partition-dependency efvp)])
+;    (printf "ef: ~a\n" (map (λ (e) (print-expr (efv-var e))) ef))
     (if (eq? (length ef) 1)
         (expr-let (typeof (efv-expr (car ef))) (efv-var (car ef)) (efv-expr (car ef)) b)
         (expr-lets (map (λ (e) (typeof (efv-expr e))) ef)
@@ -93,11 +213,10 @@
                    b))))
 
 (define (combine-ufb u)
-  (combine-expr (ufb-expr u) (sort-efvp (ufb-efvp u))))
+  (combine-expr (ufb-expr u) (ufb-efvp u)))
 
 (define (new-var t sym)
   (expr-var t sym sym))
-
 
 (define (flatten-anf expr)
   (define args (expr-fun-args (expr-mod-main expr)))
@@ -159,7 +278,8 @@
        (ufb body '())]
       [(expr-app t rt rds)
        (define rds-ufbs (map uf rds))
-       (ufb (expr-app t rt (map ufb-expr rds-ufbs)) (append* (map ufb-efvp rds-ufbs)))]
+       (ufb (expr-app t rt (map ufb-expr rds-ufbs))
+            (append* (map ufb-efvp rds-ufbs)))]
       [(expr-var t s o)
        (ufb body '())]
       [else  (ufb body '())]))
