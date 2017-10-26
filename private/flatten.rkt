@@ -44,8 +44,10 @@
                (λ (ef)
                  (not (ormap (λ (v) (set-member? (efv-fvars ef) v)) vars)))))
 
-  (ufb (combine-expr (ufb-expr uf) bind) free))
-;  (ufb (combine-expr (ufb-expr uf) sefvp) '()) ;;for no loop hoisting,
+  (if (hakrit-loop-hoist?)
+      (ufb (combine-expr (ufb-expr uf) bind) free)
+      (ufb (combine-expr (ufb-expr uf) sefvp) '())))
+;   ;;for no loop hoisting,
 ;; essentially force all lets now
 
 (define (sort-efvp efvp)
@@ -58,7 +60,6 @@
   ;; (printf "sort after: ~a\n" (map (compose print-fvars efv-fvars) ret))
   ret)
 
-
 (define (split-list s? l)
   (define (rec out l^)
     (if (empty? l^)
@@ -68,54 +69,50 @@
             (rec (cons (cons (car l^) (car out)) (cdr out)) (cdr l^)))))
   (define rl (reverse l))
   (rec `((,(car rl))) (cdr rl)))
-(define testd
-  '((ar1 . ((bk5 bk7 bk4 bk8 sm6 bk6) . topic_prior))
-    (bk1 . (() . w))
-    (bk2 . (() . z))
-    (bk3 . (() . w))
-    (bk4 . (() . w))
-    (bk5 . (() . w))
-    (bk6 . (() . z))
-    (bk7 . (() . w))
-    (bk8 . (() . w))
-    (pr1 . ((bk1) . topic_prior))
-    (pr4 . ((bk2) . topic_prior))
-    (pr6 . ((sm2 sm1) . ?))
-    (pr7 . ((bk3 sm3) . topic_prior))
-    (sm1 . (() . topic_prior))
-    (sm2 . (() . z))
-    (sm3 . (() . word_prior))
-    (sm4 . (() . z))
-    (sm5 . (() . topic_prior))
-    (sm6 . (() . word_prior))))
 
-(define (part-dep dep-list)
+(define (partition-dependency dep-list)
+;  (printf "dep-list: ~a\n" dep-list)
+  (define global-vars (set-subtract (apply set-union (map efv-fvars dep-list))
+                                    (list->set (map efv-var dep-list))))
+
   (define dep-hash (for/hash ([dl dep-list])
-                     (values (car dl) (list->set (cadr dl)))))
+                     (values dl
+                             (set-subtract (efv-fvars dl) global-vars))))
   (define size-hash (for/hash ([dl dep-list])
-                      (values (car dl) (cddr dl))))
-  (pretty-print dep-hash)
-  (pretty-print size-hash)
-  (define (combine out-part curr)
-    ;;TODO combine loops of same size in out-part and curr
-    ;; if they don't have any conflicting dependencies
-    (append out-part (list curr)))
+                      (values dl (expr-weight (efv-expr dl)))))
+;  (printf "dep-hash\n")(pretty-print dep-hash)
+;  (printf "size-hash\n") (pretty-print size-hash)
   (define (rec left deps out-part)
+;    (printf "left: ~a, deps: ~a\n" (map print-efv left) deps)
     (define curr
       (for/hash ([g (group-by (λ (c) (hash-ref size-hash c))
                               (for/list ([(k v) (in-hash deps)]
                                          #:when (set-empty? v))
                                 k))])
         (values (hash-ref size-hash (first g)) (list->set g))))
-    (define curr-set (apply set-union (cons (set) (hash-values curr))))
-    (define new-left (filter (λ (k) (not (set-member? curr-set k))) left))
+ ;   (printf "curr\n")(pretty-print curr)
+
+    (define curr-set (list->set
+                      (set-map (apply set-union (cons (set) (hash-values curr)))
+                               efv-var)))
+;    (printf "curr-set: " )(pretty-print (map print-expr (set->list curr-set)))
+    (define new-left (filter (λ (k) (not (set-member? curr-set (efv-var k)))) left))
+;    (printf "new-left\n")(pretty-display (map print-efv new-left))
     (define new-deps
-      (for/hash ([c new-left]) (values c (set-subtract (hash-ref deps c) curr-set))))
+      (for/hash ([c new-left])
+        ;; (pretty-print (hash-ref deps c))
+        ;; (pretty-print  curr-set)
+        ;; (printf "after subtract")
+        ;; (pretty-print (set-subtract (hash-ref deps c) curr-set))
+        (values c (set-subtract (hash-ref deps c) curr-set))))
+;    (printf "new-deps:")(pretty-print new-deps)
     (if (empty? left)
         out-part
-        (rec new-left new-deps (combine out-part curr))))
+        (rec new-left new-deps (append out-part (list curr)))))
+  ;;TODO there could be cases where we can move some bindings
+  ;; to a lower level and combine them with bindings of same size
   (rec (hash-keys dep-hash) dep-hash '()))
-(part-dep testd)
+;(part-dep testd)
 
 (define (expr-weight e)
   (match e
@@ -129,48 +126,32 @@
     [(expr-bucket _ (expr-val 'nat 0)
                   (expr-app 'nat (expr-intrf 'size) (list (expr-var _ a _))) _)
      a]
+    [(expr-arr _ _ (expr-var _ a _) _) a]
+    [(expr-sum _ _ (expr-val 'nat 0) (expr-var _ a _) _) a]
+    [(expr-prd _ _ (expr-val 'nat 0) (expr-var _ a _) _) a]
+    [(expr-bucket _ (expr-val 'nat 0) (expr-var _ a _) _) a]
     [else '?]))
-(define (partition-dependency efvp)
-  (if (empty? efvp)
-      '()
-      (let ([global-vars (set-subtract (apply set-union (map efv-fvars efvp))
-                                    (list->set (map efv-var efvp)))])
-        (define dep-efv (for/list ([e efvp])
-                          (efv (efv-var e)
-                               (efv-expr e)
-                               (set-subtract (efv-fvars e) global-vars))))
-        (define dep-map (for/hash ([e efvp])
-                          (values (print-expr (efv-var e))
-                                  (cons (map print-expr (set->list (set-subtract (efv-fvars e) global-vars)))
-                                        (expr-weight (efv-expr e))))))
-        (printf "dep-map ~a\n" dep-map)
-        (printf "dep-efv: ~a\n" (map print-efv dep-efv))
-        (define sorted-efvs (sort dep-efv
-                                  (λ (p1 p2) (not (set-member? (efv-fvars p1) (efv-var p2))))))
-        (printf "sorted-efv: ~a\n" (map print-efv
-                                       sorted-efvs))
-        (define grouped-efvs (split-list
-                              (λ (p1 p2)
-                                (set-member? (efv-fvars p2) (efv-var p1)))
-                              sorted-efvs))
-        (printf "grouped-efvs: ~a\n" (map (λ (g)
-                                            (map (λ (gp) (print-expr (efv-var gp))) g))
-                                          grouped-efvs))
-        grouped-efvs)))
 
 ;; encapsulate the expr with the list of let bindings
 ;; does it in sets based on their dependency
 
 (define (combine-expr expr efvp)
-  (for/fold ([b expr])
-            ([ef (partition-dependency efvp)])
-;    (printf "ef: ~a\n" (map (λ (e) (print-expr (efv-var e))) ef))
-    (if (eq? (length ef) 1)
-        (expr-let (typeof (efv-expr (car ef))) (efv-var (car ef)) (efv-expr (car ef)) b)
-        (expr-lets (map (λ (e) (typeof (efv-expr e))) ef)
-                   (map (λ (e) (efv-var e)) ef)
-                   (map (λ (e) (efv-expr e)) ef)
-                   b))))
+  (if (empty? efvp)
+      expr
+      (begin
+        (printf "original order: ~a\n" (map print-efv efvp))
+        (for/fold ([b expr])
+                  ([pds (reverse (partition-dependency efvp))])
+
+          (for/fold ([e b])
+                    ([(k v) (in-hash pds)])
+            (define efvs (set->list v))
+            (printf "size: ~a, efvs: ~a\n" k
+                    (map (compose print-expr efv-var) efvs))
+            (expr-lets (map (λ (ef) (typeof (efv-expr ef))) efvs)
+                       (map (λ (ef) (efv-var ef)) efvs)
+                       (map (λ (ef) (efv-expr ef)) efvs)
+                       e))))))
 
 (define (combine-ufb u)
   (combine-expr (ufb-expr u) (ufb-efvp u)))
