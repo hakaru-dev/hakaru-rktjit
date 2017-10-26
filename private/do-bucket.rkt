@@ -72,7 +72,7 @@
           (stmt-assign
            (expr-app
             '?
-            (expr-intr 'index)
+            (expr-intrf 'index)
             (list arrn fori))
            (car vla)))
          arrn)))
@@ -102,7 +102,7 @@
                   tb b)))]
     [((reducer-add e) te)
      (stmt-assign result (expr-app (typeof result)
-                                   (expr-intr '+)
+                                   (expr-intrf '+)
                                    (list result (assign-binds binds e))))]
     [((reducer-nop) 'unit)
      (stmt-void)]
@@ -115,7 +115,7 @@
                   (stmt-assign ind-var ind-result)
                   (get-accum i (append binds (list ind-var))
                              (expr-app (cadr (typeof result))
-                                       (expr-intr 'index) (list result ind-var))
+                                       (expr-intrf 'index) (list result ind-var))
                              t a))))]
     [(r t) (printf "unknown reducer type: ~a\n" t)]))
 
@@ -144,9 +144,9 @@
                          (eq? (expr-val-type start) 'nat))
                     (begin
                       (match end
-                        [(expr-app _ (expr-intr 'size) (list (expr-var _ sym _))) sym]
+                        [(expr-app _ (expr-intrf 'size) (list (expr-var _ sym _))) sym]
                         (print-expr end)))
-                    (print-expr (expr-app (expr-intr '-) (list end start)))))
+                    (print-expr (expr-app (expr-intrf '-) (list end start)))))
               var-map))
   (define (get-loop-stuff var val index)
     (match val
@@ -155,17 +155,17 @@
        (values nt v l (get-accum index (list index) var t reducer))]
       [(expr-sum t i s e b)
        (values (list t) (list var) (list (expr-val t 0))
-               (stmt-assign var (expr-app t (expr-intr '+) (list var b))))]
+               (stmt-assign var (expr-app t (expr-intrf '+) (list var b))))]
       [(expr-prd t i s e b)
        (values (list t) (list var) (list (expr-val t 1))
-               (stmt-assign var (expr-app t (expr-intr '*) (list var b))))]
+               (stmt-assign var (expr-app t (expr-intrf '*) (list var b))))]
       [(expr-arr t i s b)
        (values
         (list t)
         (list var)
         (list (expr-app t (expr-intrf (symbol-append 'empty- (get-print-type t)))
                         (list s)))
-        (stmt-assign (expr-app t (expr-intr 'index) (list var index))
+        (stmt-assign (expr-app t (expr-intrf 'index) (list var index))
                      b))]))
   (define (wrap-index index body stmt)
     (if (expr-bucket? body)
@@ -183,31 +183,43 @@
   (define pass
     (create-rpass
      (expr
+      ;; [(expr-lets types vars vals body)
+      ;;  #:when (not (empty? (map is-loop? vals)))
+      ;;  (expr-lets types vars vals body)]
       [(expr-lets types vars vals body)
        (define vassoc (for/list ([vr vars] [vl vals] [t types]) (list vr vl t)))
        (define normal-var-map (filter (λ (p) (not (is-loop? (second p)))) vassoc))
-       (define var-map-groups (group-same-size (filter (λ (p) (is-loop? (second p))) vassoc)))
+       (printf "normal-var-map: ~a" normal-var-map)
+       (define var-map-groups
+         (group-same-size (filter (λ (p) (is-loop? (second p))) vassoc)))
        (define new-vars (map first (apply append var-map-groups)))
        (define new-vals (map second (apply append var-map-groups)))
        (define new-b
-         (for/fold ([b body]) ([vmg var-map-groups])
-           (define index (expr-var 'nat (gensym^ 'ci) '_))
-           (define-values (start end)
-             (match (second (first vmg))
-               [(expr-bucket _ start end _) (values start end)]
-               [(expr-sum t i s e b) (values s e)]
-               [(expr-prd t i s e b) (values s e)]
-               [(expr-arr t i s b) (values (expr-val 'nat 0) s)]))
-           (define-values (ntypes nvars nvals nstmts)
-             (for/fold ([ntyps '()] [nvars '()] [nvals '()] [nstmt '()]) ([vm vmg])
-               (define-values (nt nv nl ns) (get-loop-stuff (first vm) (second vm) index))
-               (values (append nt ntyps) (append nv nvars) (append nl nvals)
-                       (cons (wrap-index index (second vm) ns) nstmt))))
-           (define indexv (expr-var '? (gensym^ 'civ) '_))
-           (expr-lets (append ntypes (map third normal-var-map))
-                      (append nvars (map first normal-var-map))
-                      (append nvals (map second normal-var-map))
-                      (expr-block (typeof b) (stmt-for index start end (stmt-block nstmts)) b))))
+         (expr-lets
+          (map third normal-var-map)
+          (map first normal-var-map)
+          (map second normal-var-map)
+          (for/fold ([b body]) ([vmg var-map-groups])
+            (define index (expr-var 'nat (gensym^ 'ci) '_))
+            (define-values (start end)
+              (match (second (first vmg))
+                [(expr-bucket _ start end _) (values start end)]
+                [(expr-sum t i s e b) (values s e)]
+                [(expr-prd t i s e b) (values s e)]
+                [(expr-arr t i s b) (values (expr-val 'nat 0) s)]))
+            (define-values (ntypes nvars nvals nstmts)
+              (for/fold ([ntyps '()] [nvars '()] [nvals '()] [nstmt '()]) ([vm vmg])
+                (define-values (nt nv nl ns)
+                  (get-loop-stuff (first vm) (second vm) index))
+                (values (append nt ntyps) (append nv nvars) (append nl nvals)
+                        (cons (wrap-index index (second vm) ns) nstmt))))
+            (define indexv (expr-var '? (gensym^ 'civ) '_))
+            (expr-lets ntypes
+                       nvars
+                       nvals
+                       (expr-block
+                        (typeof b)
+                        (stmt-for index start end (stmt-block nstmts)) b)))))
        new-b])
      (reducer)
      (stmt)

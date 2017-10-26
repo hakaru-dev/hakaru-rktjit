@@ -43,7 +43,7 @@
      (define ve (expr-var 'bind (gensym^ 'bi) v))
      (expr-bind ve (sa e (hash-set env v ve)))]
     [`((superpose (,p ,m) ...) : ,type)
-     (expr-app type (expr-intrf "superpose")
+     (expr-app type (expr-intrf 'superpose)
                (for/fold ([out '()])
                          [(prob p)
                           (meas m)]
@@ -62,8 +62,12 @@
     [`((,rator ,rands ...) : ,type)
      (define randse (map (curryr sa env) rands))
      (expr-app type (sa rator env) randse)]
-    [`(,s : ,type) #:when (symbol? s)
-                   (hash-ref env s s)]
+    [`(,s : ,type) #:when (and (symbol? s)
+                               (hash-has-key? env s))
+                   (define orig (hash-ref env s))
+                   (if (equal? (expr-var-type orig) 'bind)
+                       (expr-var type (expr-var-sym orig) s)
+                       (hash-ref env s))]
     [`(,s : ,type) #:when (number? s)
                    (expr-val type s)]
     [(? symbol?) #:when (hash-has-key? env e)

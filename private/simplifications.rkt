@@ -39,6 +39,11 @@
   (define body (expr-bind-body cdr-bind))
   (define car-var (expr-bind-var car-bind))
   (define cdr-var (expr-bind-var cdr-bind))
+  (printf "setting type of ~a to ~a" (print-expr car-var) car-type)
+  (set-expr-var-type! car-var car-type)
+  (printf "setting type of ~a to ~a" (print-expr cdr-var) cdr-type)
+  (set-expr-var-type! cdr-var cdr-type)
+
   (printf "match-pair: \n\tbr: ~a\n\tat: ~a, bt: ~a\n"
           (pe (car brs))
           car-type cdr-type)
@@ -68,7 +73,9 @@
                (printf "replacing: ~a with ~a\n" (print-expr var) (print-expr val))
                (values nvars nvals (hash-set e var val)))
              (values (cons var nvars) (cons (sl val e) nvals) e))))
-     (stmt-elets nvars nvals (sl bstmt ne))]
+     (if (empty? nvars)
+         (sl bstmt ne)
+         (stmt-elets nvars nvals (sl bstmt ne)))]
     [(? expr?)
      (define fsl (curryr sl env))
      (map-expr fsl identity fsl identity e)]
@@ -112,6 +119,16 @@
    (stmt)
    (pat)))
 
+(define (filter-index pred? lst)
+  (for/list ([i (in-range (length lst))]
+             [v lst]
+             #:when (pred? i))
+    v))
+(define (make-switch t lst v)
+  (for/fold ([b (expr-val 'nat 0)])
+            ([e lst]
+             [i (in-range (length lst))])
+    (expr-if t (expr-app 'nat (expr-intrf '==) (list v (expr-val 'nat i))) e b)))
 (define macro-functions
   (create-rpass
    (expr [(expr-app t (expr-intrf 'empty) '())
@@ -119,7 +136,15 @@
          [(expr-app t (expr-intrf 'dirac) (list val))
           val]
          [(expr-app t (expr-intrf 'pose) (list arg1 arg2))
-          arg2])
+          arg2]
+         [(expr-app t (expr-intrf 'superpose) args)
+          (define get-odds (curry filter-index odd?))
+          (define get-evens (curry filter-index even?))
+          (define var (expr-var 'nat (gensym^ 's) '_))
+          (expr-let t
+                    var
+                    (expr-app 'nat (expr-intrf 'categorical) (get-evens args))
+                    (make-switch t (get-odds args) var))])
    (reducer)
    (stmt)
    (pat)))

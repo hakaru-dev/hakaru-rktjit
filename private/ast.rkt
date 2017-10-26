@@ -79,7 +79,7 @@
           (map f-expr vars)
           (map f-expr vals)
           (f-expr body)))))
-     (struct expr-var expr (type sym orig)
+     (struct expr-var expr ([type #:mutable] sym orig)
       #:methods gen:equal+hash
       ((define (equal-proc v1 v2 _)
          (equal? (expr-var-sym v1) (expr-var-sym v2)))
@@ -158,11 +158,11 @@
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-val type v) e^)
          (expr-val (f-symbol type) (f-symbol v)))))
-     (struct expr-intr expr (sym)
-      #:methods gen:exprg
-      ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
-         (match-define (expr-intr sym) e^)
-         (expr-intr (f-symbol sym)))))
+     ;; (struct expr-intr expr (sym)
+     ;;  #:methods gen:exprg
+     ;;  ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
+     ;;     (match-define (expr-intr sym) e^)
+     ;;     (expr-intr (f-symbol sym)))))
      (struct expr-intrf expr (sym)
       #:methods gen:exprg
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
@@ -352,13 +352,14 @@
     [(expr-if t tst thn els) t]
     [(expr-app t rt rds) t]
     [(expr-let t var val b) t]
+    [(expr-lets _ _ _ b) (typeof b)]
     [(expr-sum t i start end b) t]
     [(expr-prd t i start end b) t]
     [(expr-arr t i end b) t]
     [(expr-match t tst brs) t]
     [(expr-bucket t _ _ _) t]
     [(expr-val t v) t]
-    [(expr-intr s) '*]
+    ;; [(expr-intr s) '*]
     [(expr-intrf s) '!]
     [(expr-var t s o) t]
     [(expr-bucket t s e b) t]
@@ -375,7 +376,7 @@
     [(expr-fun args ret-type body)
      `(function ,(map pe args) ,(pe body))]
 
-    [(expr-var type sym orig) sym];(string->symbol (format "~a|~a" sym orig))]
+    [(expr-var type sym orig) `(,sym : ,type \| ,orig)]
     [(expr-arr type index size body)
      `(array ,(pe index) ,(pe size) ,(pe body))]
     [(expr-sum type index start end body)
@@ -402,7 +403,7 @@
         ,(pe body))]
     [(expr-block t stmt e)
      `(expr-block ,(ps stmt) ,(pe e))]
-    [(expr-intr s) s]
+    ;; [(expr-intr s) s]
     [(expr-intrf s) s]
     [(expr-val t v) v]
     [else `(? ,e)]))
@@ -481,7 +482,7 @@
      (apply set-union (cons (ffv^ rator) (map ffv^ rands)))]
     [(expr-block t st bd) (set-union (ffv^ st) (ffv^ bd))]
     [(expr-val t v) (set)]
-    [(expr-intr sym) (set)]
+    ;; [(expr-intr sym) (set)]
     [(expr-intrf sym) (set)]
     [(expr-var t s o) (set expr)]
     [(expr-bind s e) (set-remove (ffv^ e) s)]

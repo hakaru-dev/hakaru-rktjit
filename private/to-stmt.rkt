@@ -46,7 +46,7 @@
              (expr-app t (expr-intrf (symbol-append 'empty- (get-print-type t)))
                        (list size))
              index (expr-val 'nat 0) size
-             (λ (index result) (stmt-assign (expr-app t (expr-intr 'index)
+             (λ (index result) (stmt-assign (expr-app t (expr-intrf 'index)
                                                       (list result index)) body))))
 
 (define (do-sum t index start end body)
@@ -54,7 +54,7 @@
              (expr-var t (gensym^ 'sr) '_)
              (expr-val t 0)
              index start end
-             (λ (index result) (stmt-assign result (expr-app t (expr-intr '+)
+             (λ (index result) (stmt-assign result (expr-app t (expr-intrf '+)
                                                              (list result body))))))
 
 (define (do-prd t index start end body)
@@ -65,7 +65,7 @@
    index start end
    (λ (index result)
      (expr->stmt body (λ (e)
-                        (stmt-assign result (expr-app t (expr-intr '*)
+                        (stmt-assign result (expr-app t (expr-intrf '*)
                                                       (list result e))))))))
 
 ;; create a fold expression with the function body-gen being called with index and result
@@ -140,7 +140,8 @@
        (define fname (gensym^ 'ifun))
        (add-to-fns (cons fname
                          (expr-fun fvars t
-                                   (expr->stmt (expr-if t tst thn els) (λ (e) (stmt-return e))))))
+                                   (expr->stmt (expr-if t tst thn els)
+                                               (λ (e) (stmt-return e))))))
        (expr-app t (expr-intrf fname) fvars)])
      (reducer)
      (stmt)

@@ -26,17 +26,19 @@
   (list (cons reduce-curry       pretty-display)
         (cons parse-sexp         pp-expr)
 
-        (cons simplify-match     pp-expr)
+        (cons macro-functions    pp-expr)
+        (cons simplify-match     pp-expr) 
+        ;stop
         (cons mbind->let         pp-expr)
         (cons remove-array-literals pp-expr)
         (cons flatten-anf        pp-expr)
-        stop
+        ;stop
         (cons combine-loops      pp-expr)
         ;stop
         (cons bucket->for        pp-expr)
         (cons remove-unit-lets   pp-expr)
         (cons simplify-lets      pp-expr)
-        (cons macro-functions    pp-expr)
+
         (cons remove-empty-lets  pp-expr)
         (cons remove-unused-lets pp-expr)
         (cons remove-pairs       pp-expr)
@@ -45,8 +47,9 @@
         (cons to-stmt            pp-expr)
         (cons simplify-set       pp-expr)
         (cons remove-if-expr     pp-expr)
- 
+;        stop
         (cons expand-to-lc       (compose pretty-display sham-ast->sexp))
+        stop
         (cons add-fluff          (compose pretty-display print-sham-ast))))
 
 (define (compile-src src)
@@ -80,7 +83,8 @@
     (compile-src src)))
 (define debug-file  (compose debug-src read-file))
 (module+ test
-  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr"))
+  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr"))
+;  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr"))
 ;; (debug-file "../hkr/nb_simpbucket.hkr")
 ;; (module+ test
 ;;   (require ffi/unsafe)

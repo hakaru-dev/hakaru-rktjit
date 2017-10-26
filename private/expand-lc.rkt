@@ -9,10 +9,9 @@
 (provide expand-to-lc)
 
 (define (expand-to-lc mod)
-  (define prelude-defines (make-hash))
-  (define (add-to-prelude defn)
-    (hash-set! prelude-defines defn)
-    (set-box! prelude-defines (cons defn ((unbox prelude-defines)))))
+  (define prelude-defines (set))
+  (define add-to-prelude (curry set-add! prelude-defines))
+
   (define (get-rator-sym t rator rands)
     (sham:rator:symbol
      (match rator
@@ -21,7 +20,7 @@
        [(expr-intrf 'cons)
         (string->symbol (format "make-~a" (get-print-type t)))]
        [(expr-intrf s) s]
-       [(expr-intr s)
+       [(expr-intrf s)
         (define rand-type (typeof (car rands)))
         (define r-type (get-print-type rand-type))
         (match s
@@ -31,6 +30,7 @@
           ['+ (string->symbol (format "add-~a-~a" (length rands) r-type))]
           ['* (string->symbol (format "mul-~a-~a" (length rands) r-type))]
           [else (hash-ref op-map s s)])])))
+
   (define (get-var-sym var)
     (match var
       [(expr-var t sym o) sym]))
@@ -65,6 +65,7 @@
        (sham:exp:var sym)]
       [(expr-val t v)
        (get-value v t)]
+      
       [(expr-let t var val b)
        (expand-exp b (hash-set env var (expand-exp val env)))]
       [(expr-val t v) (get-value v t)]
@@ -92,7 +93,7 @@
       [(stmt-block stmts)
        (sham:stmt:block (map expand-stmt stmts))]
 
-      [(stmt-assign (expr-app t (expr-intr 'index) (list arr ind)) val)
+      [(stmt-assign (expr-app t (expr-intrf 'index) (list arr ind)) val)
        (sham:stmt:exp-stmt
         (sham:exp:app
          (sham:rator:symbol
@@ -135,7 +136,6 @@
         (expand-stmt b))]))
   (sham:module
    '()
-   (cons (expand-fun (cons 'main (expr-mod-main mod) ))
-         (append (map expand-fun (expr-mod-fns mod))
-                 ;; (unbox prelude-defines)
-                 ))))
+   (cons (expand-fun (cons 'main (expr-mod-main mod)))
+         (append (set->list prelude-defines)
+                 (map expand-fun (expr-mod-fns mod))))))
