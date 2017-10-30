@@ -327,12 +327,54 @@
                      (list (nat-value 0)))))))
   (add-defs-prelude defs prelude))
 
-(define (add-pair-defs-prelude tast def prelude)
-  ...)
+(define (add-pair-defs-prelude tast tdef prelude)
+  (match-define (sham:type:struct _ (list at bt)) tdef)
+  (define tref (get-sham-type-ref tdef))
+  (define tpdefs (get-sham-type-define `(pointer ,tast)))
+  (add-defs-prelude tpdefs prelude)
+  (define tpref (get-sham-type-ref (car tpdefs)))
+  (define atref (get-sham-type-ref at))
+  (define btref (get-sham-type-ref bt))
+  (define atp (sham:type:pointer at))
+  (define btp (sham:type:pointer bt))
+  (define (get-fun-name frmt)
+    (string->symbol (format frmt (sham:def-id tdef))))
+  (define defs
+    (list
+     (sham:def:function
+      (get-fun-name make-pair-fun-format)
+      '() '(AlwaysInline)
+      '(a b) (list atref btref) tpref
+      (sham:stmt:let
+       '(pp ap bp)
+       (list tpref
+             (sham:type:pointer atref)
+             (sham:type:pointer btref))
+       (list (sham$app malloc (sham:exp:type tref))
+             (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 0)))
+             (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 1)))))
+      (sham$block
+       (sham:stmt:exp (sham$app-var store! a ap))
+       (sham:stmt:exp (sham$app-var store! b bp))
+       (sham:stmt:return (sham$var 'pp))))
+     
+     (sham:def:function
+      (get-fun-name pair-car-fun-format)
+      '() '(AlwaysInline)
+      '(p) (list tpref) atref
+      (sham:stmt:return (sham$app load (get-size-ptr 'p))));;TODO hack as the field number are same for array and pair
+     
+     (sham:def:function
+      (get-fun-name pair-cdr-fun-format)
+      '() '(AlwaysInline)
+      '(p) (list tpref) btref
+      (sham:stmt:return (sham$app load (get-data-ptr 'p))))))
+  (add-defs-prelude defs prelude))
+
 (define (add-defs-for-type tast def prelude)
   (match tast
     [`(array ,tar) (add-array-defs-prelude tast def prelude)]
-    [`(pair ,t1 ,t2) ...]
+    [`(pair ,t1 ,t2) (add-pair-defs-prelude tast def prelude)]
     [else (void)]))
 
 (define (add-defs-prelude defs prelude)
