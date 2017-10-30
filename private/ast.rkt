@@ -365,6 +365,7 @@
     [(expr-bucket t s e b) t]
     [(expr-block t s b) t]))
 
+(define hakrit-print-debug (make-parameter #f))
 (define (pe e)
   (match e
     [(expr-mod main fns)
@@ -375,8 +376,10 @@
      `(function ,(map pe args) ,(ps body))]
     [(expr-fun args ret-type body)
      `(function ,(map pe args) ,(pe body))]
-
-    [(expr-var type sym orig) `(,sym : ,type \| ,orig)]
+    [(expr-var type sym orig)
+     (if (hakrit-print-debug)
+         `(,sym : ,type \| ,orig)
+         sym)]
     [(expr-arr type index size body)
      `(array ,(pe index) ,(pe size) ,(pe body))]
     [(expr-sum type index start end body)
