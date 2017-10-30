@@ -55,20 +55,4 @@
 (define (write-vector-to-csv fname)
   (void))
 
-(define (get-print-type t)
-  (match t
-    [`(* ,tp) (string->symbol (format pointer-format (get-print-type tp)))]
-    [`(array ,tar) (string->symbol (format array-format (if (pair? tar)
-                                                            (get-print-type `(* ,tar))
-                                                            (get-print-type tar))))]
-    [`(measure ,t) (get-print-type t)]
-    [`(pair ,t1 ,t2) (string->symbol (format pair-format
-                                             (get-print-type
-                                              (if (pair? t1)
-                                                  `(* ,t1)
-                                                  t1))
-                                             (get-print-type
-                                              (if (pair? t2)
-                                                  `(* ,t2)
-                                                  t2))))]
-    [symbol? t]))
+
