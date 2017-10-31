@@ -60,8 +60,8 @@
                    (sham:type:struct array-args (list type-nat-ref (get-sham-type-ref (car st))))))
        (cons ct (cons type-nat-def st))]
       [`(pair ,t1 ,t2)
-       (define st1 (get-sham-type-define t1))
-       (define st2 (get-sham-type-define t2))
+       (define st1 (get-sham-type-define (if-need-pointer t1)))
+       (define st2 (get-sham-type-define (if-need-pointer t2)))
        (define ct (sham:def:type (get-type-sym tast)
                    (sham:type:struct (list pair-car-sym pair-cdr-sym)
                                      (list (get-sham-type-ref (car st1))
@@ -94,3 +94,10 @@
     [(sham:type:pointer to) to]
     [(sham:type:ref id)
      (type-remove-pointer (hash-ref type-hash id))]))
+
+(define (defs-def-t-tref tast)
+  (define defs (get-sham-type-define tast))
+  (define def (car defs))
+  (define t (sham:def:type-type def))
+  (define tref (get-sham-type-ref def))
+  (values defs def t tref))

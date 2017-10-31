@@ -5,15 +5,11 @@
          "type-defines.rkt"
          "prelude.rkt")
 
+(provide array-defs)
+
 (define (get-array-data-type type)
   (match type
     [(sham:type:struct _ (list _ t)) t]))
-(define (defs-def-t-tref tast)
-  (define defs (get-sham-type-define tast))
-  (define def (car defs))
-  (define t (sham:def:type-type def))
-  (define tref (get-sham-type-ref def))
-  (values defs def t tref))
 
 ;;tast be expanded
 (define (array-defs tast)
@@ -117,8 +113,6 @@
     (get-array-data)
     (get-index)
     (set-index))))
-
-
 
 (module+ test
   (require rackunit
