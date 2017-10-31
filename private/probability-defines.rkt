@@ -78,33 +78,10 @@
                                          (sham:exp:app (sham:rator:symbol 'prob2real)
                                                        (list (sham$var 'b)))))))))
 
-    (sham:def:function ;;TODO test categorical
+    (sham:def:function ;;TODO implement categorical using gsl_ran_discrete
      'categorical '() '()
-     '(a) (list (sham:type:ref 'array<prob>)) (sham:type:pointer tnat)
-     (sham:stmt:let
-      '(n)
-      (list (sham:type:ref 'array<nat>))
-      (list (sham$app malloc (sham:exp:type (sham:type:ref 'array<nat>))))
-      (sham:stmt:return
-       (sham:exp:stmt-exp
-        (sham:stmt:exp
-         (sham:exp:app
-          (sham:rator:external 'libgsl 'gsl_ran_multinomial (sham:type:pointer tnat))
-          (list (sham:exp:var 'gsl-rng)
-                (sham:exp:app
-                 (sham:rator:symbol (string->symbol
-                                     (format get-array-size-fun-format
-                                             'array<prob>)))
-                 (sham$var 'a))
-                (nat-value 1)
-                (sham:exp:app
-                 (sham:rator:symbol (string->symbol
-                                     (format get-array-data-fun-format
-                                             'array<prob>)))
-                 (sham$var 'a))
-                (sham$var 'n))))
-
-        (sham$var 'n))))))))
+     '(arr) (list (sham:type:ref 'array<prob>)) tnat
+     (sham:stmt:return (nat-value 0))))))
 
 (module+ test
   (require rackunit
