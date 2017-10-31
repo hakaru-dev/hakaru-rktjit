@@ -1,0 +1,139 @@
+#lang racket
+
+(require sham/ast)
+(require "template-format.rkt"
+         "type-defines.rkt"
+         "prelude.rkt")
+
+(define (get-array-data-type type)
+  (match type
+    [(sham:type:struct _ (list _ t)) t]))
+(define (defs-def-t-tref tast)
+  (define defs (get-sham-type-define tast))
+  (define def (car defs))
+  (define t (sham:def:type-type def))
+  (define tref (get-sham-type-ref def))
+  (values defs def t tref))
+
+;;tast be expanded
+(define (array-defs tast)
+  (define-values
+    (atdefs atdef at atref) (defs-def-t-tref tast))
+  (define-values
+    (aptdefs aptdef apt aptref) (defs-def-t-tref `(pointer ,tast)))
+  (define adtref (get-array-data-type at))
+  (define adpt (sham:type:pointer adtref))
+  (define adnptref (type-remove-pointer adtref))
+  (define nat type-nat-ref)
+  (define nat* (sham:type:pointer nat))
+  (define arr-id (sham:def-id atdef))
+  (define (get-fun-name frmt)
+    (string->symbol (format frmt arr-id)))
+
+  (define (make-array)
+    (sham:def:function ;make-array
+     (get-fun-name make-array-fun-format)
+     '() '(AlwaysInline)
+     array-args (list nat adtref) aptref
+     (sham:stmt:let
+      '(ap* ap-size* ap-data*)
+      (list aptref nat* adpt)
+      (list (sham$app malloc (sham:exp:type atref))
+            (get-size-ptr 'ap*)
+            (get-data-ptr 'ap*))
+      (sham$block
+       (sham:stmt:exp (sham$app-var store! size ap-size*))
+       (sham:stmt:exp (sham$app-var store! data ap-data*))
+       (sham:stmt:return (sham$var 'ap*))))))
+  ;; (pretty-print (sham-def->sexp (make-array)))
+
+  (define (get-array-data)
+    (sham:def:function ;get-array-data
+     (get-fun-name get-array-data-fun-format)
+     '() '(AlwaysInline)
+     '(ap*) (list aptref) adtref
+     (sham:stmt:let
+      '(adt*)
+      (list adpt)
+      (list (get-data-ptr 'ap*))
+      (sham:stmt:return (sham$app load (sham$var 'adt*))))))
+  (define (new-size-array)
+    (sham:def:function ;new-size-array
+     (get-fun-name new-size-array-fun-format)
+     '() '(AlwaysInline)
+     '(size) (list nat) aptref
+     (sham:stmt:return (sham:exp:app
+                        (sham:rator:symbol (get-fun-name make-array-fun-format))
+                        (list (sham$var 'size)
+                              (sham$app arr-malloc
+                                        (sham:exp:type adnptref) (sham$var 'size)))))))
+  (define (get-array-size)
+    (sham:def:function ;get-array-size
+     (get-fun-name get-array-size-fun-format)
+     '() '(AlwaysInline)
+     '(array-ptr) (list aptref) nat
+     (sham:stmt:return (sham$app load (get-size-ptr 'array-ptr)))))
+
+  (define (get-index)
+    (sham:def:function ;get-index
+     (get-fun-name get-index-fun-format)
+     '() '(AlwaysInline)
+     '(array-ptr index)
+     (list aptref nat ) adnptref
+     (sham:stmt:return
+      (sham$app load
+                (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
+                              (list (sham$var 'index)))))))
+  (define (set-index)
+    (sham:def:function ;set-index
+     (get-fun-name set-index-fun-format)
+     '() '(AlwaysInline)
+     '(array-ptr index v)
+     (list aptref nat adtref) (sham:type:ref 'void) 
+     (sham$block
+      (sham:stmt:exp-stmt
+       (sham$app store! (sham$var 'v)
+                 (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
+                               (list (sham$var 'index))))
+       (sham:stmt:void))
+      (sham:stmt:return-void)))) 
+  (define (empty-array)
+    (sham:def:function ;empty-array
+     (get-fun-name empty-array-fun-format)
+     '() '(AlwaysInline)
+     '()
+     (list ) aptref
+     (sham:stmt:return
+      (sham:exp:app (sham:rator:symbol (get-fun-name new-size-array-fun-format))
+                    (list (nat-value 0))))))
+  (append
+   (reverse atdefs)
+   (reverse aptdefs)
+   (list (make-array)
+         (new-size-array)
+         (empty-array)
+         (get-array-data)
+         (get-array-size)
+         (get-index))))
+         
+
+
+(module+ test
+  (require rackunit)
+  (require sham/jit)
+  (define defs 
+    (append (array-defs `(array nat))
+            (array-defs `(array (array nat)))))
+  (pretty-print (map sham-def->sexp defs))
+  (define mod
+    (sham:module
+     '((passes . ())
+       (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
+                    (libgsl . ("libgsl")))))
+     defs))
+  ;(pretty-print (sham-ast->sexp mod))
+  (define cmod (compile-module mod)))
+  ;(jit-optimize-module cmod #:opt-level 3)
+  ;(jit-dump-function cmod 'make:array<array<nat>*>.))
+  ;(jit-dump-module cmod))
+  

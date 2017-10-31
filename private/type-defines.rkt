@@ -2,7 +2,7 @@
 
 (require sham/ast)
 (require "template-format.rkt")
-
+(provide (all-defined-out))
 (define type-nat-def (sham:def:type 'nat (sham:type:ref 'i32)))
 (define type-real-def (sham:def:type 'real (sham:type:ref 'f64)))
 (define type-prob-def (sham:def:type 'prob (sham:type:ref 'f64)))
@@ -15,6 +15,13 @@
   (sham:exp:fl-value v type-real-ref))
 (define (nat-value v)
   (sham:exp:ui-value v type-nat-ref))
+
+(define (get-struct-field sym . indexs)
+  (sham:exp:gep (sham$var sym) (cons (nat-value 0) (map nat-value indexs))))
+(define (get-size-ptr vsym)
+  (get-struct-field vsym 0))
+(define (get-data-ptr vsym)
+  (get-struct-field vsym 1))
 
 (define (get-type-string t)
   (match t
@@ -32,27 +39,30 @@
 
 (define nrp? (curryr member '(nat real prob)))
 (define (if-need-pointer t) (if (nrp? t) t `(pointer ,t)))
-
+(define (expand-type t)
+  (define et expand-type)
+  (match t
+    [`(pointer ,t) `(pointer ,(et t))]
+    [`(array ,tar) `(pointer (array ,(et tar)))]
+    [`(pair ,t1 ,t2) `(pointer (pair ,(et t1) ,(et t2)))]
+    [nrp? t]))
 (define sham-type-def-hash (make-hash))
-;; gets a type in hakrit format and
+(define type-hash (make-hash))
+;; gets an type in hakrit format and
 ;; returns list of defines
 ;; first is for tast rest dependencies
 (define (get-sham-type-define tast)
   (define (create-new!)
     (match tast
       [`(array ,t)
-       (define st (get-sham-type-define `(pointer ,t)))
-       (define ct (sham:def:type
-                   (get-type-sym tast)
-                   (sham:type:struct array-args
-                                     (list type-nat-ref
-                                           (get-sham-type-ref (car st))))))
+       (define st (get-sham-type-define `(pointer ,(if-need-pointer t))))
+       (define ct (sham:def:type (get-type-sym tast)
+                   (sham:type:struct array-args (list type-nat-ref (get-sham-type-ref (car st))))))
        (cons ct (cons type-nat-def st))]
       [`(pair ,t1 ,t2)
-       (define st1 (get-sham-type-define (if-need-pointer t1)))
-       (define st2 (get-sham-type-define (if-need-pointer t2)))
-       (define ct (sham:def:type
-                   (get-type-sym tast)
+       (define st1 (get-sham-type-define t1))
+       (define st2 (get-sham-type-define t2))
+       (define ct (sham:def:type (get-type-sym tast)
                    (sham:type:struct (list pair-car-sym pair-cdr-sym)
                                      (list (get-sham-type-ref (car st1))
                                            (get-sham-type-ref (car st2))))))
@@ -68,7 +78,9 @@
       ['nat (cons type-nat-def '())]
       ['prob (cons type-prob-def '())]
       ['real (cons type-real-def '())]))
-  (hash-ref! sham-type-def-hash tast create-new!))
+  (define defs (hash-ref! sham-type-def-hash tast create-new!))
+  (map (λ (d) (hash-set! type-hash (sham:def-id d) (sham:def:type-type d))) defs)
+  defs)
 
 (define sham-type-ref-hash (make-hash))
 (define (get-sham-type-ref sham-type-def)
@@ -76,3 +88,9 @@
              (λ () (sham:type:ref (sham:def-id sham-type-def)))))
 (define (get-sham-type-ref-ast type-ast)
   (get-sham-type-ref (get-sham-type-define type-ast)))
+
+(define (type-remove-pointer t)
+  (match t
+    [(sham:type:pointer to) to]
+    [(sham:type:ref id)
+     (type-remove-pointer (hash-ref type-hash id))]))

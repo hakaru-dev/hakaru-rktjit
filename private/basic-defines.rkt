@@ -7,114 +7,13 @@
 (require sham/jit
          sham/ast
          "sham-utils.rkt")
-(require (for-syntax "sham-utils.rkt"))
-(provide basic-defines)
 
-(define simple-funs
-  (list
-   (sham$define
-    (nat2prob (v : nat) : prob)
-    (return
-     (sham$app real2prob (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real))))))
+(provide (all-defined-out))
 
-   (sham$define
-    (nat2real (v : nat) : real)
-    (return
-     (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real)))))
-
-   (sham$define
-    (prob2real (v : prob) : real)
-    (return (sham$app-var (llvm.exp.f64 prob) v)))
-   
-   (sham$define
-    (real2prob (v : real) : prob)
-    (return (sham$app-var (llvm.log.f64 prob) v)))
-
-   (sham$define
-    (recip-nat (v : nat) : real)
-    (return (sham$app fdiv (real-value 1.0)
-                      (sham$app ui->fp (sham$var 'v)
-                                (sham:exp:type (sham:type:ref 'real))))))
-   (sham$define
-    (recip-real (v : real) : real)
-    (return (sham$app fdiv (real-value 1.0) (sham$var 'v))))
-
-   (sham$define
-    (recip-prob (v : real) : real)
-    (return (sham$app fmul (real-value -1.0) (sham$var 'v))))
-
-   (sham$define
-    (add-2-nat (v1 : nat) (v2 : nat) : nat)
-    (return (sham$app-var add-nuw v1 v2)))
-   (sham$define
-    (add-2-real (v1 : real) (v2 : real) : real)
-    (return (sham$app-var fadd v1 v2)))
-   (sham$define
-    (add-3-real (v1 : real) (v2 : real) (v3 : real) : real)
-    (return (sham$app fadd
-                      (sham$app-var fadd v1 v2)
-                      (sham$var 'v3))))
-
-   (sham$define
-    (add-2-prob (v1 : prob) (v2 : prob) : prob)
-    (return (sham$app real2prob
-                      (sham$app add-2-real
-                                (sham$app-var prob2real v1)
-                                (sham$app-var prob2real v2)))))
-
-   (sham$define
-    (add-3-prob (v1 : prob) (v2 : prob) (v3 : prob) : prob)
-    (return (sham$app real2prob
-                      (sham$app add-3-real
-                                (sham$app-var prob2real v1)
-                                (sham$app-var prob2real v2)
-                                (sham$app-var prob2real v3)))))
-   (sham$define
-    (mul-2-nat (v1 : nat) (v2 : nat) : nat)
-    (return (sham$app-var mul-nuw v1 v2)))
-   (sham$define
-    (mul-2-real (v1 : real) (v2 : real) : real)
-    (return (sham$app-var fmul v1 v2)))
-   (sham$define
-    (mul-2-prob (v1 : prob) (v2 : prob) : prob)
-    (return (sham$app-var fadd v1 v2)))
-
-   (sham$define
-    (mul-4-prob (v1 : prob) (v2 : prob) (v3 : prob) (v4 : prob) : prob)
-    (return (sham$app fadd
-                      (sham$var 'v4)
-                      (sham$app fadd (sham$var 'v3) (sham$app-var fadd v1 v2)))))))
-;TODO make a sham util to have templated types
-
-(define (pair-type t1 t2)
-  (define pair-type-str (format pair-format t1 t2))
-  (define pt-ref (sham:type:ref (string->symbol pair-type-str)))
-  (define st1 (sham:type:ref t1))
-  (define st2 (sham:type:ref t2))
-  (list
-   (sham:def:type (string->symbol pair-type-str)
-                  (sham:type:struct (list pair-car-sym
-                                          pair-cdr-sym)
-                                    (list (sham:type:ref t1)
-                                          (sham:type:ref t2))))
-   (sham:def:type (string->symbol (string-append pair-type-str "*"))
-                  (sham:type:pointer pt-ref))
-   (sham:def:function
-    (string->symbol (string-append "make-" pair-type-str))
-    '() '(AlwaysInline)
-    '(a b) (list st1 st2) (sham:type:pointer pt-ref)
-    (sham:stmt:let
-     '(pp ap bp)
-     (list (sham:type:pointer pt-ref)
-           (sham:type:pointer st1)
-           (sham:type:pointer st2))
-     (list (sham$app malloc (sham:exp:type pt-ref))
-           (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 0)))
-           (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 1)))))
-    (sham$block
-     (sham:stmt:exp (sham$app-var store! a ap))
-     (sham:stmt:exp (sham$app-var store! b bp))
-     (sham:stmt:return (sham$var 'pp))))))
+(define nat type-nat-ref)
+(define nat* (sham:type:pointer nat))
+(define real type-real-ref)
+(define prob type-prob-ref)
 
 (define probability-defs
   (list
@@ -125,8 +24,11 @@
      (list
       (sham:stmt:set!
        (sham:exp:var 'gsl-rng)
-       (sham:exp:app (sham:rator:external 'libgsl 'gsl_rng_alloc (sham:type:ref 'void*))
-                     (list (sham:exp:external 'libgsl 'gsl_rng_taus (sham:type:ref 'void*)))))
+       (sham:exp:app (sham:rator:external 'libgsl
+                                          'gsl_rng_alloc
+                                          (sham:type:ref 'void*))
+                     (list (sham:exp:external 'libgsl 'gsl_rng_taus
+                                              (sham:type:ref 'void*)))))
       (sham:stmt:return-void))))
    (sham:def:function
     'uniform '() '()
@@ -168,18 +70,43 @@
                                         (sham:exp:app (sham:rator:symbol 'prob2real)
                                                       (list (sham:exp:var 'a)))
                                         (sham:exp:app (sham:rator:symbol 'prob2real)
-                                                      (list (sham:exp:var 'b)))))))))))
-;; (sham:def:function
-;;  'categorical '() '()
-;;  '(a) (list (sham:type:ref 'array<prob>)) prob
-;;  (sham:stmt:return 0))
+                                                      (list (sham:exp:var 'b)))))))))
+   (sham:def:function ;;TODO test categorical
+    'categorical '() '()
+    '(a) (list (sham:type:ref 'array<prob>)) (sham:type:pointer nat)
+    (sham:stmt:let
+     '(n)
+     (list (sham:type:ref 'array<nat>))
+     (list (sham$app malloc (sham:exp:type (sham:type:ref 'array<nat>))))
+     (sham:stmt:return
+      (sham:exp:stmt-exp
+       (sham:stmt:exp
+        (sham:exp:app
+         (sham:rator:external 'libgsl 'gsl_ran_multinomial (sham:type:pointer nat))
+         (list (sham:exp:var 'gsl-rng)
+               (sham:exp:app
+                (sham:rator:symbol (string->symbol
+                                    (format get-array-size-fun-format
+                                            'array<prob>)))
+                (sham$var 'a))
+               (nat-value 1)
+               (sham:exp:app
+                (sham:rator:symbol (string->symbol
+                                    (format get-array-data-fun-format
+                                            'array<prob>)))
+                (sham$var 'a))
+               (sham$var 'n))))
+
+       (sham$var 'n)))))))
 
 (define simple-funs
   (list
    (sham$define
     (nat2prob (v : nat) : prob)
     (return
-     (sham$app real2prob (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real))))))
+     (sham$app real2prob
+               (sham$app ui->fp
+                         (sham$var 'v) (sham:exp:type (sham:type:ref 'real))))))
 
    (sham$define
     (nat2real (v : nat) : real)
@@ -208,168 +135,53 @@
     (return (sham$app fmul (real-value -1.0) (sham$var 'v))))))
 
 (define (add-basic-prelude prelude-defines)
-  (map (λ (d) (hash-set! prelude-defines (sham:def-id d) d))
-       (append simple-funs
-               probability-defs)))
+  (add-defs-prelude simple-funs)
+  (add-defs-prelude probability-defs))
 
-(define (get-size-ptr vsym)
-  (sham:exp:gep (sham$var vsym) (list (nat-value 0) (nat-value 0))))
-(define (get-data-ptr vsym)
-  (sham:exp:gep (sham$var vsym) (list (nat-value 0) (nat-value 1))))
+(define (add-array-defs-prelude tdef prelude)
+  (add-defs-prelude (array-defs tdef) prelude))
 
-(define (get-array-data-type-def array-type-def)
-  (match tdef
-    [(sham:def:type _ (sham:type:struct _ (list _ t))) t]))
-
-
-
-(define (add-array-defs-prelude tast tdef prelude)
-  (define atref (get-sham-type-ref tdef))
-  (define tpdefs (get-sham-type-define `(pointer ,tast)))
-  (add-defs-prelude tpdefs prelude)
-  (define tpdef (car tpdefs))
-  (define apref (get-sham-type-ref tpdef))
-  (define arr-id (sham:def-id tdef))
-  (define array-data-type (get-array-data-type-def tdef))
-  (define adt array-data-type)
-  (define adt-ref (get-sham-type-ref array-data-type))
-  (define adtp (sham:type:pointer adt-ref))
-  
-  (define (get-fun-name frmt)
-    (string->symbol (format frmt arr-id)))
-  
-  (define defs
-    (list
-     (sham:def:function ;make-array
-      (get-fun-name make-array-fun-format)
-      '() '(AlwaysInline)
-      array-args
-      (list type-nat-ref adt-ref)
-      apref
-      (sham:stmt:let
-       '(ap ap-size* ap-data*)
-       (list a-type* type-nat-ref
-             p-type*)
-       (list (sham$app malloc (sham:exp:type atref))
-             (get-size-ptr 'ap)
-             (get-data-ptr 'ap))
-       (sham$block
-        (sham:stmt:exp (sham$app-var store! size ap-size*))
-        (sham:stmt:exp (sham$app-var store! data ap-data*))
-        (sham:stmt:return (sham$var 'ap)))))
-
-     (sham:def:function ;get-array-data
-      (get-fun-name get-array-data-fun-format)
-      '() '(AlwaysInline)
-      '(ap)
-      (list tpdef) adt-ref
-      (sham:stmt:let
-       '(atp)
-       (list adtp)
-       (list (get-data-ptr 'ap))
-       (sham:stmt:return (sham$app load (sham$var 'atp)))))
-
-     (sham:def:function ;new-size-array
-      (get-fun-name new-size-array-format)
-      '() '(AlwaysInline)
-      '(size)
-      (list type-nat-ref) apref
-      (sham:stmt:let
-       '(ap data datap sizep)
-       (list apref adt adtp type-nat-ref)
-       (list (sham$app malloc (sham:exp:type atref))
-             (sham$app arr-malloc (sham:exp:type adt-ref) (sham$var 'size))
-             (get-data-ptr 'ap)
-             (get-size-ptr 'ap))
-       (sham$block
-        (sham:stmt:exp (sham$app-var store! size sizep))
-        (sham:stmt:exp (sham$app-var store! data datap))
-        (sham:stmt:return (sham$var 'ap)))))
-
-     (sham:def:function ;get-array-size
-      (get-fun-name get-array-size-fun-format)
-      '() '(AlwaysInline)
-      '(array-ptr)
-      (list apref) type-nat-ref
-      (sham:stmt:return (sham$app load (get-size-ptr 'array-ptr))))
-
-
-     (sham:def:function ;get-index
-      (get-fun-name get-index-fun-format)
-      '() '(AlwaysInline)
-      '(array-ptr index)
-      (list apref type-nat-ref) adt-ref
-      (sham:stmt:return
-       (sham$app load
-                 (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
-                               (list (sham$var 'index))))))
-
-     (sham:def:function ;set-index
-      (get-fun-name set-index-fun-format)
-      '() '(AlwaysInline)
-      '(array-ptr index v)
-      (list apref type-nat-ref adt-ref) (sham:type:ref 'void) 
-      (sham$block
-       (sham:stmt:exp-stmt
-        (sham$app store! (sham$var 'v)
-                  (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
-                                (list (sham$var 'index))))
-        (sham:stmt:void))
-       (sham:stmt:return-void)))
-
-     (sham:def:function ;empty-array
-      (get-fun-name empty-array-format)
-      '() '(AlwaysInline)
-      '()
-      (list ) apref
-      (sham:stmt:return
-       (sham:exp:app (sham:rator:symbol (get-fun-name new-size-array-format))
-                     (list (nat-value 0)))))))
-  (add-defs-prelude defs prelude))
-
-(define (add-pair-defs-prelude tast tdef prelude)
+(define (pair-defs tdef)
   (match-define (sham:type:struct _ (list at bt)) tdef)
-  (define tref (get-sham-type-ref tdef))
-  (define tpdefs (get-sham-type-define `(pointer ,tast)))
-  (add-defs-prelude tpdefs prelude)
-  (define tpref (get-sham-type-ref (car tpdefs)))
+  (define tr (get-sham-type-ref tdef))
+  (define tp (sham:type:pointer tr))
   (define atref (get-sham-type-ref at))
   (define btref (get-sham-type-ref bt))
   (define atp (sham:type:pointer at))
   (define btp (sham:type:pointer bt))
   (define (get-fun-name frmt)
     (string->symbol (format frmt (sham:def-id tdef))))
-  (define defs
-    (list
-     (sham:def:function
-      (get-fun-name make-pair-fun-format)
-      '() '(AlwaysInline)
-      '(a b) (list atref btref) tpref
-      (sham:stmt:let
-       '(pp ap bp)
-       (list tpref
-             (sham:type:pointer atref)
-             (sham:type:pointer btref))
-       (list (sham$app malloc (sham:exp:type tref))
-             (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 0)))
-             (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 1)))))
-      (sham$block
-       (sham:stmt:exp (sham$app-var store! a ap))
-       (sham:stmt:exp (sham$app-var store! b bp))
-       (sham:stmt:return (sham$var 'pp))))
-     
-     (sham:def:function
-      (get-fun-name pair-car-fun-format)
-      '() '(AlwaysInline)
-      '(p) (list tpref) atref
-      (sham:stmt:return (sham$app load (get-size-ptr 'p))));;TODO hack as the field number are same for array and pair
-     
-     (sham:def:function
-      (get-fun-name pair-cdr-fun-format)
-      '() '(AlwaysInline)
-      '(p) (list tpref) btref
-      (sham:stmt:return (sham$app load (get-data-ptr 'p))))))
-  (add-defs-prelude defs prelude))
+  (list
+   (sham:def:function
+    (get-fun-name make-pair-fun-format) ;;make-pair
+    '() '(AlwaysInline)
+    '(a b) (list atref btref) tr
+    (sham:stmt:let
+     '(pp ap bp)
+     (list tp atp btp)
+     (list (sham$app malloc (sham:exp:type tr))
+           (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 0)))
+           (sham:exp:gep (sham$var 'pp) (list (nat-value 0) (nat-value 1)))))
+    (sham$block
+     (sham:stmt:exp (sham$app-var store! a ap))
+     (sham:stmt:exp (sham$app-var store! b bp))
+     (sham:stmt:return (sham$var 'pp))))
+   
+   (sham:def:function
+    (get-fun-name pair-car-fun-format) ;;car
+    '() '(AlwaysInline)
+    '(p) (list tp) at
+    (sham:stmt:return (sham$app load (get-size-ptr 'p))))
+   ;;TODO hack as the field number are same for array and pair
+   
+   (sham:def:function
+    (get-fun-name pair-cdr-fun-format)
+    '() '(AlwaysInline)
+    '(p) (list tp) bt
+    (sham:stmt:return (sham$app load (get-data-ptr 'p))))))
+
+(define (add-pair-defs-prelude tdef prelude)
+  (add-defs-prelude (pair-defs tdef) prelude))
 
 (define (add-defs-for-type tast def prelude)
   (match tast
@@ -379,6 +191,10 @@
 
 (define (add-defs-prelude defs prelude)
   (map (λ (d) (hash-set! prelude (sham:def-id d) d)) defs))
+
+
+               
+
 ;; (module+ test
 ;;   (require rackunit)
 ;;   (require "utils.rkt")
