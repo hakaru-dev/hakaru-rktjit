@@ -19,18 +19,25 @@
                  (apply ~a (build-list num-args (λ (_) "~a")) #:separator function-sep-char)
                  function-end-char))
 (define cft create-function-template)
+
+;;pair-funs
 (define make-pair-fun-format (cft "make" 1))
 (define pair-car-fun-format (cft "car" 1))
 (define pair-cdr-fun-format (cft "cdr" 1))
 
+;;array-funs
 (define make-array-fun-format (cft "make" 1))
-(define get-array-data-fun-format (cft "get-data" 1))
-(define get-array-size-fun-format (cft "get-size" 1))
 (define new-size-array-fun-format (cft "new-sized" 1))
+(define empty-array-fun-format (cft "empty" 1))
+(define get-array-size-fun-format (cft "get-size" 1))
+(define get-array-data-fun-format (cft "get-data" 1))
 (define get-index-fun-format (cft "get-index" 1))
 (define set-index-fun-format (cft "set-index" 1))
-(define empty-array-fun-format (cft "empty" 1))
+
 
 (define add-fun-format (cft "add" 2));;add-<num-args>-<type>
 (define mul-fun-format (cft "mul" 2));;mul-<num-args>-<type>
 (define recip-fun-format (cft "recip" 2))
+
+(define (get-fun-symbol frmt . args)
+  (string->symbol (apply format (cons frmt args))))
