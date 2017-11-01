@@ -3,7 +3,7 @@
 (require sham/ast)
 (require "template-format.rkt")
 (provide (all-defined-out))
-(define type-nat-def (sham:def:type 'nat (sham:type:ref 'i32)))
+(define type-nat-def (sham:def:type 'nat (sham:type:ref 'i64)))
 (define type-real-def (sham:def:type 'real (sham:type:ref 'f64)))
 (define type-prob-def (sham:def:type 'prob (sham:type:ref 'f64)))
 
@@ -15,9 +15,10 @@
   (sham:exp:fl-value v type-real-ref))
 (define (nat-value v)
   (sham:exp:ui-value v type-nat-ref))
-
+(define (nat32-value v)
+  (sham:exp:ui-value v (sham:type:ref 'i32)))
 (define (get-struct-field sym . indexs)
-  (sham:exp:gep (sham$var sym) (cons (nat-value 0) (map nat-value indexs))))
+  (sham:exp:gep (sham$var sym) (cons (nat32-value 0) (map nat32-value indexs))))
 (define (get-size-ptr vsym)
   (get-struct-field vsym 0))
 (define (get-data-ptr vsym)
