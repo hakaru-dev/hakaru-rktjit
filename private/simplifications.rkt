@@ -7,7 +7,8 @@
          mbind->let
          macro-functions
          remove-pairs
-         remove-array-literals)
+         remove-array-literals
+         cleanup)
 
 (define simplify-match
   (create-rpass
@@ -174,3 +175,56 @@
         [(expr-if t chk (expr-val 'nat vthn) (expr-val 'nat vels)) (expr-if t chk (list-ref arr-vals vthn)
                                                                           (list-ref arr-vals vels))]
         [else orig-b])))
+
+
+(define (cleanup e)
+  (define (merge-stmt-block s)
+    (match s
+      [(stmt-block stmts)
+       (define ns
+         (append-map
+          (λ (s)
+            (match s
+              [(stmt-block ss) ss]
+              [(stmt-void) '()]
+              [else (list s)]))
+          stmts))
+       (if (eq? (length ns) 1)
+           (car ns)
+           (stmt-block ns))]
+      [else s]))
+  (define pass
+    (create-rpass
+     (expr
+      [(expr-lets _ '() _ b) b]
+      [(expr-block t (stmt-void) e) e]
+      [(expr-block t (stmt-block '()) e) e])
+     (reducer)
+     (stmt
+      [(stmt-lets '() s) s]
+      [(stmt-lets vars s)
+       #:when (stmt-block? s)
+       (define vs (list->mutable-set vars))
+       (define ns (append-map (λ (s)
+                                (match s
+                                  [(stmt-lets vars s) (map (curry set-add! vs) vars) (list s)]
+                                  [(stmt-block ss) ss]
+                                  [else (list s)]))
+                              (stmt-block-stmts s)))
+       (stmt-lets (set->list vs) (merge-stmt-block (stmt-block ns)))]
+
+      [(stmt-block '()) (stmt-void)]
+      [(stmt-block stmts)
+       (define ns
+         (append-map
+          (λ (s)
+            (match s
+              [(stmt-block ss) ss]
+              [(stmt-void) '()]
+              [else (list s)]))
+          stmts))
+       (if (eq? (length ns) 1)
+           (car ns)
+           (stmt-block ns))])
+     (pat)))
+  (pass e))
