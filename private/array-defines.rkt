@@ -41,7 +41,34 @@
        (sham:stmt:exp (sham$app-var store! size ap-size*))
        (sham:stmt:exp (sham$app-var store! data ap-data*))
        (sham:stmt:return (sham$var 'ap*))))))
-  ;; (pretty-print (sham-def->sexp (make-array)))
+
+  (define (new-size-array)
+    (sham:def:function ;new-size-array
+     (get-fun-name new-size-array-fun-format)
+     '() '(AlwaysInline)
+     '(size) (list nat) aptref
+     (sham:stmt:let
+      '(apt)
+      (list aptref)
+      (list (sham:exp:app
+             (sham:rator:symbol (get-fun-name make-array-fun-format))
+             (list (sham$var 'size)
+                   (sham$app arr-malloc
+                             (sham:exp:type adnptref) (sham$var 'size)))))
+      (sham:stmt:block
+       (list
+        (sham:stmt:void)
+        (sham:stmt:exp
+         (sham:exp:app
+          (sham:rator:intrinsic 'llvm.memset.i64 (sham:type:ref 'void))
+          (list (sham$app load (get-data-ptr 'apt))
+                (nat-value 0)
+                (sham:exp:app (sham:rator:symbol 'mul-nuw)
+                              (list (sham:exp:sizeof nat)
+                                    (sham$var 'size)))
+                (nat-value 0)
+                (nat-value 1))))
+        (sham:stmt:return (sham$var 'apt)))))))
 
   (define (get-array-data)
     (sham:def:function ;get-array-data
@@ -53,16 +80,7 @@
       (list adpt)
       (list (get-data-ptr 'ap*))
       (sham:stmt:return (sham$app load (sham$var 'adt*))))))
-  (define (new-size-array)
-    (sham:def:function ;new-size-array
-     (get-fun-name new-size-array-fun-format)
-     '() '(AlwaysInline)
-     '(size) (list nat) aptref
-     (sham:stmt:return (sham:exp:app
-                        (sham:rator:symbol (get-fun-name make-array-fun-format))
-                        (list (sham$var 'size)
-                              (sham$app arr-malloc
-                                        (sham:exp:type adnptref) (sham$var 'size)))))))
+
   (define (get-array-size)
     (sham:def:function ;get-array-size
      (get-fun-name get-array-size-fun-format)
@@ -134,8 +152,9 @@
        (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
                     (libgsl . ("libgsl")))))
      defs))
-  (define cmod (compile-module mod))
 
+  (define cmod (compile-module mod))
+  (jit-dump-module cmod)
   (jit-optimize-module cmod #:opt-level 3)
   ;(jit-dump-module cmod)
   (define cjmod (initialize-jit cmod))
@@ -185,7 +204,9 @@
   (check-eq? (get-index-array-nat tiarr 3) 23)
 
   (check-eq? (get-size-array-nat eti) 5)
+
   (set-index-array-nat eti 3 42)
+
   (check-eq? (get-index-array-nat eti 3) 42)
 
   (define make-array-real (make-f ars))
@@ -198,6 +219,8 @@
 
   (define trarr (make-array-real (length ti) test-real-array))
   (define etr (new-sized-array-real 5))
+  (for ([i (in-range 5)])
+    (check-eq? (get-index-array-real etr i) 0.0))
   (check-eq? (get-size-array-real trarr) 5)
   (check-= (get-index-array-real trarr 4) 42.23 e)
   (set-index-array-real trarr 3 23.42)
@@ -217,6 +240,8 @@
 
   (define tparr (make-array-prob (length ti) test-prob-array))
   (define etp (new-sized-array-prob 5))
+  (for ([i (in-range 5)])
+    (check-eq? (get-index-array-prob etp i) 0.0))
   (check-eq? (get-size-array-prob tparr) 5)
   (check-= (get-index-array-prob tparr 4) (real->prob 42.23) e)
   (set-index-array-prob tparr 3 23.42)
