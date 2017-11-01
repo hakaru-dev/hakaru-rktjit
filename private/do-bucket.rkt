@@ -20,6 +20,7 @@
                   [val vals])
          (match val
            [(expr-bucket t start end reducer)
+            (error 'match-bucket)
             (define-values (typs vars vals stmt) (do-bucket var t start end reducer))
             (values (append typs ntyps) (append vars nvars) (append vals nvals)
                     (cons stmt stmts))]
@@ -55,11 +56,10 @@
      (values (append tra trb) (append vra vrb) (append vla vlb))]
     [(`(array ,tar) (reducer-index n _ ra))
      (printf "reducer-index: ~a\n" (pe result))
-     (define ptar (get-print-type `(array ,tar)))
      (define arr-size (assign-binds binds n))
      (define arrn (expr-var t (gensym^ 'arri) '_))
      (define fori (expr-var 'nat (gensym^ 'fi) '_))
-     (define arr-init (expr-app tar (expr-intrf (symbol-append 'empty- ptar))
+     (define arr-init (expr-app tar (expr-intrf 'empty)
                                 (list arr-size)))
      (define-values (vrt vra vla) (get-init (cons fori binds) result tar ra))
      (define arrv
@@ -163,7 +163,7 @@
        (values
         (list t)
         (list var)
-        (list (expr-app t (expr-intrf (symbol-append 'empty- (get-print-type t)))
+        (list (expr-app t (expr-intrf 'empty)
                         (list s)))
         (stmt-assign (expr-app t (expr-intrf 'index) (list var index))
                      b))]))

@@ -106,7 +106,7 @@
 
   (jit-optimize-module bmod #:opt-level 3)
   (define benv (initialize-jit bmod))
-  ;(jit-dump-module benv)
+  (jit-dump-module benv)
 
   (define (get-t t) (jit-get-racket-type (env-lookup t benv)))
   (define (get-f f) (jit-get-function f benv))
