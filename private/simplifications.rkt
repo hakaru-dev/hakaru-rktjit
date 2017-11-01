@@ -62,6 +62,18 @@
            (printf "replacing: ~a with ~a\n" (print-expr v) (print-expr val))
            (sl body (hash-set env v val)))
          (expr-let t v (sl val env) (sl body env)))]
+    [(expr-lets ts vars vals body)
+     (define-values (nts nvars nvals ne)
+       (for/fold ([nts '()] [nvars '()] [nvals '()] [e env])
+                 ([t ts] [var vars] [val vals])
+         (if (expr-var? val)
+             (begin
+               (printf "replacing: ~a with ~a\n" (print-expr var) (print-expr val))
+               (values nts nvars nvals (hash-set e var val)))
+             (values (cons t nts) (cons var nvars) (cons (sl val e) nvals) e))))
+     (if (empty? nvars)
+         (sl body ne)
+         (expr-lets nts nvars nvals (sl body ne)))]
     [v #:when (hash-has-key? env v)
        (printf "\treplaced: ~a with ~a\n" (print-expr v) (print-expr (hash-ref env v)))
        (hash-ref env v)]
