@@ -5,7 +5,7 @@
 (provide (all-defined-out))
 (define (new-prelude)
   (make-hash))
-(define (add-defs-prelude! defs prelude)
+(define (add-defs-prelude! prelude defs)
   (map (λ (d) (hash-set! prelude (sham:def-id d) d)) defs)
   prelude)
 (define (get-defs-prelude prelude)
