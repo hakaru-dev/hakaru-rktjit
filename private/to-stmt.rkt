@@ -2,6 +2,7 @@
 (require "ast.rkt"
          "utils.rkt")
 (provide to-stmt
+         expr->stmt
          simplify-set
          remove-if-expr)
 
@@ -24,15 +25,9 @@
       [(expr-if typ tst thn els)
        (stmt-if tst (ers thn) (ers els))]
       [(expr-let t var val body)
-       (stmt-lets (list var)
-                  (stmt-block (list (stmt-assign var val)
-                                    (ers body))))]
+       (stmt-elets (list var) (list val) (ers body))]
       [(expr-lets t vars vals body)
-       (stmt-lets vars
-                  (stmt-block (append
-                               (for/list [(var vars) (val vals)]
-                                 (stmt-assign var val))
-                               (list (ers body)))))]
+       (stmt-elets vars vals (ers body))]
       [(expr-block t stmt body)
        (stmt-block (list stmt (ers body)))]
       [else (assign-to e)]))

@@ -439,7 +439,8 @@
     [(stmt-block stmts) `(block-stmt ,@(map ps stmts))]
     [(stmt-assign var val) `(set! ,(pe var) ,(pe val))]
     [(stmt-return val) `(return ,(pe val))]
-    [(stmt-void) '<void>]))
+    [(stmt-void) '<void>]
+    [else `(unknown-stmt ,stmt)]))
 (define print-stmt ps)
 (define display-stmt (compose pretty-display print-stmt))
 

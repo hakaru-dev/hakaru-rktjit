@@ -8,8 +8,8 @@
 (provide (all-defined-out))
 
 (define debug-pass (make-parameter #f))
-(define-syntax-rule (debug-printf args ...)
-  (when (debug-pass)
+(define-syntax-rule (dprintf tst args ...)
+  (when (and (debug-pass) tst)
     (printf args ...)))
 
 (splicing-let ([gensym-hash (make-hash)])
@@ -54,5 +54,3 @@
 
 (define (write-vector-to-csv fname)
   (void))
-
-
