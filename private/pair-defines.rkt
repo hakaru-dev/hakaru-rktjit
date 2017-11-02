@@ -34,8 +34,8 @@
             (get-struct-field 'pp 0)
             (get-struct-field 'pp 1))
       (sham$block
-       (sham:stmt:exp (sham$app-var store! a ap))
-       (sham:stmt:exp (sham$app-var store! b bp))
+       (sham:stmt:expr (sham$app-var store! a ap))
+       (sham:stmt:expr (sham$app-var store! b bp))
        (sham:stmt:return (sham$var 'pp))))))
   
   (define (get-car)

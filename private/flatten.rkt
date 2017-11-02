@@ -139,15 +139,15 @@
   (if (empty? efvp)
       expr
       (begin
-        (printf "original order: ~a\n" (map print-efv efvp))
+;        (printf "original order: ~a\n" (map print-efv efvp))
         (for/fold ([b expr])
                   ([pds (reverse (partition-dependency efvp))])
 
           (for/fold ([e b])
                     ([(k v) (in-hash pds)])
             (define efvs (set->list v))
-            (printf "size: ~a, efvs: ~a\n" k
-                    (map (compose print-expr efv-var) efvs))
+            ;; (printf "size: ~a, efvs: ~a\n" k
+            ;;         (map (compose print-expr efv-var) efvs))
             (expr-lets (map (λ (ef) (typeof (efv-expr ef))) efvs)
                        (map (λ (ef) (efv-var ef)) efvs)
                        (map (λ (ef) (efv-expr ef)) efvs)
@@ -178,13 +178,13 @@
        (ufb (expr-let type var nval (ufb-expr nb)) nefvp)]
       [(expr-lets type vars vals b)
        (define nb (apply (curry get-ufb-without (uf b)) vars))
-       (define-values (nvals nefvp) (for/fold ([nvals '()]
-                                               [efv (ufb-efvp nb)])
-                                              ([v vals])
-                                      (define-values (nv nefv) (check-and-add v efv))
-                                      (values (cons nv nvals) (append nefv efv))))
+       (define-values (nvals nefvp)
+         (for/fold ([nvals '()]
+                    [efv (ufb-efvp nb)])
+                   ([v vals])
+           (define-values (nv nefv) (check-and-add v efv))
+           (values (cons nv nvals) (append nefv efv))))
        (ufb (expr-lets type vars nvals (ufb-expr nb)) nefvp)]
-       
       [(expr-sum t i start end b)
        (define es (new-var t (gensym^ 'sm)))
        (define nb (get-ufb-without (uf b) i))
@@ -215,6 +215,7 @@
        (define tufb (uf tst))
        (ufb (expr-if t (ufb-expr tufb) (combine-ufb (uf thn)) (combine-ufb (uf els)))
             (ufb-efvp tufb))]
+
       [(expr-match t tst brs)
        (ufb body '())]
       [(expr-app t rt rds)

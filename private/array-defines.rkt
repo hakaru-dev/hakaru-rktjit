@@ -38,8 +38,8 @@
             (get-size-ptr 'ap*)
             (get-data-ptr 'ap*))
       (sham$block
-       (sham:stmt:exp (sham$app-var store! size ap-size*))
-       (sham:stmt:exp (sham$app-var store! data ap-data*))
+       (sham:stmt:expr (sham$app-var store! size ap-size*))
+       (sham:stmt:expr (sham$app-var store! data ap-data*))
        (sham:stmt:return (sham$var 'ap*))))))
 
   (define (new-size-array)
@@ -58,7 +58,7 @@
       (sham:stmt:block
        (list
         (sham:stmt:void)
-        (sham:stmt:exp
+        (sham:stmt:expr
          (sham:exp:app
           (sham:rator:intrinsic 'llvm.memset.i64 (sham:type:ref 'void))
           (list (sham$app load (get-data-ptr 'apt))
@@ -105,12 +105,11 @@
      '(array-ptr index v)
      (list aptref nat adnptref) (sham:type:ref 'void)
      (sham$block
-      (sham:stmt:exp-stmt
+      (sham:stmt:expr
        (sham$app store! (sham$var 'v)
-                 (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
-                               (list (sham$var 'index))))
-       (sham:stmt:void))
-      (sham:stmt:return-void))))
+                (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
+                              (list (sham$var 'index)))))
+      (sham:stmt:return (sham:exp:void)))))
   (define (empty-array)
     (sham:def:function ;empty-array
      (get-fun-name empty-array-fun-format)
@@ -156,6 +155,7 @@
   (define cmod (compile-module mod))
   (jit-dump-module cmod)
   (jit-optimize-module cmod #:opt-level 3)
+  (printf "verify after optimize: ~a\n" (jit-verify-module cmod))
   ;(jit-dump-module cmod)
   (define cjmod (initialize-jit cmod))
   ;(pretty-print cmod)

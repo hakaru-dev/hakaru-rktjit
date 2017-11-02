@@ -35,7 +35,7 @@
    (index (n i a) (expr expr reducer)))
   (stmt
    (if (tst thn els) (expr stmt stmt))
-   (lets (vars bstmt) ((* expr) stmt))
+;   (lets (vars bstmt) ((* expr) stmt))
    (elets (vars vals bstmt) ((* expr) (* expr) stmt))
    (for (i start end body) (expr expr expr stmt))
    (block (stmts) ((* stmt)))
@@ -206,11 +206,11 @@
    (begin
      (define-generics stmtg (map-stmt f-expr f-reducer f-stmt f-pat stmtg))
      (struct stmt ())
-     (struct stmt-lets stmt (vars bstmt)
-       #:methods gen:stmtg
-       ((define (map-stmt f-expr f-reducer f-stmt f-pat e^)
-          (match-define (stmt-lets vars bstmt) e^)
-          (stmt-lets (map f-expr vars) (f-stmt bstmt)))))
+     ;; (struct stmt-lets stmt (vars bstmt)
+     ;;   #:methods gen:stmtg
+     ;;   ((define (map-stmt f-expr f-reducer f-stmt f-pat e^)
+     ;;      (match-define (stmt-lets vars bstmt) e^)
+     ;;      (stmt-lets (map f-expr vars) (f-stmt bstmt)))))
      (struct stmt-elets stmt (vars vals bstmt)
        #:methods gen:stmtg
        ((define (map-stmt f-expr f-reducer f-stmt f-pat e^)
@@ -432,7 +432,7 @@
 (define display-pattern (compose pretty-display print-pattern))
 (define (ps stmt)
   (match stmt
-    [(stmt-lets vars stmt) `(let-stmt ,(map pe vars) ,(ps stmt))]
+    ;; [(stmt-lets vars stmt) `(let-stmt ,(map pe vars) ,(ps stmt))]
     [(stmt-elets vars vals stmt) `(elet-stmt (,@(for/list ([var vars] [val vals]) `(,(pe var) ,(pe val)))) ,(ps stmt))]
     [(stmt-if tst thn els) `(if-stmt ,(pe tst) ,(ps thn) ,(ps els))]
     [(stmt-for i start end body) `(for-stmt (,(pe i) ,(pe start) ,(pe end)) ,(ps body))]
@@ -455,7 +455,9 @@
     [(expr-match _ _ brs) (ormap is-complex? brs)]
     [(expr-branch _ b) (is-complex? b)]
     [(expr-bind _ b) (is-complex? b)]
-    [(expr-if _ tst thn els) (or (is-complex? tst) (is-complex? thn) (is-complex? els))]
+    [(expr-if _ tst thn els)
+     #t]
+     ;(or (is-complex? tst) (is-complex? thn) (is-complex? els))]
     [(expr-app _ rt rds)
      (ormap is-complex? rds)]
     [(expr-var _ _ _)
@@ -500,8 +502,8 @@
     [(stmt-if tst thn els) (set-union (ffv^ tst) (ffv^ thn) (ffv^ els))]
     [(stmt-for i start end body)
      (set-union (ffv^ start) (ffv^ end) (set-remove (ffv^ body) i))]
-    [(stmt-lets vars bstmt)
-     (set-subtract (ffv^ bstmt) (apply set vars))]
+    ;; [(stmt-lets vars bstmt)
+    ;;  (set-subtract (ffv^ bstmt) (apply set vars))]
     [(stmt-elets vars vals stmt)
      (set-subtract (ffv^ stmt) (apply set vars))]
     [(stmt-block stmts)

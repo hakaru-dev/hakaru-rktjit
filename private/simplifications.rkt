@@ -40,12 +40,12 @@
   (define body (expr-bind-body cdr-bind))
   (define car-var (expr-bind-var car-bind))
   (define cdr-var (expr-bind-var cdr-bind))
-  (printf "setting type of ~a to ~a" (print-expr car-var) car-type)
+  (dprintf #t "setting type of ~a to ~a\n" (print-expr car-var) car-type)
   (set-expr-var-type! car-var car-type)
-  (printf "setting type of ~a to ~a" (print-expr cdr-var) cdr-type)
+  (dprintf #t "setting type of ~a to ~a\n" (print-expr cdr-var) cdr-type)
   (set-expr-var-type! cdr-var cdr-type)
 
-  (printf "match-pair: \n\tbr: ~a\n\tat: ~a, bt: ~a\n"
+  (dprintf #t "match-pair: \n\tbr: ~a\n\tat: ~a, bt: ~a\n"
           (pe (car brs))
           car-type cdr-type)
   (expr-lets (list car-type cdr-type)
@@ -59,7 +59,7 @@
     [(expr-let t v val body)
      (if (expr-var? val)
          (begin
-           (printf "replacing: ~a with ~a\n" (print-expr v) (print-expr val))
+           (dprintf #t "replacing: ~a with ~a\n" (print-expr v) (print-expr val))
            (sl body (hash-set env v val)))
          (expr-let t v (sl val env) (sl body env)))]
     [(expr-lets ts vars vals body)
@@ -68,23 +68,25 @@
                  ([t ts] [var vars] [val vals])
          (if (expr-var? val)
              (begin
-               (printf "replacing: ~a with ~a\n" (print-expr var) (print-expr val))
+               (dprintf #t "replacing: ~a with ~a\n"
+                        (print-expr var) (print-expr val))
                (values nts nvars nvals (hash-set e var val)))
              (values (cons t nts) (cons var nvars) (cons (sl val e) nvals) e))))
      (if (empty? nvars)
          (sl body ne)
          (expr-lets nts nvars nvals (sl body ne)))]
     [v #:when (hash-has-key? env v)
-       (printf "\treplaced: ~a with ~a\n" (print-expr v) (print-expr (hash-ref env v)))
+       (dprintf #t "\treplaced: ~a with ~a\n"
+               (print-expr v) (print-expr (hash-ref env v)))
        (hash-ref env v)]
     [(stmt-elets vars vals bstmt)
      (define-values (nvars nvals ne)
        (for/fold ([nvars '()] [nvals '()] [e env])
                  ([var vars] [val vals])
+         (dprintf (expr-var? val)
+                  "replacing: ~a with ~a\n" (print-expr var) (print-expr val))
          (if (expr-var? val)
-             (begin
-               (printf "replacing: ~a with ~a\n" (print-expr var) (print-expr val))
-               (values nvars nvals (hash-set e var val)))
+             (values nvars nvals (hash-set e var val))
              (values (cons var nvars) (cons (sl val e) nvals) e))))
      (if (empty? nvars)
          (sl bstmt ne)
@@ -125,8 +127,9 @@
 
 (define mbind->let
   (create-rpass
-   (expr [(expr-app t (expr-intrf 'mbind) (list val (expr-bind (expr-var vt var org-sym) body)))
-          (printf "mbind ~a: ~a\n" var (typeof val))
+   (expr [(expr-app t (expr-intrf 'mbind)
+                    (list val (expr-bind (expr-var vt var org-sym) body)))
+          (dprintf #t "mbind ~a: ~a\n" var (typeof val))
           (expr-let t (expr-var (typeof val) var org-sym) val body)])
    (reducer)
    (stmt)
@@ -142,6 +145,7 @@
             ([e lst]
              [i (in-range (length lst))])
     (expr-if t (expr-app 'nat (expr-intrf '==) (list v (expr-val 'nat i))) e b)))
+
 (define macro-functions
   (create-rpass
    (expr [(expr-app t (expr-intrf 'empty) '())
@@ -162,32 +166,27 @@
    (stmt)
    (pat)))
 
-
-
-
 (define (remove-array-literals e)
-  (define pass (create-rpass
-                (expr [(expr-app ta (expr-intrf 'index)
-                                 (list (expr-app t (expr-intrf 'array-literal) aargs) iarg))
-                       (define ab (expr-app ta (expr-intrf 'index)
-                                            (list (expr-app t (expr-intrf 'array-literal) aargs) iarg)))
-                       (if (< (length aargs) 5)
-                           (check-if-remove aargs iarg ab)
-                           ab)])
-                (reducer)
-                (stmt)
-                (pat)))
+  (define pass
+    (create-rpass
+     (expr [(expr-app ta (expr-intrf 'index)
+                      (list (expr-app t (expr-intrf 'array-literal) aargs) iarg))
+            (define ab
+              (expr-app ta (expr-intrf 'index)
+                        (list (expr-app t (expr-intrf 'array-literal) aargs) iarg)))
+            (if (< (length aargs) 5) (check-if-remove aargs iarg ab) ab)])
+     (reducer)
+     (stmt)
+     (pat)))
   (pass e))
-                           
+
 (define (check-if-remove arr-vals indexer orig-b)
-  (printf "checking if can be removed\n")
   (if (complex? indexer)
       orig-b
       (match indexer
-        [(expr-if t chk (expr-val 'nat vthn) (expr-val 'nat vels)) (expr-if t chk (list-ref arr-vals vthn)
-                                                                          (list-ref arr-vals vels))]
+        [(expr-if t chk (expr-val 'nat vthn) (expr-val 'nat vels))
+         (expr-if t chk (list-ref arr-vals vthn) (list-ref arr-vals vels))]
         [else orig-b])))
-
 
 (define (cleanup e)
   (define (merge-stmt-block s)
@@ -213,30 +212,20 @@
       [(expr-block t (stmt-block '()) e) e])
      (reducer)
      (stmt
-      [(stmt-lets '() s) s]
-      [(stmt-lets vars s)
-       #:when (stmt-block? s)
-       (define vs (list->mutable-set vars))
-       (define ns (append-map (λ (s)
-                                (match s
-                                  [(stmt-lets vars s) (map (curry set-add! vs) vars) (list s)]
-                                  [(stmt-block ss) ss]
-                                  [else (list s)]))
-                              (stmt-block-stmts s)))
-       (stmt-lets (set->list vs) (merge-stmt-block (stmt-block ns)))]
-
+      ;; [(stmt-lets '() s) s]
+      ;; [(stmt-lets vars s)
+      ;;  #:when (stmt-block? s)
+      ;;  (define vs (list->mutable-set vars))
+      ;;  (define ns
+      ;;    (append-map
+      ;;     (λ (s)
+      ;;       (match s
+      ;;         [(stmt-lets vars s) (map (curry set-add! vs) vars) (list s)]
+      ;;         [(stmt-block ss) ss]
+      ;;         [else (list s)]))
+      ;;     (stmt-block-stmts s)))
+      ;;  (stmt-lets (set->list vs) (merge-stmt-block (stmt-block ns)))]
       [(stmt-block '()) (stmt-void)]
-      [(stmt-block stmts)
-       (define ns
-         (append-map
-          (λ (s)
-            (match s
-              [(stmt-block ss) ss]
-              [(stmt-void) '()]
-              [else (list s)]))
-          stmts))
-       (if (eq? (length ns) 1)
-           (car ns)
-           (stmt-block ns))])
+      [(stmt-block stmts) (merge-stmt-block (stmt-block stmts))])
      (pat)))
   (pass e))

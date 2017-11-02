@@ -31,7 +31,7 @@
         (sham:exp:var 'gsl-rng)
         (sham:exp:app (sham:rator:external 'libgsl 'gsl_rng_alloc tvoid*)
                       (list (sham:exp:external 'libgsl 'gsl_rng_taus tvoid*))))
-       (sham:stmt:return-void))))
+       (sham:stmt:return (sham:exp:void)))))
 
     (sham:def:function
      'uniform '() '()
@@ -122,4 +122,4 @@
   (define normal (get-f 'normal))
 
   (printf "random normal mu=0, sd=1: ~a\n" (normal 0.0 (c-real2prob 1.0)))
-  (printf "random uniform 1-5: ~a\n" (uniform 1.0 500.0)))
+  (printf "random uniform 1-5: ~a\n" (uniform 1.0 5.0)))

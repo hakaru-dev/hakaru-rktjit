@@ -85,14 +85,11 @@
     [((reducer-index n ind a) ti)
      (define ind-var (expr-var 'nat (gensym^ 'indi) '_))
      (define ind-result (assign-binds binds ind))
-     (stmt-lets (list ind-var)
-                (stmt-block
-                 (list
-                  (stmt-assign ind-var ind-result)
-                  (get-accum i (append binds (list ind-var))
-                             (expr-app (cadr (typeof result))
-                                       (expr-intrf 'index) (list result ind-var))
-                             t a))))]
+     (stmt-elets (list ind-var) (list ind-result)
+                 (get-accum i (append binds (list ind-var))
+                            (expr-app (cadr (typeof result))
+                                      (expr-intrf 'index) (list result ind-var))
+                            t a))]
     [(r t) (printf "unknown reducer type: ~a\n" t)]))
 
 (define (assign-binds vars bind)
