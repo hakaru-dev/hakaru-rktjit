@@ -19,6 +19,10 @@
   (sham:exp:ui-value v type-nat-ref))
 (define (nat32-value v)
   (sham:exp:ui-value v (sham:type:ref 'i32)))
+(define (prob-value v)
+  (sham:exp:app (sham:rator:symbol'real2prob)
+                (list (real-value (exact->inexact v)))))
+
 (define (get-struct-field sym . indexs)
   (sham:exp:gep (sham$var sym) (cons (nat32-value 0) (map nat32-value indexs))))
 (define (get-size-ptr vsym)

@@ -81,7 +81,6 @@
        (sham:exp:let '() '() '() (es stmt) (ee body))]
       [(expr-if t tst thn els) (sham:exp:void)]
       [else (error (format "not expanding for expr: ~a\n" expr))]))
-
   (define expand-expr ee)
 
   (define (for->while index end body)
@@ -133,10 +132,8 @@
         (expand-stmt b))]))
   (define prog (expand-fun (cons 'prog (expr-mod-main mod))))
   ;  (pretty-display (map sham-def->sexp (get-defs-prelude prl)))
-  (pretty-display (print-sham-def prog))
-
   (sham:module
    '()
-   (cons prog
-         (append (cleanup-defs (get-defs-prelude prl))
+   (append (get-defs-prelude prl)
+           (cons prog
                  (map expand-fun (expr-mod-fns mod))))))
