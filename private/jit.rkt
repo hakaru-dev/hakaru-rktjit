@@ -33,7 +33,7 @@
         (cons flatten-anf        pp-expr)
 
         (cons combine-loops      pp-expr)
-
+        ;stop
         (cons remove-unit-lets   pp-expr)
         (cons simplify-lets      pp-expr)
 
@@ -84,15 +84,14 @@
   (compile-src src))
 
 (define (debug-src src)
-  (parameterize ([debug-pass #t]
-                 [to-print? (curryr member '(cleanup expand-to-lc))]
-                 [to-not-print? (const #t)])
+  (parameterize ([debug-pass #t])
+                 ;[to-print? (curryr member '(cleanup expand-to-lc))] [to-not-print? (const #t)])
     (compile-src src)))
 (define debug-file  (compose debug-src read-file))
 
-(module+ test
-;  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr")) ;;fix prelude ordering
+(module+ test)
+;  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr")) ;;compiles
 ;  (debug-file "../../testcode/hkrkt/linearRegression_simp.hkr")) ;;same ^^
 ;  (debug-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr")) ;;add support for all array rators
-  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr")) ;;needs some signed int and some other basic math functions
+;  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr")) ;;needs some signed int and some other basic math functions
 ;  (debug-file "../../testcode/hkrkt/lda_gibbs_simp.hkr")) ;;error in combine loops
