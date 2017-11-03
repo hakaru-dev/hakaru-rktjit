@@ -23,6 +23,9 @@
   (string->symbol (string-append (symbol->string s1)
 				 (symbol->string s2))))
 
+(define (get-vi i)
+  (string->symbol (format "v~a" i)))
+
 (define (prob->real x) (exp x))
 (define (real->prob x) (log x))
 (define (nat->prob x) (real->prob (exact->inexact x)))
