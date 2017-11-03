@@ -18,7 +18,7 @@
 (define (expand-to-lc mod)
   (define prl (new-prelude))
   (add-defs-prelude! prl (basic-defs))
-
+  (add-defs-prelude! prl (probability-defs))
   (define (get-value v type)
     (match type
       ['nat (nat-value (truncate (inexact->exact v)))]
@@ -32,7 +32,10 @@
 
   (define (get-type type-ast)
     (define type-defs (get-sham-type-define (if-need-pointer type-ast)))
-    (add-defs-prelude! prl type-defs)
+;    (printf "getting types for: ~a\n" (if-need-pointer type-ast))
+;    (pretty-display (map print-sham-def type-defs))
+;    (newline)
+    (add-defs-prelude! prl (reverse type-defs))
     (define type-ref (get-sham-type-ref (car type-defs)))
     (match type-ast
       [`(array ,_)
@@ -133,7 +136,7 @@
   (define prog (expand-fun (cons 'prog (expr-mod-main mod))))
   ;  (pretty-display (map sham-def->sexp (get-defs-prelude prl)))
   (sham:module
-   '()
-   (append (get-defs-prelude prl)
+   (basic-mod-info)
+   (append (cleanup-defs (get-defs-prelude prl))
            (cons prog
                  (map expand-fun (expr-mod-fns mod))))))
