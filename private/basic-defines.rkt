@@ -40,7 +40,7 @@
    (sham$define
     (prob2real (v : prob) : real)
     (return (sham$app-var (llvm.exp.f64 prob) v)))
-   
+
    (sham$define
     (real2prob (v : real) : prob)
     (return (sham$app-var (llvm.log.f64 prob) v)))
@@ -57,7 +57,7 @@
    (sham$define
     (recip-prob (v : real) : real)
     (return (sham$app fmul (real-value -1.0) (sham$var 'v))))
-   
+
    (sham$define
     (add-2-nat (v1 : nat) (v2 : nat) : nat)
     (return (sham$app-var add-nuw v1 v2)))
@@ -83,7 +83,7 @@
                                 (sham$app-var prob2real v1)
                                 (sham$app-var prob2real v2)
                                 (sham$app-var prob2real v3)))))
-   
+
    (sham$define
     (mul-2-nat (v1 : nat) (v2 : nat) : nat)
     (return (sham$app-var mul-nuw v1 v2)))
@@ -93,6 +93,19 @@
    (sham$define
     (mul-2-prob (v1 : prob) (v2 : prob) : prob)
     (return (sham$app-var fadd v1 v2)))))
+
+(define (simple-rator? sym)
+  (member sym
+          '(nat2prob nat2real prob2real real2prob
+                     recip-nat recip-real recip-prob
+                     add-2-nat add-2-real add-2-prob
+                     add-3-real add-3-prob
+                     mul-2-nat mul-2-real mul-2-prob
+                     uniform normal beta gamma categorical)))
+(define math-rator?
+  (curryr member '(+ * < > / == -)))
+(define (get-math-rator sym tresult trands)
+  (values '() (sham:rator:symbol 'math)))
 
 (module+ test
   (require rackunit)
@@ -110,7 +123,7 @@
 
   (define (get-t t) (jit-get-racket-type (env-lookup t benv)))
   (define (get-f f) (jit-get-function f benv))
-  
+
   (define t-real (get-t 'real))
   (define t-nat (get-t 'nat))
   (define t-prob (get-t 'prob))
@@ -142,7 +155,7 @@
   (check-= (recip-real 5.2345) (/ 1.0 5.2345) e)
   (check-= (recip-prob (c-real2prob 5.2345)) (real->prob (/ 1.0 5.2345)) e)
   (check-= (recip-prob 14.124515) (real->prob (/ 1.0 (prob->real 14.124515))) e)
-  
+
   (check-eq? (add-2-nat 3 4) 7)
   (check-= (add-2-real 1.234 543.1234) (+ 1.234 543.1234) e)
   (check-= (add-3-real 5.324 543.2432 89.43241) (+ 5.324 543.2432 89.43241) e)
