@@ -5,7 +5,24 @@
          "type-defines.rkt"
          "prelude.rkt")
 
-(provide array-defs)
+(provide array-defs
+         array-rator?
+         get-array-rator)
+
+(define (array-rator? sym) (member sym '(empty index size)))
+(define (get-array-rator sym tresult trands)
+  (sham:rator:symbol
+   (string->symbol
+    (call-with-values
+     (λ ()
+       (match sym
+         ['index (values get-index-fun-format (get-type-string (car trands)))]
+         ['size (values get-array-size-fun-format (get-type-string (car trands)))]))
+     format))))
+
+
+
+
 
 (define (get-array-data-type type)
   (match type
