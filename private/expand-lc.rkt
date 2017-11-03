@@ -46,17 +46,24 @@
 
   (define (ea t rator rands)
     (define trands (map typeof rands))
-    (define (get-rator rator)
-      (define sym (expr-intrf-sym rator))
-      (cond
-        [(simple-rator? sym) (sham:rator:symbol sym)]
-        [(pair-rator? sym) (get-pair-rator sym t trands)]
-        [(array-rator? sym) (get-array-rator sym t trands)]
-        [(math-rator? sym)
-         (define-values (defs sham-rator) (get-math-rator sym t trands))
-         (add-defs-prelude! prl defs)
-         sham-rator]))
-    (sham:exp:app (get-rator rator) (map ee rands)))
+    (define (build-app rtr (rnds rands))
+      (sham:exp:app rtr (map ee rnds)))
+    (define sym (expr-intrf-sym rator))
+    (cond
+      [(simple-rator? sym) (build-app (sham:rator:symbol sym))]
+      [(pair-rator? sym) (build-app (get-pair-rator sym t trands))]
+      [(array-rator? sym) (build-app (get-array-rator sym t trands))]
+      [(math-rator? sym)
+       (define-values (defs rtr nrands) (figure-out-math sym rands t trands))
+       (add-defs-prelude! prl defs)
+       (build-app rtr nrands)]
+      ['superpose-categorical
+       (define-values (defs rtr)
+         (build-superpose-categorical (length trands)))
+       (add-defs-prelude! prl defs)
+       (build-app rtr)]
+      [else (printf "why is this rator not done?: ~a\n" sym)
+            (build-app (sham:rator:symbol '?))]))
 
   (define (ee expr)
     (match expr
