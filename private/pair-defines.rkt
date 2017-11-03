@@ -5,7 +5,21 @@
          "type-defines.rkt"
          "prelude.rkt")
 
-(provide pair-defs)
+(provide pair-defs
+         pair-rator?
+         get-pair-rator)
+
+(define (pair-rator? sym) (member sym '(car cdr cons)))
+(define (get-pair-rator sym tresult trands)
+  (sham:rator:symbol
+   (string->symbol
+    (call-with-values
+     (λ ()
+       (match sym
+         ['car (values pair-car-fun-format (get-type-string (car trands)))]
+         ['cdr (values pair-cdr-fun-format (get-type-string (car trands)))]
+         ['cons (values make-pair-fun-format (get-type-string tresult))]))
+     format))))
 
 (define (get-pair-types type)
   (match type
@@ -20,7 +34,7 @@
   (define ptp (sham:type:pointer ptref))
 
   (define (get-fun-name frmt)
-    (string->symbol (format frmt (sham:def-id ptdef)))) 
+    (string->symbol (format frmt (sham:def-id ptdef))))
 
   (define (make-pair)
     (sham:def:function
@@ -37,14 +51,14 @@
        (sham:stmt:expr (sham$app-var store! a ap))
        (sham:stmt:expr (sham$app-var store! b bp))
        (sham:stmt:return (sham$var 'pp))))))
-  
+
   (define (get-car)
     (sham:def:function
      (get-fun-name pair-car-fun-format) ;;car
      '() '(AlwaysInline)
      '(p) (list ptp) atref
      (sham:stmt:return (sham$app load (get-struct-field 'p 0)))))
-  
+
   (define (get-cdr)
     (sham:def:function
      (get-fun-name pair-cdr-fun-format)
@@ -103,4 +117,3 @@
   (define tpp (make-pair-ppn tp 84))
   (check-eq? (car-pair-nn (car-pair-ppn tpp)) 24)
   (check-eq? (cdr-pair-ppn tpp) 84))
-
