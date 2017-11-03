@@ -85,36 +85,37 @@
      '(arr) (list (sham:type:ref 'array<prob>)) tnat
      (sham:stmt:return (nat-value 0))))))
 
-(define (build-superpose-categorical len)
+(define (build-superpose-categorical len) ;;TODO we can probably optimize len two with binomial
   (define fun-name (string->symbol (format "categorical-~a" len)))
   (define func
     (sham:def:function
      fun-name '() '()
-     (build-list len (λ (i) (string->symbol (format "v~a"  i))))
-     (build-list len (const (sham:type:ref 'array<prob>))) (sham:type:ref 'prob)
+     (build-list len get-vi)
+     (build-list len (const (sham:type:ref 'prob))) (sham:type:ref 'nat)
      (sham:stmt:expr
       (sham:exp:let (list 'arr)
                     (list (sham:type:ref 'array<prob>))
-                    (list (sham:exp:app (sham:rator:symbol
-                                         (string->symbol (format new-size-array-fun-format
-                                                                 'array<prob>)))
-                                        (list (nat-value len))))
+                    (list (sham:exp:app
+                           (sham:rator:symbol
+                            (string->symbol (format new-size-array-fun-format
+                                                    'array<prob>)))
+                           (list (nat-value len))))
                     (sham:stmt:block
                      (append
                       (for/list [(i (in-range len))]
-                        (sham:stmt:expr (sham:exp:app (sham:rator:symbol
-                                                       (string->symbol (format set-index-fun-format
-                                                                               'array<prob>)))
-                                                      (list (sham$var 'arr)
-                                                            (nat-value i)
-                                                            (sham:exp:var
-                                                             (string->symbol (format "v~a" i)))))))
+                        (sham:stmt:expr
+                         (sham:exp:app (sham:rator:symbol
+                                        (string->symbol (format set-index-fun-format
+                                                                'array<prob>)))
+                                       (list (sham$var 'arr)
+                                             (nat-value i)
+                                             (sham$var (get-vi i))))))
                       (list
                        (sham:stmt:return
                         (sham:exp:app (sham:rator:symbol 'categorical)
                                       (list (sham$var 'arr)))))))
                     (sham:exp:void))))) ;;TODO free arr :P
-  (values (list func) (sham:rator:symbol fun-name)))
+  (values (cons func (array-defs '(array prob))) (sham:rator:symbol fun-name)))
 
 (module+ test
   (require rackunit
