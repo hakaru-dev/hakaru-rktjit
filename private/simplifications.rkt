@@ -45,8 +45,7 @@
   (dprintf #t "setting type of ~a to ~a\n" (print-expr cdr-var) cdr-type)
   (set-expr-var-type! cdr-var cdr-type)
 
-  (dprintf #t "match-pair: \n\tbr: ~a\n\tat: ~a, bt: ~a\n"
-          (pe (car brs))
+  (dprintf #t "match-pair: at: ~a, bt: ~a\n"
           car-type cdr-type)
   (expr-lets (list car-type cdr-type)
             (list car-var cdr-var)
