@@ -6,10 +6,12 @@
 (define type-nat-def (sham:def:type 'nat (sham:type:ref 'i64)))
 (define type-real-def (sham:def:type 'real (sham:type:ref 'f64)))
 (define type-prob-def (sham:def:type 'prob (sham:type:ref 'f64)))
+(define type-bool-def (sham:def:type 'bool (sham:type:ref 'i1)))
 
 (define type-nat-ref (sham:type:ref 'nat))
 (define type-real-ref (sham:type:ref 'real))
 (define type-prob-ref (sham:type:ref 'prob))
+(define type-bool-ref (sham:type:ref 'bool))
 
 (define (real-value v)
   (sham:exp:fl-value v type-real-ref))
@@ -38,7 +40,7 @@
     [else (error "unknown type format" t)]))
 (define get-type-sym (compose string->symbol get-type-string))
 
-(define nrp? (curryr member '(nat real prob)))
+(define nrp? (curryr member '(nat real prob int bool)))
 (define (if-need-pointer t) (if (nrp? t) t `(pointer ,t)))
 (define (expand-type t)
   (define et expand-type)
@@ -78,6 +80,7 @@
        (cons ct st)]
       ['nat (cons type-nat-def '())]
       ['prob (cons type-prob-def '())]
+      ['bool  (cons type-bool-def '())]
       ['real (cons type-real-def '())]))
   (define defs (hash-ref! sham-type-def-hash tast create-new!))
   (map (λ (d) (hash-set! type-hash (sham:def-id d) (sham:def:type-type d))) defs)
