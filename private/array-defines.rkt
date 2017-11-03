@@ -20,10 +20,6 @@
          ['size (values get-array-size-fun-format (get-type-string (car trands)))]))
      format))))
 
-
-
-
-
 (define (get-array-data-type type)
   (match type
     [(sham:type:struct _ (list _ t)) t]))

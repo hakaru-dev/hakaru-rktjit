@@ -159,7 +159,8 @@
           (define var (expr-var 'nat (gensym^ 's) '_))
           (expr-let t
                     var
-                    (expr-app 'nat (expr-intrf 'categorical) (get-evens args))
+                    (expr-app 'nat (expr-intrf 'superpose-categorical)
+                              (get-evens args))
                     (make-switch t (get-odds args) var))])
    (reducer)
    (stmt)

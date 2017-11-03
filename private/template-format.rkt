@@ -35,9 +35,9 @@
 (define set-index-fun-format (cft "set-index" 1))
 
 
-(define add-fun-format (cft "add" 2));;add-<num-args>-<type>
-(define mul-fun-format (cft "mul" 2));;mul-<num-args>-<type>
-(define recip-fun-format (cft "recip" 2))
+(define add-fun-format "add-~a-~a");;add-<num-args>-<type>
+(define mul-fun-format "mul-~a-~a");;mul-<num-args>-<type>
+(define recip-fun-format "recip-~a")
 
 (define (get-fun-symbol frmt . args)
   (string->symbol (apply format (cons frmt args))))
