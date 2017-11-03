@@ -6,8 +6,10 @@
 
 (require sham/jit
          sham/ast
+         "ast.rkt"
          "sham-utils.rkt"
-         "type-defines.rkt")
+         "type-defines.rkt"
+         "template-format.rkt")
 
 (provide (all-defined-out))
 
@@ -104,8 +106,48 @@
                      uniform normal beta gamma categorical)))
 (define math-rator?
   (curryr member '(+ * < > / == -)))
-(define (get-math-rator sym tresult trands)
-  (values '() (sham:rator:symbol 'math)))
+(define (figure-out-math sym rands tresult trands)
+  (match sym
+    ['+ #:when (and (andmap (curry equal? (car trands)) trands)
+                    (<= (length trands) 3))
+        (values '()
+                (sham:rator:symbol
+                 (string->symbol (format add-fun-format (length trands) (get-type-string tresult))))
+                rands)]
+
+    ['* #:when (and (andmap (curry equal? (car trands)) trands)
+                    (<= (length trands) 3))
+        (values '()
+                (sham:rator:symbol
+                 (string->symbol (format mul-fun-format (length trands) (get-type-string tresult))))
+                rands)]
+    ['< #:when (andmap (curry equal? 'nat) trands)
+        (values '()
+                (sham:rator:symbol 'icmp-ult)
+                rands)]
+    ['/ #:when (and (andmap (curry equal? 'nat) trands)
+                    (equal? 'nat tresult))
+        (values '()
+                (sham:rator:symbol 'udiv)
+                rands)]
+    ['/ #:when (and (andmap (curry equal? 'nat) trands)
+                    (equal? (length trands) 2)
+                    (equal? 'prob tresult))
+        (values '()
+                (sham:rator:symbol 'mul2prob)
+                (list (expr-app 'prob (expr-intrf 'real2prob)
+                                (list (expr-app 'real (expr-intrf 'nat2real) (list (first rands)))))
+                      (expr-app 'prob (expr-intrf 'recip-prob)
+                                (list (expr-app 'prob (expr-intrf 'real2prob)
+                                                (list (expr-app 'real (expr-intrf 'nat2real)
+                                                                (list (second rands)))))))))]
+
+    ['== #:when (andmap (curry equal? 'nat) trands)
+         (values '() (sham:rator:symbol 'icmp-eq) rands)]
+    [else (printf "why is this math not figured out?: ~a, tresult: ~a, trands: ~a\n" sym tresult trands)
+          (values '() (sham:rator:symbol '?) rands)]))
+
+
 
 (module+ test
   (require rackunit)

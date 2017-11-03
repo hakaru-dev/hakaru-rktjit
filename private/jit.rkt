@@ -43,11 +43,10 @@
         (cons simplify-lets      pp-expr)
         ;(cons folds->for         pp-expr)
         (cons to-stmt            pp-expr)
-
+ 
         (cons simplify-set       pp-expr)
         ;(cons remove-if-expr     pp-expr)
         (cons cleanup            pp-expr)
-        stop
         (cons expand-to-lc       (compose pretty-display sham-ast->sexp))
         stop))
 
@@ -86,14 +85,14 @@
 
 (define (debug-src src)
   (parameterize ([debug-pass #t]
-                 [to-print? (curryr member '(cleanup))]
+                 [to-print? (curryr member '())] ;expand-to-lc))]
                  [to-not-print? (const #t)])
     (compile-src src)))
 (define debug-file  (compose debug-src read-file))
 
 (module+ test
-;  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr")
+  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr"))
 ;  (debug-file "../../testcode/hkrkt/linearRegression_simp.hkr")
 ;  (debug-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr"))
-  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr"))
+;  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr"))
 ;  (debug-file "../../testcode/hkrkt/lda_gibbs_simp.hkr"))
