@@ -3,6 +3,7 @@
 (require sham/ast)
 
 (provide (all-defined-out))
+;;TODO make this assoc
 (define (new-prelude)
   (make-hash))
 (define (add-defs-prelude! prelude defs)
@@ -17,4 +18,3 @@
              #:when (not (set-member? already-seen (sham:def-id def))))
     (set-add! already-seen (sham:def-id def))
     def))
-

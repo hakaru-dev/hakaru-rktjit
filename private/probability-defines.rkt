@@ -107,7 +107,8 @@
                                                                                'array<prob>)))
                                                       (list (sham$var 'arr)
                                                             (nat-value i)
-                                                            (sham:exp:var (string->symbol (format "v~a" i)))))))
+                                                            (sham:exp:var
+                                                             (string->symbol (format "v~a" i)))))))
                       (list
                        (sham:stmt:return
                         (sham:exp:app (sham:rator:symbol 'categorical)

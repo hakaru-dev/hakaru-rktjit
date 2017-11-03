@@ -17,7 +17,8 @@
      (λ ()
        (match sym
          ['index (values get-index-fun-format (get-type-string (car trands)))]
-         ['size (values get-array-size-fun-format (get-type-string (car trands)))]))
+         ['size (values get-array-size-fun-format (get-type-string (car trands)))]
+         [else (values "array?")]))
      format))))
 
 (define (get-array-data-type type)

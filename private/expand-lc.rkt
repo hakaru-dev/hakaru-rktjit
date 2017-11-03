@@ -57,7 +57,7 @@
        (define-values (defs rtr nrands) (figure-out-math sym rands t trands))
        (add-defs-prelude! prl defs)
        (build-app rtr nrands)]
-      ['superpose-categorical
+      [(equal? sym 'superpose-categorical)
        (define-values (defs rtr)
          (build-superpose-categorical (length trands)))
        (add-defs-prelude! prl defs)

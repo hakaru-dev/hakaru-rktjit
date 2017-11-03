@@ -26,7 +26,7 @@
         (cons parse-sexp         pp-expr)
 
         (cons macro-functions    pp-expr)
-        (cons simplify-match     pp-expr) 
+        (cons simplify-match     pp-expr)
 
         (cons mbind->let         pp-expr)
         (cons remove-array-literals pp-expr)
@@ -43,12 +43,12 @@
         (cons simplify-lets      pp-expr)
         ;(cons folds->for         pp-expr)
         (cons to-stmt            pp-expr)
- 
+
         (cons simplify-set       pp-expr)
         ;(cons remove-if-expr     pp-expr)
         (cons cleanup            pp-expr)
-        (cons expand-to-lc       (compose pretty-display sham-ast->sexp))
-        stop))
+        (cons expand-to-lc       (compose pretty-display sham-ast->sexp))))
+
 
 
 (define to-print? (make-parameter (const #t)))
@@ -63,7 +63,7 @@
       [((to-not-print?) pass-name) (void)]
       [else (printer new-p)])))
 
-    
+
 (define (compile-src src)
   (define prog-module
    (for/fold ([prg src])
@@ -85,14 +85,14 @@
 
 (define (debug-src src)
   (parameterize ([debug-pass #t]
-                 [to-print? (curryr member '())] ;expand-to-lc))]
+                 [to-print? (curryr member '(cleanup expand-to-lc))]
                  [to-not-print? (const #t)])
     (compile-src src)))
 (define debug-file  (compose debug-src read-file))
 
 (module+ test
-  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr"))
-;  (debug-file "../../testcode/hkrkt/linearRegression_simp.hkr")
-;  (debug-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr"))
-;  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr"))
-;  (debug-file "../../testcode/hkrkt/lda_gibbs_simp.hkr"))
+;  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr")) ;;fix prelude ordering
+;  (debug-file "../../testcode/hkrkt/linearRegression_simp.hkr")) ;;same ^^
+;  (debug-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr")) ;;add support for all array rators
+  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr")) ;;needs some signed int and some other basic math functions
+;  (debug-file "../../testcode/hkrkt/lda_gibbs_simp.hkr")) ;;error in combine loops
