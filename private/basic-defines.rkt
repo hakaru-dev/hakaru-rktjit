@@ -8,6 +8,7 @@
          sham/ast
          "ast.rkt"
          "sham-utils.rkt"
+         "utils.rkt"
          "type-defines.rkt"
          "template-format.rkt")
 
@@ -106,6 +107,19 @@
                      uniform normal beta gamma categorical)))
 (define math-rator?
   (curryr member '(+ * < > / == -)))
+
+(define (mul-prob-sym len)
+  (string->symbol (format mul-fun-format len 'prob)))
+
+(define (build-mul-prob len)
+  (sham:def:function
+   (mul-prob-sym len) '() '()
+   (build-list len get-vi)
+   (build-list len (const type-prob-ref))
+   type-prob-ref
+   (sham:stmt:return (sham:exp:app (sham:rator:symbol 'fadd)
+                                   (build-list len (compose sham$var get-vi))))))
+
 (define (figure-out-math sym rands tresult trands)
   (match sym
     ['+ #:when (and (andmap (curry equal? (car trands)) trands)
@@ -116,11 +130,16 @@
                 rands)]
 
     ['* #:when (and (andmap (curry equal? (car trands)) trands)
-                    (<= (length trands) 3))
+                    (< (length trands) 3))
         (values '()
                 (sham:rator:symbol
                  (string->symbol (format mul-fun-format (length trands) (get-type-string tresult))))
                 rands)]
+    ['* #:when (and (andmap (curry equal? 'prob) trands))
+        (values (list (build-mul-prob (length trands)))
+                (sham:rator:symbol (mul-prob-sym (length trands)))
+                rands)]
+
     ['< #:when (andmap (curry equal? 'nat) trands)
         (values '()
                 (sham:rator:symbol 'icmp-ult)
@@ -134,7 +153,7 @@
                     (equal? (length trands) 2)
                     (equal? 'prob tresult))
         (values '()
-                (sham:rator:symbol 'mul2prob)
+                (sham:rator:symbol 'mul-2-prob)
                 (list (expr-app 'prob (expr-intrf 'real2prob)
                                 (list (expr-app 'real (expr-intrf 'nat2real) (list (first rands)))))
                       (expr-app 'prob (expr-intrf 'recip-prob)
@@ -148,7 +167,10 @@
           (values '() (sham:rator:symbol '?) rands)]))
 
 
-
+(define (basic-mod-info)
+  '((passes . ())
+    (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
+                 (libgsl . ("libgsl"))))))
 (module+ test
   (require rackunit)
   (require "utils.rkt")
