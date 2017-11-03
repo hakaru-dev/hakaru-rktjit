@@ -4,138 +4,132 @@
 
 (require "ast.rkt"
          "sham-utils.rkt"
-         "utils.rkt")
+         "type-defines.rkt"
+         "utils.rkt"
+         "prelude.rkt"
+         "template-format.rkt"
+         "basic-defines.rkt"
+         "array-defines.rkt"
+         "pair-defines.rkt"
+         "probability-defines.rkt")
 
 (provide expand-to-lc)
 
 (define (expand-to-lc mod)
-  (define prelude-defines (set))
-  (define add-to-prelude (curry set-add! prelude-defines))
-
-  (define (get-rator-sym t rator rands)
-    (sham:rator:symbol
-     (match rator
-       [(expr-intrf 'empty)
-        (string->symbol (format "empty-~a" (get-print-type t)))]
-       [(expr-intrf 'cons)
-        (string->symbol (format "make-~a" (get-print-type t)))]
-       [(expr-intrf s) s]
-       [(expr-intrf s)
-        (define rand-type (typeof (car rands)))
-        (define r-type (get-print-type rand-type))
-        (match s
-          ['index (string->symbol (format "index-~a" r-type))]
-          ['size  (string->symbol (format "size-~a" r-type))]
-          ['recip (symbol-append 'recip- r-type)]
-          ['+ (string->symbol (format "add-~a-~a" (length rands) r-type))]
-          ['* (string->symbol (format "mul-~a-~a" (length rands) r-type))]
-          [else (hash-ref op-map s s)])])))
-
-  (define (get-var-sym var)
-    (match var
-      [(expr-var t sym o) sym]))
-  (define (get-sham-var v) (sham:exp:var (get-var-sym v)))
-
-  (define (get-sham-type tast)
-    (match tast
-      [`(array ,t) (sham:type:ref (get-print-type `(* ,tast)))]
-      [`(pair ,t1 ,t2) (sham:type:ref (get-print-type `(* ,tast)))]
-      [`(measure ,t) (sham:type:ref (get-print-type tast))]
-      [(? symbol?) (sham:type:ref (get-print-type tast))]))
-
-  (define op-map
-    (make-hash
-     '((< . icmp-ult)
-       (== . icmp-eq))))
+  (define prl (new-prelude))
+  (add-defs-prelude! prl (basic-defs))
 
   (define (get-value v type)
     (match type
       ['nat (nat-value (truncate (inexact->exact v)))]
       ['prob (sham:exp:app (sham:rator:symbol'real2prob)
                            (list (real-value (exact->inexact v))))]
-      ['real (real-value (exact->inexact v))]))
-  (define (expand-exp b (env (make-immutable-hash)))
-    ;; (printf "expanding expr\n") (display-expr b)
-    (match b
-      [(expr-app t rt rds)
-       (sham:exp:app (get-rator-sym t rt rds) (map (curryr expand-exp env) rds))]
-      [var #:when (hash-has-key? env var)
-           (hash-ref env var)]
-      [(expr-var t sym o)
-       (sham:exp:var sym)]
-      [(expr-val t v)
-       (get-value v t)]
-      
-      [(expr-let t var val b)
-       (expand-exp b (hash-set env var (expand-exp val env)))]
+      ['real (real-value (exact->inexact v))]
+      ['int (sham:exp:var 'figuroutint)]))
+
+  (define (get-var-sym var-ast)
+    (match/values var-ast [((expr-var _ sym _)) sym]))
+
+  (define (get-type type-ast)
+    (define type-defs (get-sham-type-define (if-need-pointer type-ast)))
+    (add-defs-prelude! prl type-defs)
+    (define type-ref (get-sham-type-ref (car type-defs)))
+    (match type-ast
+      [`(array ,_)
+       (add-defs-prelude! prl (array-defs type-ast))]
+      [`(pair ,_ ,_)
+       (add-defs-prelude! prl (pair-defs type-ast))]
+      [else (void)])
+    type-ref)
+
+
+
+  (define (ea t rator rands)
+    (define trands (map typeof rands))
+    (define (get-rator rator)
+      (define sym (expr-intrf-sym rator))
+      (cond
+        [(simple-rator? sym) (sham:rator:symbol sym)]
+        [(pair-rator? sym) (get-pair-rator sym t trands)]
+        [(array-rator? sym) (get-array-rator sym t trands)]
+        [(math-rator? sym)
+         (define-values (defs sham-rator) (get-math-rator sym t trands))
+         (add-defs-prelude! prl defs)
+         sham-rator]))
+    (sham:exp:app (get-rator rator) (map ee rands)))
+
+  (define (ee expr)
+    (match expr
+      [(expr-app t rator rands) (ea t rator rands)]
+      [(expr-var t sym _) (sham:exp:var sym)]
       [(expr-val t v) (get-value v t)]
-      [else (error "cannot expand expression" b)]))
-  (define (expand-stmt stmt)
-    ;; (printf "expanding-stmt: \n") (display-stmt stmt)
+      [(expr-let t var val body)
+       (sham:exp:let (list (get-var-sym var))
+                     (list (get-type (typeof var)))
+                     (list (ee val))
+                     (sham:stmt:void)
+                     (ee body))]
+
+      [(expr-block t stmt body)
+       (sham:exp:let '() '() '() (es stmt) (ee body))]
+      [(expr-if t tst thn els) (sham:exp:void)]
+      [else (error (format "not expanding for expr: ~a\n" expr))]))
+
+  (define expand-expr ee)
+
+  (define (for->while index end body)
+    (values
+     (ee (expr-app 'i1 (expr-intrf '<) (list index end)))
+     (sham$block
+      (es body)
+      (es (stmt-assign
+           index
+           (expr-app (typeof index) (expr-intrf '+)
+                     (list index (expr-val (typeof index) 1))))))))
+
+  (define (es stmt)
     (match stmt
-      [(stmt-lets vars bstmt)
-       (sham:stmt:let
-        (map get-var-sym vars)
-        (map (compose get-sham-type typeof) vars)
-        (make-list (length vars) (sham:exp:void-value))
-        (expand-stmt bstmt))]
-      [(stmt-elets vars vals bstmt)
-       (sham:stmt:let (map get-var-sym vars)
-                      (map (compose get-sham-type typeof) vars)
-                      (map expand-exp vals)
-                      (expand-stmt bstmt))]
-
       [(stmt-if tst thn els)
-       (sham:stmt:if (expand-exp tst)
-                     (expand-stmt thn)
-                     (expand-stmt els))]
+       (sham:stmt:if (ee tst) (es thn) (es els))]
+      [(stmt-elets vars vals stmt)
+       (sham:stmt:expr
+        (sham:exp:let
+         (map get-var-sym vars)
+         (map (compose get-type typeof) vars)
+         (map ee vals)
+         (es stmt)
+         (sham:exp:void)))]
+      [(stmt-for i start end body)
+       (define symi (get-var-sym i))
+       (define-values (tst b) (for->while i end body))
+       (sham:stmt:expr
+        (sham:exp:let (list symi)
+                      (list (get-type (typeof i)))
+                      (list (ee start))
+                      (sham:stmt:while tst b)
+                      (sham:exp:void)))]
+      [(stmt-block stmts) (sham:stmt:block (map es stmts))]
+      [(stmt-assign var val) ;;TODO set-index-array
+       (sham:stmt:set! (ee var) (ee val))]
+      [(stmt-return v) (sham:stmt:return (ee v))]
+      [(stmt-void) (sham:stmt:void)]))
+  (define expand-stmt es)
 
-      [(stmt-block stmts)
-       (sham:stmt:block (map expand-stmt stmts))]
-
-      [(stmt-assign (expr-app t (expr-intrf 'index) (list arr ind)) val)
-       (sham:stmt:exp-stmt
-        (sham:exp:app
-         (sham:rator:symbol
-          (string->symbol
-           (format "set-index-in-~a" (get-print-type (typeof arr)))))
-         (map expand-exp (list arr ind val)))
-        (sham:stmt:void))]
-
-      [(stmt-assign var val)
-       (sham:stmt:set! (get-sham-var var) (expand-exp val))]
-      [(stmt-void)
-       (sham:stmt:void)]
-
-      ([stmt-for i start end body]
-       (define end-sym (gensym^ 'end))
-       (sham:stmt:let
-        (list (get-var-sym i) end-sym)
-        (list (get-sham-type (typeof i)) (get-sham-type (typeof i)))
-        (list (expand-exp start) (expand-exp end))
-        (sham:stmt:while
-         (sham:exp:app (sham:rator:symbol 'icmp-ult)
-                       (list (expand-exp i) (sham:exp:var end-sym)))
-         (sham:stmt:block
-          (list
-           (expand-stmt body)
-           (sham:stmt:set! (get-sham-var i)
-                           (sham:exp:app (sham:rator:symbol 'add-nuw)
-                                         (list (get-sham-var i)
-                                               (nat-value 1)))))))))
-      [(stmt-return val)
-       (sham:stmt:return (expand-exp val))]))
   (define (expand-fun p)
-    (printf "expanding function: ~a\n" (car p))
+    (dprintf #t "expanding function: ~a\n" (car p))
     (match (cdr p)
       [(expr-fun args ret-type b)
        (sham:def:function
         (car p) '() '(AlwaysInline)
-        (map get-var-sym args) (map (compose get-sham-type expr-var-type) args)
-        (get-sham-type ret-type)
+        (map get-var-sym args) (map (compose get-type expr-var-type) args)
+        (get-type ret-type)
         (expand-stmt b))]))
+  (define prog (expand-fun (cons 'prog (expr-mod-main mod))))
+  ;  (pretty-display (map sham-def->sexp (get-defs-prelude prl)))
+  (pretty-display (print-sham-def prog))
+
   (sham:module
    '()
-   (cons (expand-fun (cons 'main (expr-mod-main mod)))
-         (append (set->list prelude-defines)
+   (cons prog
+         (append (cleanup-defs (get-defs-prelude prl))
                  (map expand-fun (expr-mod-fns mod))))))
