@@ -24,7 +24,6 @@
    (if (type tst thn els) (symbol expr expr expr))
    (app (type rator rands) (symbol expr (* expr)))
    (val (type v) (symbol symbol))
-   (intr (sym) (symbol))
    (intrf (sym) (symbol))
    (block (type stmt body) (symbol stmt expr)))
   (reducer
