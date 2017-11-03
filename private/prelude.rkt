@@ -5,12 +5,14 @@
 (provide (all-defined-out))
 ;;TODO make this assoc
 (define (new-prelude)
-  (make-hash))
+  (box '()))
+
 (define (add-defs-prelude! prelude defs)
-  (map (λ (d) (hash-set! prelude (sham:def-id d) d)) defs)
+  (set-box! prelude (append (unbox prelude) defs))
   prelude)
+
 (define (get-defs-prelude prelude)
-  (hash-values prelude))
+  (unbox prelude))
 
 (define (cleanup-defs defs)
   (define already-seen (mutable-set))
