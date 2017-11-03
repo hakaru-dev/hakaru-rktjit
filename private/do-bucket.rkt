@@ -193,7 +193,7 @@
        (dprintf (not (empty? normal-var-map))
                 "normal-var-map: ~a\n"
                 (map (compose print-expr car) normal-var-map))
-       (dprintf (not (empty? normal-var-map))
+       (dprintf (not (empty? loop-var-map))
                 "loop-var-map: ~a\n"
                 (map (compose print-expr car) loop-var-map))
 
