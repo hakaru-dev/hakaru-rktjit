@@ -130,6 +130,15 @@
                   [(expr-arr t i s b)   i]))]
         (stmt-elets (list bi) (list index) stmt))))
 
+(define (get-stmt-sp i t body ib end to-assign op)
+  (wrap-index
+   i body
+   (expr->stmt
+    ib
+    (λ (e)
+      (stmt-assign
+       to-assign
+       (expr-app t (expr-intrf op) (list to-assign end)))))))
 
 (define (wrap-body-for-groups loop-groups body)
   (for/fold ([b body]) ([group loop-groups])
@@ -139,7 +148,22 @@
     (define-values (ntypes nvars nvals nstmts)
       (for/fold ([ntypes '()] [nvars '()] [nvals '()] [stmts '()]) ([loop group])
         (define var (first loop))
-        (match (second loop)
+        (define body (second loop))
+        (define (gsf b i assigner) ;get-stmt-fold
+          (stmt-elets
+           (list i) (list index)
+           (expr->stmt b assigner)))
+
+        (define (get-stmt-sp b i t op)
+          (gsf b i
+               (λ (e) (stmt-assign var (expr-app t (expr-intrf op)
+                                                 (list var e))))))
+        (define (get-stmt-ar b i t)
+          (gsf b i
+               (λ (e) (stmt-assign
+                       (expr-app t (expr-intrf 'index) (list var index)) e))))
+
+        (match body
           [(expr-bucket t start end reducer)
            (define-values (nt v l) (get-init '() var t reducer))
            (values (append nt ntypes)
@@ -148,30 +172,14 @@
                    (cons (get-accum index (list index) var t reducer) stmts))]
           [(expr-sum t i s e b)
            (values (cons t ntypes) (cons var nvars) (cons (expr-val t 0) nvals)
-                   (cons (expr->stmt
-                          b
-                          (λ (e)
-                            (stmt-assign var
-                                         (expr-app t (expr-intrf '+) (list var e)))))
-                         stmts))]
+                   (cons (get-stmt-sp b i t '+) stmts))]
           [(expr-prd t i s e b)
            (values (cons t ntypes) (cons var nvars) (cons (expr-val t 1) nvals)
-                   (cons (expr->stmt
-                          b
-                          (λ (e)
-                            (stmt-assign var
-                                         (expr-app t (expr-intrf '*) (list var e)))))
-                         stmts))]
+                   (cons (get-stmt-sp b i t '*) stmts))]
           [(expr-arr t i s b)
            (values (cons t ntypes) (cons var nvars)
                    (cons (expr-app t (expr-intrf 'empty) (list s)) nvals)
-                   (cons (expr->stmt
-                          b
-                          (λ (e)
-                            (stmt-assign
-                             (expr-app t (expr-intrf 'index) (list var index))
-                             e)))
-                         stmts))])))
+                   (cons (get-stmt-ar b i t) stmts))])))
     (expr-lets ntypes nvars nvals
                (expr-block (typeof b)
                            (stmt-for index start end (stmt-block nstmts)) b))))
