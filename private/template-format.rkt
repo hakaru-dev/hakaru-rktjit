@@ -33,7 +33,7 @@
 (define get-array-data-fun-format (cft "get-data" 1))
 (define get-index-fun-format (cft "get-index" 1))
 (define set-index-fun-format (cft "set-index" 1))
-
+(define array-literal-fun-format (cft "array-literal" 2))
 
 (define add-fun-format "add-~a-~a");;add-<num-args>-<type>
 (define mul-fun-format "mul-~a-~a");;mul-<num-args>-<type>
