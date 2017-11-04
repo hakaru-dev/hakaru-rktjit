@@ -45,7 +45,11 @@
 (define get-type-sym (compose string->symbol get-type-string))
 
 (define nrp? (curryr member '(nat real prob int bool)))
-(define (if-need-pointer t) (if (nrp? t) t `(pointer ,t)))
+(define (if-need-pointer t)
+  (match t
+    [`(measure ,mt) (if-need-pointer mt)]
+    [tp #:when (nrp? t) tp]
+    [else `(pointer ,t)]))
 (define (expand-type t)
   (define et expand-type)
   (match t
