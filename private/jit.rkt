@@ -23,6 +23,7 @@
 (define stop (cons (λ (e) (error 'stop)) pp-expr))
 (define passes
   (list (cons reduce-curry       pretty-display)
+        ;stop
         (cons parse-sexp         pp-expr)
 
         (cons macro-functions    pp-expr)
@@ -47,7 +48,8 @@
         (cons simplify-set       pp-expr)
         ;(cons remove-if-expr     pp-expr)
         (cons cleanup            pp-expr)
-        (cons expand-to-lc       (compose pretty-display sham-ast->sexp))))
+        (cons expand-to-lc       (compose pretty-display sham-ast->sexp))
+        stop))
 
 
 
@@ -84,14 +86,15 @@
   (compile-src src))
 
 (define (debug-src src)
-  (parameterize ([debug-pass #t])
-                 ;[to-print? (curryr member '(cleanup expand-to-lc))] [to-not-print? (const #t)])
+  (parameterize ([debug-pass #t]
+                 [to-print? (curryr member '(cleanup))]
+                 [to-not-print? (const #f)])
     (compile-src src)))
 (define debug-file  (compose debug-src read-file))
 
-(module+ test)
+(module+ test
 ;  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr")) ;;compiles
-;  (debug-file "../../testcode/hkrkt/linearRegression_simp.hkr")) ;;same ^^
-;  (debug-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr")) ;;add support for all array rators
-;  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr")) ;;needs some signed int and some other basic math functions
-;  (debug-file "../../testcode/hkrkt/lda_gibbs_simp.hkr")) ;;error in combine loops
+;  (debug-file "../../testcode/hkrkt/linearRegression_simp.hkr")) ;;compiles
+;  (debug-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr")) ;;needs signed int, exp,not
+;  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr")) ;;^^
+  (debug-file "../../testcode/hkrkt/lda_gibbs_simp.hkr")) ;;fix the bucket for array of pairs
