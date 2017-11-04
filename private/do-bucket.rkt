@@ -11,18 +11,31 @@
   (expr-var t (symbol-append s sym) o))
 
 (define (get-init binds result t reducer)
+  (printf "get-init: result: ~a, t: ~a\n" (pe result) t)
+  (printf "\t binds: \n")(pretty-display (map pe binds))(newline)
+  (printf "\t reducer: \n")(pretty-display (pr reducer))(newline)
   (match* (t reducer)
     [('nat (reducer-add _))
      (values (list 'nat) (list result) (list (expr-val 'nat 0)))]
     [('real (reducer-add _))
      (values (list 'real) (list result) (list (expr-val 'real 0)))]
     [(`(pair ,ta ,tb) (reducer-split _ ra rb))
+     #:when (expr-var? result)
      (define-values (tra vra vla)
        (get-init binds (expr-sym-append result 'a ta) ta ra))
      (define-values (trb vrb vlb)
        (get-init binds (expr-sym-append result 'b tb) tb rb))
      (values (append tra trb) (append vra vrb) (append vla vlb))]
+    [(`(pair ,ta ,tb) (reducer-split _ ra rb))
+     (define-values (tra vra vla)
+       (get-init binds result ta ra));;result should be car and cdr for next
+     (define-values (trb vrb vlb)
+       (get-init binds result tb rb))
+     (values (list t)
+             (list result)
+             (list (expr-app t (expr-intrf 'cons) (list (car vla) (car vlb)))))]
     [(`(pair ,ta ,tb) (reducer-fanout ra rb))
+     #:when (expr-var? result)
      (define-values (tra vra vla)
        (get-init binds (expr-sym-append result 'a ta) ta ra))
      (define-values (trb vrb vlb)
@@ -36,10 +49,11 @@
                                 (list arr-size)))
      (define arrn (expr-var t (gensym^ 'arri) '_))
      (define fori (expr-var 'nat (gensym^ 'fi) '_))
-     (define-values (vrt vra vla) (get-init (cons fori binds) result tar ra))
+     (define new-result (expr-app tar (expr-intrf 'index) (list arrn fori)))
+     (define-values (vrt vra vla) (get-init (cons fori binds) new-result tar ra))
      (values (list t)
              (list result)
-             (if (symbol? tar)
+             (if (or (equal? tar 'real) (equal? tar 'nat))
                  (list arr-init)
                  (list (expr-let
                         t arrn arr-init
@@ -47,22 +61,21 @@
                          t
                          (stmt-for
                           fori (expr-val 'nat 0) arr-size
-                          (stmt-assign
-                           (expr-app
-                            tar
-                            (expr-intrf 'index)
-                            (list arrn fori))
-                           (car vla)))
+                          (stmt-assign new-result (car vla)))
                          arrn)))))]
-
-    [('unit (reducer-nop)) (values '() '() '())]))
+    [('unit (reducer-nop)) (values '(unit) (list result) (list (expr-val 'unit 0)))]
+    [(a b) (error (format "get-init for bucket: t: ~a, result: ~a, reducer: ~a\n"
+                          t (pe result) (pr reducer)))]))
 
 (define (get-accum i binds result t reducer)
-  (printf "get-accum: reducer: ~a, result: ~a\n" (pr reducer) (pe result))
+  (printf "get-accum: result: ~a, t: ~a\n" (pe result) t)
+  (printf "\t binds: \n")(pretty-display (map pe binds))(newline)
+  (printf "\t reducer: \n")(pretty-display (pr reducer))(newline)
+
   (match* (reducer t)
-    [((reducer-split (expr-bind bvar bbody) a b) `(pair ,ta ,tb))
+    [((reducer-split e a b) `(pair ,ta ,tb))
      (dprintf #t "reducer-split,accum result: ~a" (print-expr result))
-     (stmt-if (expr-let (typeof i) bvar i bbody)
+     (stmt-if (assign-binds binds e)
               (get-accum i binds
                          (if (expr-var? result)
                              (expr-var ta (symbol-append (expr-var-sym result) 'a)'_)
@@ -173,6 +186,8 @@
         (match body
           [(expr-bucket t start end reducer)
            (define-values (nt v l) (get-init '() var t reducer))
+           (printf "result from get-init: vars: ~a, vals: ~a\n"
+                   (map pe v) (map pe l))
            (values (append nt ntypes)
                    (append v nvars)
                    (append l nvals)

@@ -107,12 +107,14 @@
      (expr [(expr-app t (expr-intrf s) rands)
             (match s
               ['car
+               #:when (expr-var? (car rands))
                (define var-sym (expr-var-sym (car rands)))
                (define nv (expr-var t (symbol-append var-sym 'a) '_))
                (if (string-prefix? (symbol->string var-sym) "bk")
                    nv
                    (expr-app t (expr-intrf s) rands))]
               ['cdr
+               #:when (expr-var? (car rands))
                (define var-sym (expr-var-sym (car rands)))
                (define nv (expr-var t (symbol-append var-sym 'b) '_))
                (if (string-prefix? (symbol->string var-sym) "bk")

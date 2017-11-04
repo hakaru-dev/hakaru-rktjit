@@ -67,7 +67,7 @@
                      uniform normal beta gamma categorical)))
                      ;recip-nat recip-real recip-prob)))
 (define math-rator?
-  (curryr member '(+ * < > / == - natpow recip root)))
+  (curryr member '(+ * < > / == and - natpow recip root)))
 
 (define (add-prob-sym len)
   (string->symbol (format add-fun-format len 'prob)))
@@ -91,6 +91,8 @@
     (equal? t 'prob))
   (define (tnat? t)
     (equal? t 'nat))
+  (define (tbool? t)
+    (equal? t 'bool))
   (match sym
     ['* #:when (and (andmap tprob? trands))
         (values '() (sham:rator:symbol 'fadd) rands)]
@@ -123,6 +125,8 @@
 
     ['== #:when (andmap tnat? trands)
          (values '() (sham:rator:symbol 'icmp-eq) rands)]
+    ['and #:when (andmap tbool? trands)
+         (values '() (sham:rator:symbol 'and) rands)]
     ['natpow
      #:when (and (treal? tresult) (treal? (first trands)) (tnat? (second trands)))
      (values '() (sham:rator:intrinsic 'llvm.powi.f64 (sham:type:ref 'real)) rands)]

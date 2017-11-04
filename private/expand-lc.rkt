@@ -22,10 +22,13 @@
   (define (get-value v type)
     (match type
       ['nat (nat-value (truncate (inexact->exact v)))]
+      ['unit (nat-value (truncate (inexact->exact 0)))]
       ['prob (sham:exp:app (sham:rator:symbol'real2prob)
                            (list (real-value (exact->inexact v))))]
       ['real (real-value (exact->inexact v))]
       ['int (sham:exp:var 'figuroutint)]))
+
+
 
   (define (get-var-sym var-ast)
     (match/values var-ast [((expr-var _ sym _)) sym]))
@@ -69,7 +72,8 @@
        (define def (build-array-literal (car trands) (length trands)))
        (add-defs-prelude! prl (list def))
        (build-app (sham:rator:symbol (sham:def-id def)))]
-      [else (printf "why is this rator not done?: ~a\n" sym)
+      [else (printf "why is this rator not done?: ~a, type: ~a, trands: ~a\n"
+                    sym t trands)
             (build-app (sham:rator:symbol '?))]))
 
   (define (ee expr)
@@ -83,7 +87,12 @@
                      (list (ee val))
                      (sham:stmt:void)
                      (ee body))]
-
+      [(expr-lets types vars vals body)
+       (sham:exp:let (map get-var-sym vars)
+                     (map (compose get-type typeof) vars)
+                     (map ee vals)
+                     (sham:stmt:void)
+                     (ee body))]
       [(expr-block t stmt body)
        (sham:exp:let '() '() '() (es stmt) (ee body))]
       [(expr-if t tst thn els) (sham:exp:void)]

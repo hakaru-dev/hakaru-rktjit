@@ -44,7 +44,7 @@
     [else (error "unknown type format" t)]))
 (define get-type-sym (compose string->symbol get-type-string))
 
-(define nrp? (curryr member '(nat real prob int bool)))
+(define nrp? (curryr member '(nat real prob int bool unit)))
 (define (if-need-pointer t)
   (match t
     [`(measure ,mt) (if-need-pointer mt)]
@@ -90,7 +90,8 @@
       ['int (cons type-nat-def '())]
       ['prob (cons type-prob-def '())]
       ['bool  (cons type-bool-def '())]
-      ['real (cons type-real-def '())]))
+      ['real (cons type-real-def '())]
+      ['unit (cons type-nat-def '())]))
   (define defs (hash-ref! sham-type-def-hash tast create-new!))
   (map (λ (d) (hash-set! type-hash (sham:def-id d) (sham:def:type-type d))) defs)
   defs)
