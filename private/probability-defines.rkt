@@ -47,7 +47,7 @@
      'normal '() '()
      '(mean sigma) (list treal tprob) treal
      (sham:stmt:return
-      (sham:exp:app (sham:rator:symbol 'add-2-real)
+      (sham:exp:app (sham:rator:symbol 'fadd)
                     (list
                      (sham$var 'mean)
                      (sham:exp:app
