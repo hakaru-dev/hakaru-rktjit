@@ -59,111 +59,92 @@
 
    (sham$define
     (recip-prob (v : real) : real)
-    (return (sham$app fmul (real-value -1.0) (sham$var 'v))))
-
-   (sham$define
-    (add-2-nat (v1 : nat) (v2 : nat) : nat)
-    (return (sham$app-var add-nuw v1 v2)))
-   (sham$define
-    (add-2-real (v1 : real) (v2 : real) : real)
-    (return (sham$app-var fadd v1 v2)))
-   (sham$define
-    (add-2-prob (v1 : prob) (v2 : prob) : prob)
-    (return (sham$app real2prob
-                      (sham$app add-2-real
-                                (sham$app-var prob2real v1)
-                                (sham$app-var prob2real v2)))))
-
-   (sham$define
-    (add-3-real (v1 : real) (v2 : real) (v3 : real) : real)
-    (return (sham$app fadd
-                      (sham$app-var fadd v1 v2)
-                      (sham$var 'v3))))
-   (sham$define
-    (add-3-prob (v1 : prob) (v2 : prob) (v3 : prob) : prob)
-    (return (sham$app real2prob
-                      (sham$app add-3-real
-                                (sham$app-var prob2real v1)
-                                (sham$app-var prob2real v2)
-                                (sham$app-var prob2real v3)))))
-
-   (sham$define
-    (mul-2-nat (v1 : nat) (v2 : nat) : nat)
-    (return (sham$app-var mul-nuw v1 v2)))
-   (sham$define
-    (mul-2-real (v1 : real) (v2 : real) : real)
-    (return (sham$app-var fmul v1 v2)))
-   (sham$define
-    (mul-2-prob (v1 : prob) (v2 : prob) : prob)
-    (return (sham$app-var fadd v1 v2)))))
+    (return (sham$app fmul (real-value -1.0) (sham$var 'v))))))
 
 (define (simple-rator? sym)
   (member sym
           '(nat2prob nat2real prob2real real2prob
-                     recip-nat recip-real recip-prob
-                     add-2-nat add-2-real add-2-prob
-                     add-3-real add-3-prob
-                     mul-2-nat mul-2-real mul-2-prob
                      uniform normal beta gamma categorical)))
+                     ;recip-nat recip-real recip-prob)))
 (define math-rator?
-  (curryr member '(+ * < > / == -)))
+  (curryr member '(+ * < > / == - natpow recip root)))
 
-(define (mul-prob-sym len)
-  (string->symbol (format mul-fun-format len 'prob)))
-
-(define (build-mul-prob len)
+(define (add-prob-sym len)
+  (string->symbol (format add-fun-format len 'prob)))
+(define (build-add-prob len)
   (sham:def:function
-   (mul-prob-sym len) '() '()
+   (add-prob-sym len) '() '()
    (build-list len get-vi)
-   (build-list len (const type-prob-ref))
-   type-prob-ref
-   (sham:stmt:return (sham:exp:app (sham:rator:symbol 'fadd)
-                                   (build-list len (compose sham$var get-vi))))))
+   (build-list len (const type-prob-ref)) type-prob-ref
+   (sham:stmt:return
+    (sham:exp:app
+     (sham:rator:symbol 'real2prob)
+     (list (sham:exp:app (sham:rator:symbol 'fadd)
+            (build-list len (λ (vi)
+                              (sham:exp:app (sham:rator:symbol 'prob2real)
+                                            (list (sham$var (get-vi vi))))))))))))
 
 (define (figure-out-math sym rands tresult trands)
+  (define (treal? t)
+    (equal? t 'real))
+  (define (tprob? t)
+    (equal? t 'prob))
+  (define (tnat? t)
+    (equal? t 'nat))
   (match sym
-    ['+ #:when (and (andmap (curry equal? (car trands)) trands)
-                    (<= (length trands) 3))
-        (values '()
-                (sham:rator:symbol
-                 (string->symbol (format add-fun-format (length trands) (get-type-string tresult))))
+    ['* #:when (and (andmap tprob? trands))
+        (values '() (sham:rator:symbol 'fadd) rands)]
+    ['* #:when (and (andmap treal? trands))
+        (values '() (sham:rator:symbol 'fmul) rands)]
+    ['* #:when (and (andmap tnat? trands))
+        (values '() (sham:rator:symbol 'mul-nuw) rands)]
+    ['+ #:when (and (andmap treal? trands))
+        (values '() (sham:rator:symbol 'fadd) rands)]
+    ['+ #:when (and (andmap tnat? trands))
+        (values '() (sham:rator:symbol 'add-nuw) rands)]
+    ['+ #:when (and (andmap tprob? trands) (tprob? tresult))
+        (values (list (build-add-prob (length trands)))
+                (sham:rator:symbol (add-prob-sym (length trands)))
                 rands)]
-
-    ['* #:when (and (andmap (curry equal? (car trands)) trands)
-                    (< (length trands) 3))
+    ['< #:when (andmap tnat? trands)
+        (values '() (sham:rator:symbol 'icmp-ult) rands)]
+    ['/ #:when (and (andmap tnat? trands) (tnat? tresult))
+        (values '() (sham:rator:symbol 'udiv) rands)]
+    ['/ #:when (and (andmap tnat? trands) (equal? (length trands) 2)
+                    (tprob? tresult))
         (values '()
-                (sham:rator:symbol
-                 (string->symbol (format mul-fun-format (length trands) (get-type-string tresult))))
-                rands)]
-    ['* #:when (and (andmap (curry equal? 'prob) trands))
-        (values (list (build-mul-prob (length trands)))
-                (sham:rator:symbol (mul-prob-sym (length trands)))
-                rands)]
-
-    ['< #:when (andmap (curry equal? 'nat) trands)
-        (values '()
-                (sham:rator:symbol 'icmp-ult)
-                rands)]
-    ['/ #:when (and (andmap (curry equal? 'nat) trands)
-                    (equal? 'nat tresult))
-        (values '()
-                (sham:rator:symbol 'udiv)
-                rands)]
-    ['/ #:when (and (andmap (curry equal? 'nat) trands)
-                    (equal? (length trands) 2)
-                    (equal? 'prob tresult))
-        (values '()
-                (sham:rator:symbol 'mul-2-prob)
+                (sham:rator:symbol 'fadd)
                 (list (expr-app 'prob (expr-intrf 'real2prob)
                                 (list (expr-app 'real (expr-intrf 'nat2real) (list (first rands)))))
-                      (expr-app 'prob (expr-intrf 'recip-prob)
+                      (expr-app 'prob (expr-intrf 'recip)
                                 (list (expr-app 'prob (expr-intrf 'real2prob)
                                                 (list (expr-app 'real (expr-intrf 'nat2real)
                                                                 (list (second rands)))))))))]
 
-    ['== #:when (andmap (curry equal? 'nat) trands)
+    ['== #:when (andmap tnat? trands)
          (values '() (sham:rator:symbol 'icmp-eq) rands)]
-    [else (printf "why is this math not figured out?: ~a, tresult: ~a, trands: ~a\n" sym tresult trands)
+    ['natpow
+     #:when (and (treal? tresult) (treal? (first trands)) (tnat? (second trands)))
+     (values '() (sham:rator:intrinsic 'llvm.powi.f64 (sham:type:ref 'real)) rands)]
+    ['root
+     #:when (and (tprob? tresult)
+                 (equal? (length trands) 2)
+                 (tprob? (first trands))
+                 (tnat? (second trands)))
+     (values (list (sham$define (root-prob-nat (v : prob) (v2 : nat) : prob)
+                                (return (sham$app fmul  (sham$var 'v)
+                                                  (sham$app-var recip-nat v2)))))
+             (sham:rator:symbol 'root-prob-nat)
+             rands)]
+    ['recip
+     (define (get-recip type)
+       (match type
+         ['nat 'recip-nat]
+         ['real 'recip-real]
+         ['prob 'recip-prob]))
+     (values '() (sham:rator:symbol (get-recip tresult)) rands)]
+    [else (printf "why is this math not figured out?: ~a, tresult: ~a, trands: ~a\n"
+                  sym tresult trands)
           (values '() (sham:rator:symbol '?) rands)]))
 
 
@@ -200,15 +181,15 @@
   (define recip-real (get-f 'recip-real))
   (define recip-prob (get-f 'recip-prob))
 
-  (define add-2-nat (get-f 'add-2-nat))
-  (define add-2-real (get-f 'add-2-real))
-  (define add-3-real (get-f 'add-3-real))
-  (define add-2-prob (get-f 'add-2-prob))
-  (define add-3-prob (get-f 'add-3-prob))
+  ;; (define add-2-nat (get-f 'add-2-nat))
+  ;; (define add-2-real (get-f 'add-2-real))
+  ;; (define add-3-real (get-f 'add-3-real))
+  ;; (define add-2-prob (get-f 'add-2-prob))
+  ;; (define add-3-prob (get-f 'add-3-prob))
 
-  (define mul-2-nat (get-f 'mul-2-nat))
-  (define mul-2-real (get-f 'mul-2-real))
-  (define mul-2-prob (get-f 'mul-2-prob))
+  ;; (define mul-2-nat (get-f 'mul-2-nat))
+  ;; (define mul-2-real (get-f 'mul-2-real))
+  ;; (define mul-2-prob (get-f 'mul-2-prob))
 
   (define e 0.00000000001)
   (check-= (c-nat2prob 8) (c-real2prob 8.0) e)
@@ -218,20 +199,20 @@
   (check-= (recip-nat 2) 0.5 e)
   (check-= (recip-real 5.2345) (/ 1.0 5.2345) e)
   (check-= (recip-prob (c-real2prob 5.2345)) (real->prob (/ 1.0 5.2345)) e)
-  (check-= (recip-prob 14.124515) (real->prob (/ 1.0 (prob->real 14.124515))) e)
+  (check-= (recip-prob 14.124515) (real->prob (/ 1.0 (prob->real 14.124515))) e))
 
-  (check-eq? (add-2-nat 3 4) 7)
-  (check-= (add-2-real 1.234 543.1234) (+ 1.234 543.1234) e)
-  (check-= (add-3-real 5.324 543.2432 89.43241) (+ 5.324 543.2432 89.43241) e)
-  (check-= (add-2-prob 1.234 543.1234)
-           (real->prob (+ (prob->real 1.234) (prob->real 543.1234)))
-           e)
-  (check-= (add-3-prob 5.324 543.2432 89.43241)
-           (logspace-add 5.324 543.2432 89.43241)
-           e)
-  (check-eq? (mul-2-nat 4 5) 20)
-  (check-= (mul-2-real 4.123 5.3123) (* 4.123 5.3123) e)
-  (check-= (mul-2-prob 4.123 5.3123) (+ 4.123 5.3123) e)
-  (check-= (mul-2-prob 4.123 5.3123)
-           (real->prob (* (prob->real 4.123) (prob->real 5.3123)))
-           e))
+  ;; (check-eq? (add-2-nat 3 4) 7)
+  ;; (check-= (add-2-real 1.234 543.1234) (+ 1.234 543.1234) e)
+  ;; (check-= (add-3-real 5.324 543.2432 89.43241) (+ 5.324 543.2432 89.43241) e)
+  ;; (check-= (add-2-prob 1.234 543.1234)
+  ;;          (real->prob (+ (prob->real 1.234) (prob->real 543.1234)))
+  ;;          e)
+  ;; (check-= (add-3-prob 5.324 543.2432 89.43241)
+  ;;          (logspace-add 5.324 543.2432 89.43241)
+  ;;          e)
+  ;; (check-eq? (mul-2-nat 4 5) 20)
+  ;; (check-= (mul-2-real 4.123 5.3123) (* 4.123 5.3123) e)
+  ;; (check-= (mul-2-prob 4.123 5.3123) (+ 4.123 5.3123) e)
+  ;; (check-= (mul-2-prob 4.123 5.3123)
+  ;;          (real->prob (* (prob->real 4.123) (prob->real 5.3123)))
+  ;;          e)
