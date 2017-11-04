@@ -3,11 +3,13 @@
 (require sham/ast)
 (require "template-format.rkt"
          "type-defines.rkt"
+         "utils.rkt"
          "prelude.rkt")
 
 (provide array-defs
          array-rator?
-         get-array-rator)
+         get-array-rator
+         build-array-literal)
 
 (define (array-rator? sym) (member sym '(empty index size)))
 (define (get-array-rator sym tresult trands)
@@ -144,6 +146,36 @@
     (get-array-data)
     (get-index)
     (set-index))))
+
+(define (build-array-literal type len)
+  (printf "building array literal for type: ~a\n" type)
+  (define type-sym (get-type-sym type))
+  (define type-ref (sham:type:ref type-sym))
+  (define array-sym (get-type-sym `(array ,type)))
+  (define array-ref (sham:type:ref array-sym))
+  (define arrayp-sym (get-type-sym `(pointer (array ,type))))
+  (define arrayp-ref (sham:type:ref arrayp-sym))
+
+  (sham:def:function
+   (string->symbol (format array-literal-fun-format len array-sym))
+   '() '()
+   (build-list len get-vi)
+   (build-list len (const type-ref)) arrayp-ref
+   (sham:stmt:let
+    '(arl) (list arrayp-ref)
+    (list (sham:exp:app
+           (sham:rator:symbol (string->symbol (format new-size-array-fun-format
+                                                      array-sym)))
+           (list (nat-value len))))
+    (sham:stmt:block
+     (append (build-list len
+                         (λ (i)
+                           (sham:stmt:expr
+                            (sham:exp:app (sham:rator:symbol
+                                           (string->symbol
+                                            (format set-index-fun-format array-sym)))
+                                          (list (sham$var 'arl) (sham$var (get-vi i)))))))
+             (list (sham:stmt:return (sham$var 'arl))))))))
 
 (module+ test
   (require rackunit
