@@ -74,7 +74,8 @@
                  (hash-ref env e)]
     [(? symbol?)
      (expr-intrf e)]
-    [(? number?) (expr-val 'nat e)]
+    [(? exact-nonnegative-integer?) (expr-val 'nat e)]
+    [(? integer?) (expr-val 'int e)]
     [else (error (format "match: no matching clause found for ~a" e))]))
 
 (define (sr r env)
@@ -456,5 +457,3 @@
   ;;          (topic_prior : (array prob)))
   ;;        :
   ;;        (array prob)))))
-
-
