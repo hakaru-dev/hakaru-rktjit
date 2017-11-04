@@ -87,6 +87,7 @@
                    (sham:type:pointer (get-sham-type-ref (car st)))))
        (cons ct st)]
       ['nat (cons type-nat-def '())]
+      ['int (cons type-nat-def '())]
       ['prob (cons type-prob-def '())]
       ['bool  (cons type-bool-def '())]
       ['real (cons type-real-def '())]))

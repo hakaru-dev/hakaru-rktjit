@@ -58,14 +58,20 @@
     [('unit (reducer-nop)) (values '() '() '())]))
 
 (define (get-accum i binds result t reducer)
+  (printf "get-accum: reducer: ~a, result: ~a\n" (pr reducer) (pe result))
   (match* (reducer t)
     [((reducer-split (expr-bind bvar bbody) a b) `(pair ,ta ,tb))
+     (dprintf #t "reducer-split,accum result: ~a" (print-expr result))
      (stmt-if (expr-let (typeof i) bvar i bbody)
               (get-accum i binds
-                         (expr-var ta (symbol-append (expr-var-sym result) 'a) '_)
+                         (if (expr-var? result)
+                             (expr-var ta (symbol-append (expr-var-sym result) 'a)'_)
+                             (expr-app ta (expr-intrf 'car) (list result)))
                          ta a)
               (get-accum i binds
-                         (expr-var tb (symbol-append (expr-var-sym result) 'b) '_)
+                         (if (expr-var? result)
+                             (expr-var tb (symbol-append (expr-var-sym result) 'b)'_)
+                             (expr-app tb (expr-intrf 'cdr) (list result)))
                          tb b))]
     [((reducer-fanout a b) `(pair ,ta ,tb))
      (stmt-block
@@ -82,15 +88,16 @@
                                    (list result (assign-binds binds e))))]
     [((reducer-nop) 'unit)
      (stmt-void)]
-    [((reducer-index n ind a) ti)
+    [((reducer-index n ind a) `(array ,tar))
      (define ind-var (expr-var 'nat (gensym^ 'indi) '_))
      (define ind-result (assign-binds binds ind))
      (stmt-elets (list ind-var) (list ind-result)
                  (get-accum i (append binds (list ind-var))
                             (expr-app (cadr (typeof result))
                                       (expr-intrf 'index) (list result ind-var))
-                            t a))]
-    [(r t) (printf "unknown reducer type: ~a\n" t)]))
+                            tar a))]
+    [(r t) (printf "unknown reducer type: ~a ~a\n" r t)
+           (error "reducer")]))
 
 (define (assign-binds vars bind)
   (if (and (empty? vars) (not (expr-bind? bind)))

@@ -65,7 +65,7 @@
          (build-superpose-categorical (length trands)))
        (add-defs-prelude! prl defs)
        (build-app rtr)]
-      ['array-literal
+      [(equal? sym 'array-literal)
        (define def (build-array-literal (car trands) (length trands)))
        (add-defs-prelude! prl (list def))
        (build-app (sham:rator:symbol (sham:def-id def)))]
