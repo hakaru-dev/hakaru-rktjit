@@ -65,6 +65,10 @@
          (build-superpose-categorical (length trands)))
        (add-defs-prelude! prl defs)
        (build-app rtr)]
+      ['array-literal
+       (define def (build-array-literal (car trands) (length trands)))
+       (add-defs-prelude! prl (list def))
+       (build-app (sham:rator:symbol (sham:def-id def)))]
       [else (printf "why is this rator not done?: ~a\n" sym)
             (build-app (sham:rator:symbol '?))]))
 
@@ -134,7 +138,7 @@
         (get-type ret-type)
         (expand-stmt b))]))
   (define prog (expand-fun (cons 'prog (expr-mod-main mod))))
-  ;  (pretty-display (map sham-def->sexp (get-defs-prelude prl)))
+  (pretty-display (sham-def->sexp prog))
   (sham:module
    (basic-mod-info)
    (append (cleanup-defs (get-defs-prelude prl))
