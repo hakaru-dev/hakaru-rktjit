@@ -35,3 +35,34 @@
                     (define size-array (jit-get-function (quote size-array-p) me))
                     (define (get-vector cs)
                       (cblock->vector (get-c-arrayf cs) type (size-array cs)))))))]))
+
+(define (prob->real x) (exp x))
+(define (real->prob x) (log x))
+(define (nat->prob x) (real->prob (exact->inexact x)))
+
+(define (logsumexp2 a b)
+  (if (> a b)
+      (+ a (log (exp (- b a))))
+      (+ b (log (exp (- a b))))))
+
+(define (one-of-type t)
+  (if (equal? t 'prob)
+      (real->prob 1.0)
+      1.0))
+(define (zero-of-type t)
+  (if (equal? t 'prob)
+      (real->prob 0.0)
+      0.0))
+
+(define logspace-add (λ args (real->prob (apply + (map prob->real args)))))
+
+(define (replicate-vector n i)
+  (build-vector n (const i)))
+
+(define (read-vector-from-csv fname)
+  (call-with-input-file fname
+    (lambda (in)
+      (for/vector [(s (in-lines in))]
+        (string->number s)))))
+(define (write-vector-to-csv fname)
+  (void))

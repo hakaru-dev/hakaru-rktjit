@@ -21,6 +21,8 @@
 
 (define pp-expr (compose pretty-display print-expr))
 (define stop (cons (λ (e) (error 'stop)) pp-expr))
+;(define pp-sham (compose pretty-display sham-ast->sexp))
+(define pp-sham (const #f))
 (define passes
   (list (cons reduce-curry       pretty-display)
         ;stop
@@ -34,7 +36,6 @@
         (cons flatten-anf        pp-expr)
 
         (cons combine-loops      pp-expr)
-        ;stop
         (cons remove-unit-lets   pp-expr)
         (cons simplify-lets      pp-expr)
 
@@ -42,16 +43,12 @@
         (cons remove-unused-lets pp-expr)
         (cons remove-pairs       pp-expr)
         (cons simplify-lets      pp-expr)
-        ;(cons folds->for         pp-expr)
         (cons to-stmt            pp-expr)
 
         (cons simplify-set       pp-expr)
-        ;(cons remove-if-expr     pp-expr)
         (cons cleanup            pp-expr)
-        (cons expand-to-lc       (compose pretty-display sham-ast->sexp))
-        stop))
-
-
+        (cons expand-to-lc       pp-sham)))
+        ;stop))
 
 (define to-print? (make-parameter (const #t)))
 (define to-not-print? (make-parameter (const #f)))
@@ -88,13 +85,27 @@
 (define (debug-src src)
   (parameterize ([debug-pass #t]
                  [to-print? (curryr member '(cleanup))]
-                 [to-not-print? (const #f)])
+                 [to-not-print? (const #t)])
     (compile-src src)))
+
 (define debug-file  (compose debug-src read-file))
 
+(define (debug-store-file src-fname out-fname)
+  (call-with-output-file out-fname
+    (λ (out-port)
+      (parameterize ([current-output-port out-port])
+        (debug-file src-fname)))
+    #:exists 'truncate/replace))
+
 (module+ test
-;  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr")) ;;compiles
-;  (debug-file "../../testcode/hkrkt/linearRegression_simp.hkr")) ;;compiles
-;  (debug-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr")) ;;needs signed int, exp,not
-;  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr")) ;;^^
+  ;; (debug-store-file "../../testcode/hkrkt/clinicalTrial_simp.hkr"
+  ;;                   "./testout/clinicalTrial.txt")
+  ;;compiles
+  ;; (debug-store-file "../../testcode/hkrkt/linearRegression_simp.hkr"
+  ;;                   "./testout/linearregression.txt")
+  ;;compiles
+  ;; (debug-store-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr"
+  ;;                   "./testout/gmm_gibbs.txt") ;;needs signed int, exp,not
+  ;; (debug-store-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr"
+  ;;                   "./testout/naive-bayes_gibbs_simp.txt")) ;;^^
   (debug-file "../../testcode/hkrkt/lda_gibbs_simp.hkr")) ;;fix the bucket for array of pairs

@@ -8,12 +8,14 @@
 (define type-real-def (sham:def:type 'real (sham:type:ref 'f64)))
 (define type-prob-def (sham:def:type 'prob (sham:type:ref 'f64)))
 (define type-bool-def (sham:def:type 'bool (sham:type:ref 'i1)))
+(define type-void-def (sham:def:type 'void  (sham:type:ref 'void)))
 
 (define type-nat-ref (sham:type:ref 'nat))
 (define type-int-ref (sham:type:ref 'int))
 (define type-real-ref (sham:type:ref 'real))
 (define type-prob-ref (sham:type:ref 'prob))
 (define type-bool-ref (sham:type:ref 'bool))
+(define type-void-ref (sham:type:ref 'void))
 
 (define (real-value v)
   (sham:exp:fl-value v type-real-ref))
@@ -88,12 +90,13 @@
                    (get-type-sym tast)
                    (sham:type:pointer (get-sham-type-ref (car st)))))
        (cons ct st)]
-      ['nat (cons type-nat-def '())]
-      ['int (cons type-nat-def '())]
-      ['prob (cons type-prob-def '())]
-      ['bool  (cons type-bool-def '())]
-      ['real (cons type-real-def '())]
-      ['unit (cons type-nat-def '())]))
+      ['nat (list type-nat-def)]
+      ['int (list type-nat-def)]
+      ['prob (list type-prob-def)]
+      ['bool  (list type-bool-def)]
+      ['real (list type-real-def)]
+      ['unit (list type-nat-def)]
+      ['void (list type-void-def)]))
   (define defs (hash-ref! sham-type-def-hash tast create-new!))
   (map (λ (d) (hash-set! type-hash (sham:def-id d) (sham:def:type-type d))) defs)
   defs)
