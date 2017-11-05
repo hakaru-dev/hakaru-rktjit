@@ -45,8 +45,7 @@
      (dprintf #t "reducer-index: type: ~a\n \tresult: ~a, binds: ~a\n"
               `(array ,tar) (pe result) (map pe binds))
      (define arr-size (assign-binds binds n))
-     (define arr-init (expr-app tar (expr-intrf 'empty)
-                                (list arr-size)))
+     (define arr-init (expr-app t (expr-intrf 'empty) (list arr-size)))
      (define arrn (expr-var t (gensym^ 'arri) '_))
      (define fori (expr-var 'nat (gensym^ 'fi) '_))
      (define new-result (expr-app tar (expr-intrf 'index) (list arrn fori)))
