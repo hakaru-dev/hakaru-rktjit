@@ -22,9 +22,11 @@
 
   (list
    type-nat-def
+   type-int-def
    type-real-def
    type-prob-def
    (sham:def:type 'nat* (sham:type:pointer type-nat-ref))
+   (sham:def:type 'int* (sham:type:pointer type-int-ref))
    (sham:def:type 'real* (sham:type:pointer type-real-ref))
    (sham:def:type 'prob* (sham:type:pointer type-prob-ref))
 
@@ -39,6 +41,18 @@
     (nat2real (v : nat) : real)
     (return
      (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real)))))
+
+   (sham$define
+    (nat2int (v : nat) : int)
+    ;;NOTE: I think going from signed to unsigned is easy because of 2's complement
+    ;; and we are using 64 bit so if the nat is bigger than 2^32 then we have to worry
+    ;; but for hakaru I think we don't need to worry as nat's and int's don't go that big
+    (return (sham$var 'v)))
+
+   (sham$define
+    (int2real (v : int) : real)
+    (return
+     (sham$app si->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real)))))
 
    (sham$define
     (prob2real (v : prob) : real)
@@ -64,10 +78,12 @@
 (define (simple-rator? sym)
   (member sym
           '(nat2prob nat2real prob2real real2prob
+                     int2real nat2int
+                     and not
                      uniform normal beta gamma categorical)))
                      ;recip-nat recip-real recip-prob)))
 (define math-rator?
-  (curryr member '(+ * < > / == and - natpow recip root)))
+  (curryr member '(+ * < > / == - natpow recip root)))
 
 (define (add-prob-sym len)
   (string->symbol (format add-fun-format len 'prob)))
@@ -93,6 +109,8 @@
     (equal? t 'nat))
   (define (tbool? t)
     (equal? t 'bool))
+  (define (tint? t)
+    (equal? t 'int))
   (match sym
     ['* #:when (and (andmap tprob? trands))
         (values '() (sham:rator:symbol 'fadd) rands)]
@@ -100,14 +118,20 @@
         (values '() (sham:rator:symbol 'fmul) rands)]
     ['* #:when (and (andmap tnat? trands))
         (values '() (sham:rator:symbol 'mul-nuw) rands)]
+    ['* #:when (and (andmap tint? trands))
+        (values '() (sham:rator:symbol 'mul-nsw) rands)]
+
     ['+ #:when (and (andmap treal? trands))
         (values '() (sham:rator:symbol 'fadd) rands)]
     ['+ #:when (and (andmap tnat? trands))
         (values '() (sham:rator:symbol 'add-nuw) rands)]
+    ['+ #:when (and (andmap tint? trands))
+        (values '() (sham:rator:symbol 'add-nsw) rands)]
     ['+ #:when (and (andmap tprob? trands) (tprob? tresult))
         (values (list (build-add-prob (length trands)))
                 (sham:rator:symbol (add-prob-sym (length trands)))
                 rands)]
+
     ['< #:when (andmap tnat? trands)
         (values '() (sham:rator:symbol 'icmp-ult) rands)]
     ['/ #:when (and (andmap tnat? trands) (tnat? tresult))
@@ -125,8 +149,10 @@
 
     ['== #:when (andmap tnat? trands)
          (values '() (sham:rator:symbol 'icmp-eq) rands)]
-    ['and #:when (andmap tbool? trands)
-         (values '() (sham:rator:symbol 'and) rands)]
+    ;; ['and #:when (andmap tbool? trands)
+    ;;      (values '() (sham:rator:symbol 'and) rands)]
+    ;; ['not #:when (andmap tbool? trands)
+    ;;      (values '() (sham:rator:symbol 'not) rands)]
     ['natpow
      #:when (and (treal? tresult) (treal? (first trands)) (tnat? (second trands)))
      (values '() (sham:rator:intrinsic 'llvm.powi.f64 (sham:type:ref 'real)) rands)]
@@ -149,7 +175,7 @@
      (values '() (sham:rator:symbol (get-recip tresult)) rands)]
     [else (printf "why is this math not figured out?: ~a, tresult: ~a, trands: ~a\n"
                   sym tresult trands)
-          (values '() (sham:rator:symbol '?) rands)]))
+          (values '() (sham:rator:symbol (symbol-append sym '?)) rands)]))
 
 
 (define (basic-mod-info)
