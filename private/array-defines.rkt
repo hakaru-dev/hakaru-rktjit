@@ -20,6 +20,7 @@
        (match sym
          ['index (values get-index-fun-format (get-type-string (car trands)))]
          ['size (values get-array-size-fun-format (get-type-string (car trands)))]
+         ['empty (values new-size-array-fun-format (get-type-string tresult))]
          [else (values "array?")]))
      format))))
 
