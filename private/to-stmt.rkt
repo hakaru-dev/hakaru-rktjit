@@ -40,12 +40,24 @@
 (define to-stmt mod-stmt)
 
 
-;; 
+;;
 (define simplify-set
   (create-pass
    (expr)
    (reducer)
    (stmt
+    [(stmt-assign lhs rhs)
+     #:when (expr-app? lhs)
+     (stmt-elets
+      (list (expr-var 'void '_ '_))
+      (list (match lhs
+              [(expr-app t (expr-intrf 'car) args)
+               (expr-app 'void (expr-intrf 'set-car!) (append args (list rhs)))]
+              [(expr-app t (expr-intrf 'cdr) args)
+               (expr-app 'void (expr-intrf 'set-cdr!) (append args (list rhs)))]
+              [(expr-app t (expr-intrf 'index) args)
+               (expr-app 'void (expr-intrf 'set-index!) (append args (list rhs)))]))
+      (stmt-void))]
     [(stmt-assign var val)
      (expr->stmt val (λ (e) (stmt-assign var e)))])
    (pat)))
