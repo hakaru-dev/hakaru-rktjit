@@ -6,9 +6,8 @@
 
 (require sham/jit
          sham/ast
-         "ast.rkt"
-         "sham-utils.rkt"
-         "utils.rkt"
+         "../utils.rkt"
+         "../ast.rkt"
          "type-defines.rkt"
          "template-format.rkt")
 
@@ -100,17 +99,9 @@
                               (sham:exp:app (sham:rator:symbol 'prob2real)
                                             (list (sham$var (get-vi vi))))))))))))
 
+
+
 (define (figure-out-math sym rands tresult trands)
-  (define (treal? t)
-    (equal? t 'real))
-  (define (tprob? t)
-    (equal? t 'prob))
-  (define (tnat? t)
-    (equal? t 'nat))
-  (define (tbool? t)
-    (equal? t 'bool))
-  (define (tint? t)
-    (equal? t 'int))
   (match sym
     ['* #:when (and (andmap tprob? trands))
         (values '() (sham:rator:symbol 'fadd) rands)]
@@ -141,18 +132,17 @@
         (values '()
                 (sham:rator:symbol 'fadd)
                 (list (expr-app 'prob (expr-intrf 'real2prob)
-                                (list (expr-app 'real (expr-intrf 'nat2real) (list (first rands)))))
+                                (list (expr-app 'real (expr-intrf 'nat2real)
+                                                (list (first rands)))))
                       (expr-app 'prob (expr-intrf 'recip)
-                                (list (expr-app 'prob (expr-intrf 'real2prob)
-                                                (list (expr-app 'real (expr-intrf 'nat2real)
-                                                                (list (second rands)))))))))]
+                                (list
+                                 (expr-app 'prob (expr-intrf 'real2prob)
+                                           (list (expr-app 'real
+                                                           (expr-intrf 'nat2real)
+                                                           (list (second rands)))))))))]
 
     ['== #:when (andmap tnat? trands)
          (values '() (sham:rator:symbol 'icmp-eq) rands)]
-    ;; ['and #:when (andmap tbool? trands)
-    ;;      (values '() (sham:rator:symbol 'and) rands)]
-    ;; ['not #:when (andmap tbool? trands)
-    ;;      (values '() (sham:rator:symbol 'not) rands)]
     ['natpow
      #:when (and (treal? tresult) (treal? (first trands)) (tnat? (second trands)))
      (values '() (sham:rator:intrinsic 'llvm.powi.f64 (sham:type:ref 'real)) rands)]
@@ -184,7 +174,7 @@
                  (libgsl . ("libgsl"))))))
 (module+ test
   (require rackunit)
-  (require "utils.rkt")
+  (require "../../utils.rkt")
   (define mod (sham:module
                '((passes . ())
                  (ffi-libs . ()))
