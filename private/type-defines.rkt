@@ -4,11 +4,13 @@
 (require "template-format.rkt")
 (provide (all-defined-out))
 (define type-nat-def (sham:def:type 'nat (sham:type:ref 'i64)))
+(define type-int-def (sham:def:type 'int (sham:type:ref 'i64)))
 (define type-real-def (sham:def:type 'real (sham:type:ref 'f64)))
 (define type-prob-def (sham:def:type 'prob (sham:type:ref 'f64)))
 (define type-bool-def (sham:def:type 'bool (sham:type:ref 'i1)))
 
 (define type-nat-ref (sham:type:ref 'nat))
+(define type-int-ref (sham:type:ref 'int))
 (define type-real-ref (sham:type:ref 'real))
 (define type-prob-ref (sham:type:ref 'prob))
 (define type-bool-ref (sham:type:ref 'bool))
