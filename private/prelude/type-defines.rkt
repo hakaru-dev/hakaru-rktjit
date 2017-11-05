@@ -17,6 +17,17 @@
 (define type-bool-ref (sham:type:ref 'bool))
 (define type-void-ref (sham:type:ref 'void))
 
+(define (treal? t)
+  (equal? t 'real))
+(define (tprob? t)
+  (equal? t 'prob))
+(define (tnat? t)
+  (equal? t 'nat))
+(define (tbool? t)
+  (equal? t 'bool))
+(define (tint? t)
+  (equal? t 'int))
+
 (define (real-value v)
   (sham:exp:fl-value v type-real-ref))
 (define (nat-value v)
