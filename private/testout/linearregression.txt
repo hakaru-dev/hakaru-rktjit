@@ -1,0 +1,5461 @@
+applying pass: reduce-curry
+(fn
+ ((dataX (array real)) (x6 (array real)))
+ (measure (array real))
+ ((pose
+   ((real2prob
+     ((*
+       ((prob2real
+         ((realpow
+           ((pi) : prob)
+           ((*
+             ((nat2real ((size (dataX : (array real))) : nat)) : real)
+             ((/ -1 2) : real))
+            :
+            real))
+          :
+          prob))
+        :
+        real)
+       ((prob2real ((root (3 : prob) (2 : nat)) : prob)) : real)
+       ((prob2real
+         ((root
+           ((real2prob
+             ((recip
+               ((+
+                 ((*
+                   ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((natpow
+                       ((index (dataX : (array real)) (x18 : nat)) : real)
+                       (2 : nat))
+                      :
+                      real))
+                    :
+                    real)
+                   (10 : real))
+                  :
+                  real)
+                 ((*
+                   ((natpow
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((index (dataX : (array real)) (x18 : nat)) : real))
+                      :
+                      real)
+                     (2 : nat))
+                    :
+                    real)
+                   (-10 : real))
+                  :
+                  real)
+                 ((nat2real
+                   ((* ((size (dataX : (array real))) : nat) (10 : nat))
+                    :
+                    nat))
+                  :
+                  real)
+                 ((*
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((natpow
+                       ((index (dataX : (array real)) (x18 : nat)) : real)
+                       (2 : nat))
+                      :
+                      real))
+                    :
+                    real)
+                   (3 : real))
+                  :
+                  real)
+                 (3 : real))
+                :
+                real))
+              :
+              real))
+            :
+            prob)
+           (2 : nat))
+          :
+          prob))
+        :
+        real)
+       ((recip
+         ((+
+           ((*
+             ((nat2real ((size (dataX : (array real))) : nat)) : real)
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (dataX : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (x6 : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             (10 : real))
+            :
+            real)
+           ((*
+             ((nat2real ((size (dataX : (array real))) : nat)) : real)
+             ((natpow
+               ((summate
+                 (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                 ((*
+                   ((index (x6 : (array real)) (x18 : nat)) : real)
+                   ((index (dataX : (array real)) (x18 : nat)) : real))
+                  :
+                  real))
+                :
+                real)
+               (2 : nat))
+              :
+              real)
+             (-10 : real))
+            :
+            real)
+           ((*
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (dataX : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             ((natpow
+               ((summate
+                 (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                 ((index (x6 : (array real)) (x18 : nat)) : real))
+                :
+                real)
+               (2 : nat))
+              :
+              real)
+             (-10 : real))
+            :
+            real)
+           ((*
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (x6 : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             ((natpow
+               ((summate
+                 (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                 ((index (dataX : (array real)) (x18 : nat)) : real))
+                :
+                real)
+               (2 : nat))
+              :
+              real)
+             (-10 : real))
+            :
+            real)
+           ((*
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((*
+                 ((index (x6 : (array real)) (x18 : nat)) : real)
+                 ((index (dataX : (array real)) (x18 : nat)) : real))
+                :
+                real))
+              :
+              real)
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((index (dataX : (array real)) (x18 : nat)) : real))
+              :
+              real)
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((index (x6 : (array real)) (x18 : nat)) : real))
+              :
+              real)
+             (20 : real))
+            :
+            real)
+           ((*
+             ((nat2real ((size (dataX : (array real))) : nat)) : real)
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (dataX : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             (95 : real))
+            :
+            real)
+           ((*
+             ((nat2real ((size (dataX : (array real))) : nat)) : real)
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (x6 : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             (10 : real))
+            :
+            real)
+           ((*
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (dataX : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (x6 : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             (3 : real))
+            :
+            real)
+           ((*
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (dataX : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((index (x6 : (array real)) (x18 : nat)) : real))
+              :
+              real)
+             (-30 : real))
+            :
+            real)
+           ((*
+             ((natpow
+               ((summate
+                 (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                 ((*
+                   ((index (x6 : (array real)) (x18 : nat)) : real)
+                   ((index (dataX : (array real)) (x18 : nat)) : real))
+                  :
+                  real))
+                :
+                real)
+               (2 : nat))
+              :
+              real)
+             (-3 : real))
+            :
+            real)
+           ((*
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((*
+                 ((index (x6 : (array real)) (x18 : nat)) : real)
+                 ((index (dataX : (array real)) (x18 : nat)) : real))
+                :
+                real))
+              :
+              real)
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((index (dataX : (array real)) (x18 : nat)) : real))
+              :
+              real)
+             (30 : real))
+            :
+            real)
+           ((*
+             ((natpow
+               ((summate
+                 (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                 ((index (dataX : (array real)) (x18 : nat)) : real))
+                :
+                real)
+               (2 : nat))
+              :
+              real)
+             (-95 : real))
+            :
+            real)
+           ((*
+             ((natpow
+               ((summate
+                 (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                 ((index (x6 : (array real)) (x18 : nat)) : real))
+                :
+                real)
+               (2 : nat))
+              :
+              real)
+             (-10 : real))
+            :
+            real)
+           ((nat2real
+             ((* ((size (dataX : (array real))) : nat) (95 : nat)) : nat))
+            :
+            real)
+           ((*
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (dataX : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             (6 : real))
+            :
+            real)
+           ((*
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((natpow
+                 ((index (x6 : (array real)) (x18 : nat)) : real)
+                 (2 : nat))
+                :
+                real))
+              :
+              real)
+             (3 : real))
+            :
+            real)
+           ((*
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((index (x6 : (array real)) (x18 : nat)) : real))
+              :
+              real)
+             (-30 : real))
+            :
+            real)
+           (6 : real))
+          :
+          real))
+        :
+        real)
+       ((+
+         ((*
+           ((nat2real ((size (dataX : (array real))) : nat)) : real)
+           ((summate
+             (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+             ((natpow
+               ((index (dataX : (array real)) (x18 : nat)) : real)
+               (2 : nat))
+              :
+              real))
+            :
+            real)
+           (10 : real))
+          :
+          real)
+         ((*
+           ((natpow
+             ((summate
+               (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+               ((index (dataX : (array real)) (x18 : nat)) : real))
+              :
+              real)
+             (2 : nat))
+            :
+            real)
+           (-10 : real))
+          :
+          real)
+         ((nat2real
+           ((* ((size (dataX : (array real))) : nat) (10 : nat)) : nat))
+          :
+          real)
+         ((*
+           ((summate
+             (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+             ((natpow
+               ((index (dataX : (array real)) (x18 : nat)) : real)
+               (2 : nat))
+              :
+              real))
+            :
+            real)
+           (3 : real))
+          :
+          real)
+         (3 : real))
+        :
+        real)
+       ((prob2real
+         ((realpow
+           ((real2prob
+             ((*
+               ((recip
+                 ((+
+                   ((*
+                     ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (dataX : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (x6 : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     (10 : real))
+                    :
+                    real)
+                   ((*
+                     ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                     ((natpow
+                       ((summate
+                         (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                         ((*
+                           ((index (x6 : (array real)) (x18 : nat)) : real)
+                           ((index (dataX : (array real)) (x18 : nat)) : real))
+                          :
+                          real))
+                        :
+                        real)
+                       (2 : nat))
+                      :
+                      real)
+                     (-10 : real))
+                    :
+                    real)
+                   ((*
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (dataX : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     ((natpow
+                       ((summate
+                         (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                         ((index (x6 : (array real)) (x18 : nat)) : real))
+                        :
+                        real)
+                       (2 : nat))
+                      :
+                      real)
+                     (-10 : real))
+                    :
+                    real)
+                   ((*
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (x6 : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     ((natpow
+                       ((summate
+                         (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                         ((index (dataX : (array real)) (x18 : nat)) : real))
+                        :
+                        real)
+                       (2 : nat))
+                      :
+                      real)
+                     (-10 : real))
+                    :
+                    real)
+                   ((*
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((*
+                         ((index (x6 : (array real)) (x18 : nat)) : real)
+                         ((index (dataX : (array real)) (x18 : nat)) : real))
+                        :
+                        real))
+                      :
+                      real)
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((index (dataX : (array real)) (x18 : nat)) : real))
+                      :
+                      real)
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((index (x6 : (array real)) (x18 : nat)) : real))
+                      :
+                      real)
+                     (20 : real))
+                    :
+                    real)
+                   ((*
+                     ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (dataX : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     (95 : real))
+                    :
+                    real)
+                   ((*
+                     ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (x6 : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     (10 : real))
+                    :
+                    real)
+                   ((*
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (dataX : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (x6 : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     (3 : real))
+                    :
+                    real)
+                   ((*
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (dataX : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((index (x6 : (array real)) (x18 : nat)) : real))
+                      :
+                      real)
+                     (-30 : real))
+                    :
+                    real)
+                   ((*
+                     ((natpow
+                       ((summate
+                         (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                         ((*
+                           ((index (x6 : (array real)) (x18 : nat)) : real)
+                           ((index (dataX : (array real)) (x18 : nat)) : real))
+                          :
+                          real))
+                        :
+                        real)
+                       (2 : nat))
+                      :
+                      real)
+                     (-3 : real))
+                    :
+                    real)
+                   ((*
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((*
+                         ((index (x6 : (array real)) (x18 : nat)) : real)
+                         ((index (dataX : (array real)) (x18 : nat)) : real))
+                        :
+                        real))
+                      :
+                      real)
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((index (dataX : (array real)) (x18 : nat)) : real))
+                      :
+                      real)
+                     (30 : real))
+                    :
+                    real)
+                   ((*
+                     ((natpow
+                       ((summate
+                         (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                         ((index (dataX : (array real)) (x18 : nat)) : real))
+                        :
+                        real)
+                       (2 : nat))
+                      :
+                      real)
+                     (-95 : real))
+                    :
+                    real)
+                   ((*
+                     ((natpow
+                       ((summate
+                         (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                         ((index (x6 : (array real)) (x18 : nat)) : real))
+                        :
+                        real)
+                       (2 : nat))
+                      :
+                      real)
+                     (-10 : real))
+                    :
+                    real)
+                   ((nat2real
+                     ((* ((size (dataX : (array real))) : nat) (95 : nat))
+                      :
+                      nat))
+                    :
+                    real)
+                   ((*
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (dataX : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     (6 : real))
+                    :
+                    real)
+                   ((*
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((natpow
+                         ((index (x6 : (array real)) (x18 : nat)) : real)
+                         (2 : nat))
+                        :
+                        real))
+                      :
+                      real)
+                     (3 : real))
+                    :
+                    real)
+                   ((*
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((index (x6 : (array real)) (x18 : nat)) : real))
+                      :
+                      real)
+                     (-30 : real))
+                    :
+                    real)
+                   (6 : real))
+                  :
+                  real))
+                :
+                real)
+               ((+
+                 ((*
+                   ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((natpow
+                       ((index (dataX : (array real)) (x18 : nat)) : real)
+                       (2 : nat))
+                      :
+                      real))
+                    :
+                    real)
+                   (10 : real))
+                  :
+                  real)
+                 ((*
+                   ((natpow
+                     ((summate
+                       (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                       ((index (dataX : (array real)) (x18 : nat)) : real))
+                      :
+                      real)
+                     (2 : nat))
+                    :
+                    real)
+                   (-10 : real))
+                  :
+                  real)
+                 ((nat2real
+                   ((* ((size (dataX : (array real))) : nat) (10 : nat))
+                    :
+                    nat))
+                  :
+                  real)
+                 ((*
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((natpow
+                       ((index (dataX : (array real)) (x18 : nat)) : real)
+                       (2 : nat))
+                      :
+                      real))
+                    :
+                    real)
+                   (3 : real))
+                  :
+                  real)
+                 (3 : real))
+                :
+                real))
+              :
+              real))
+            :
+            prob)
+           ((*
+             ((nat2real ((size (dataX : (array real))) : nat)) : real)
+             ((/ 1 2) : real))
+            :
+            real))
+          :
+          prob))
+        :
+        real)
+       ((prob2real
+         ((gamma
+           ((+
+             (1 : real)
+             ((*
+               ((nat2real ((size (dataX : (array real))) : nat)) : real)
+               ((/ 1 2) : real))
+              :
+              real))
+            :
+            real))
+          :
+          prob))
+        :
+        real)
+       (2 : real))
+      :
+      real))
+    :
+    prob)
+   ((mbind
+     ((gamma
+       ((+
+         (1 : prob)
+         ((*
+           ((nat2prob ((size (dataX : (array real))) : nat)) : prob)
+           ((/ 1 2) : prob))
+          :
+          prob))
+        :
+        prob)
+       ((real2prob
+         ((*
+           ((recip
+             ((+
+               ((*
+                 ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (dataX : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (x6 : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 (10 : real))
+                :
+                real)
+               ((*
+                 ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                 ((natpow
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((*
+                       ((index (x6 : (array real)) (x18 : nat)) : real)
+                       ((index (dataX : (array real)) (x18 : nat)) : real))
+                      :
+                      real))
+                    :
+                    real)
+                   (2 : nat))
+                  :
+                  real)
+                 (-10 : real))
+                :
+                real)
+               ((*
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (dataX : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 ((natpow
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((index (x6 : (array real)) (x18 : nat)) : real))
+                    :
+                    real)
+                   (2 : nat))
+                  :
+                  real)
+                 (-10 : real))
+                :
+                real)
+               ((*
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (x6 : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 ((natpow
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((index (dataX : (array real)) (x18 : nat)) : real))
+                    :
+                    real)
+                   (2 : nat))
+                  :
+                  real)
+                 (-10 : real))
+                :
+                real)
+               ((*
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((*
+                     ((index (x6 : (array real)) (x18 : nat)) : real)
+                     ((index (dataX : (array real)) (x18 : nat)) : real))
+                    :
+                    real))
+                  :
+                  real)
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((index (dataX : (array real)) (x18 : nat)) : real))
+                  :
+                  real)
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((index (x6 : (array real)) (x18 : nat)) : real))
+                  :
+                  real)
+                 (20 : real))
+                :
+                real)
+               ((*
+                 ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (dataX : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 (95 : real))
+                :
+                real)
+               ((*
+                 ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (x6 : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 (10 : real))
+                :
+                real)
+               ((*
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (dataX : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (x6 : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 (3 : real))
+                :
+                real)
+               ((*
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (dataX : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((index (x6 : (array real)) (x18 : nat)) : real))
+                  :
+                  real)
+                 (-30 : real))
+                :
+                real)
+               ((*
+                 ((natpow
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((*
+                       ((index (x6 : (array real)) (x18 : nat)) : real)
+                       ((index (dataX : (array real)) (x18 : nat)) : real))
+                      :
+                      real))
+                    :
+                    real)
+                   (2 : nat))
+                  :
+                  real)
+                 (-3 : real))
+                :
+                real)
+               ((*
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((*
+                     ((index (x6 : (array real)) (x18 : nat)) : real)
+                     ((index (dataX : (array real)) (x18 : nat)) : real))
+                    :
+                    real))
+                  :
+                  real)
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((index (dataX : (array real)) (x18 : nat)) : real))
+                  :
+                  real)
+                 (30 : real))
+                :
+                real)
+               ((*
+                 ((natpow
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((index (dataX : (array real)) (x18 : nat)) : real))
+                    :
+                    real)
+                   (2 : nat))
+                  :
+                  real)
+                 (-95 : real))
+                :
+                real)
+               ((*
+                 ((natpow
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((index (x6 : (array real)) (x18 : nat)) : real))
+                    :
+                    real)
+                   (2 : nat))
+                  :
+                  real)
+                 (-10 : real))
+                :
+                real)
+               ((nat2real
+                 ((* ((size (dataX : (array real))) : nat) (95 : nat)) : nat))
+                :
+                real)
+               ((*
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (dataX : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 (6 : real))
+                :
+                real)
+               ((*
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((natpow
+                     ((index (x6 : (array real)) (x18 : nat)) : real)
+                     (2 : nat))
+                    :
+                    real))
+                  :
+                  real)
+                 (3 : real))
+                :
+                real)
+               ((*
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((index (x6 : (array real)) (x18 : nat)) : real))
+                  :
+                  real)
+                 (-30 : real))
+                :
+                real)
+               (6 : real))
+              :
+              real))
+            :
+            real)
+           ((+
+             ((*
+               ((nat2real ((size (dataX : (array real))) : nat)) : real)
+               ((summate
+                 (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                 ((natpow
+                   ((index (dataX : (array real)) (x18 : nat)) : real)
+                   (2 : nat))
+                  :
+                  real))
+                :
+                real)
+               (10 : real))
+              :
+              real)
+             ((*
+               ((natpow
+                 ((summate
+                   (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                   ((index (dataX : (array real)) (x18 : nat)) : real))
+                  :
+                  real)
+                 (2 : nat))
+                :
+                real)
+               (-10 : real))
+              :
+              real)
+             ((nat2real
+               ((* ((size (dataX : (array real))) : nat) (10 : nat)) : nat))
+              :
+              real)
+             ((*
+               ((summate
+                 (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                 ((natpow
+                   ((index (dataX : (array real)) (x18 : nat)) : real)
+                   (2 : nat))
+                  :
+                  real))
+                :
+                real)
+               (3 : real))
+              :
+              real)
+             (3 : real))
+            :
+            real)
+           (2 : real))
+          :
+          real))
+        :
+        prob))
+      :
+      (measure prob))
+     (bind
+      invNoiseb
+      ((mbind
+        ((normal
+          ((*
+            ((+
+              ((*
+                ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                ((summate
+                  (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                  ((*
+                    ((index (x6 : (array real)) (x18 : nat)) : real)
+                    ((index (dataX : (array real)) (x18 : nat)) : real))
+                   :
+                   real))
+                 :
+                 real)
+                (10 : real))
+               :
+               real)
+              ((*
+                ((summate
+                  (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                  ((index (dataX : (array real)) (x18 : nat)) : real))
+                 :
+                 real)
+                ((summate
+                  (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                  ((index (x6 : (array real)) (x18 : nat)) : real))
+                 :
+                 real)
+                (-10 : real))
+               :
+               real)
+              ((*
+                ((summate
+                  (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                  ((*
+                    ((index (x6 : (array real)) (x18 : nat)) : real)
+                    ((index (dataX : (array real)) (x18 : nat)) : real))
+                   :
+                   real))
+                 :
+                 real)
+                (3 : real))
+               :
+               real)
+              ((*
+                ((summate
+                  (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                  ((index (dataX : (array real)) (x18 : nat)) : real))
+                 :
+                 real)
+                (-15 : real))
+               :
+               real))
+             :
+             real)
+            ((recip
+              ((+
+                ((*
+                  ((nat2real ((size (dataX : (array real))) : nat)) : real)
+                  ((summate
+                    (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                    ((natpow
+                      ((index (dataX : (array real)) (x18 : nat)) : real)
+                      (2 : nat))
+                     :
+                     real))
+                   :
+                   real)
+                  (10 : real))
+                 :
+                 real)
+                ((*
+                  ((natpow
+                    ((summate
+                      (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                      ((index (dataX : (array real)) (x18 : nat)) : real))
+                     :
+                     real)
+                    (2 : nat))
+                   :
+                   real)
+                  (-10 : real))
+                 :
+                 real)
+                ((nat2real
+                  ((* ((size (dataX : (array real))) : nat) (10 : nat)) : nat))
+                 :
+                 real)
+                ((*
+                  ((summate
+                    (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                    ((natpow
+                      ((index (dataX : (array real)) (x18 : nat)) : real)
+                      (2 : nat))
+                     :
+                     real))
+                   :
+                   real)
+                  (3 : real))
+                 :
+                 real)
+                (3 : real))
+               :
+               real))
+             :
+             real))
+           :
+           real)
+          ((*
+            ((recip ((root (invNoiseb : prob) (2 : nat)) : prob)) : prob)
+            ((root
+              ((real2prob
+                ((*
+                  ((recip
+                    ((+
+                      ((*
+                        ((nat2real ((size (dataX : (array real))) : nat))
+                         :
+                         real)
+                        ((summate
+                          (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                          ((natpow
+                            ((index (dataX : (array real)) (x18 : nat)) : real)
+                            (2 : nat))
+                           :
+                           real))
+                         :
+                         real)
+                        (10 : real))
+                       :
+                       real)
+                      ((*
+                        ((natpow
+                          ((summate
+                            (x18
+                             (0 : nat)
+                             ((size (dataX : (array real))) : nat))
+                            ((index (dataX : (array real)) (x18 : nat))
+                             :
+                             real))
+                           :
+                           real)
+                          (2 : nat))
+                         :
+                         real)
+                        (-10 : real))
+                       :
+                       real)
+                      ((nat2real
+                        ((* ((size (dataX : (array real))) : nat) (10 : nat))
+                         :
+                         nat))
+                       :
+                       real)
+                      ((*
+                        ((summate
+                          (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                          ((natpow
+                            ((index (dataX : (array real)) (x18 : nat)) : real)
+                            (2 : nat))
+                           :
+                           real))
+                         :
+                         real)
+                        (3 : real))
+                       :
+                       real)
+                      (3 : real))
+                     :
+                     real))
+                   :
+                   real)
+                  ((nat2real
+                    ((+
+                      ((* ((size (dataX : (array real))) : nat) (10 : nat))
+                       :
+                       nat)
+                      (3 : nat))
+                     :
+                     nat))
+                   :
+                   real))
+                 :
+                 real))
+               :
+               prob)
+              (2 : nat))
+             :
+             prob))
+           :
+           prob))
+         :
+         (measure real))
+        (bind
+         a9
+         ((mbind
+           ((normal
+             ((*
+               ((+
+                 ((*
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((index (dataX : (array real)) (x18 : nat)) : real))
+                    :
+                    real)
+                   (a9 : real)
+                   (2 : real))
+                  :
+                  real)
+                 ((*
+                   ((summate
+                     (x18 (0 : nat) ((size (dataX : (array real))) : nat))
+                     ((index (x6 : (array real)) (x18 : nat)) : real))
+                    :
+                    real)
+                   (-2 : real))
+                  :
+                  real)
+                 (-3 : real))
+                :
+                real)
+               ((prob2real
+                 ((recip
+                   ((nat2prob
+                     ((+
+                       ((* ((size (dataX : (array real))) : nat) (10 : nat))
+                        :
+                        nat)
+                       (3 : nat))
+                      :
+                      nat))
+                    :
+                    prob))
+                  :
+                  prob))
+                :
+                real)
+               (-5 : real))
+              :
+              real)
+             ((*
+               ((root (10 : prob) (2 : nat)) : prob)
+               ((recip ((root (invNoiseb : prob) (2 : nat)) : prob)) : prob)
+               ((root
+                 ((recip
+                   ((nat2prob
+                     ((+
+                       ((* ((size (dataX : (array real))) : nat) (10 : nat))
+                        :
+                        nat)
+                       (3 : nat))
+                      :
+                      nat))
+                    :
+                    prob))
+                  :
+                  prob)
+                 (2 : nat))
+                :
+                prob))
+              :
+              prob))
+            :
+            (measure real))
+           (bind
+            b7
+            ((dirac
+              ((array-literal
+                (a9 : real)
+                (b7 : real)
+                ((prob2real (invNoiseb : prob)) : real))
+               :
+               (array real)))
+             :
+             (measure (array real)))))
+          :
+          (measure (array real)))))
+       :
+       (measure (array real)))))
+    :
+    (measure (array real))))
+  :
+  (measure (array real))))
+applying pass: parse-sexp
+((main
+  (function
+   (dataX x6)
+   (pose
+    (real2prob
+     (*
+      (prob2real (realpow (pi) (* (nat2real (size dataX)) (/ -1 2))))
+      (prob2real (root 3 2))
+      (prob2real
+       (root
+        (real2prob
+         (recip
+          (+
+           (*
+            (nat2real (size dataX))
+            (summate (si9 0 (size dataX)) (natpow (index dataX si9) 2))
+            10)
+           (*
+            (natpow (summate (si10 0 (size dataX)) (index dataX si10)) 2)
+            -10)
+           (nat2real (* (size dataX) 10))
+           (* (summate (si11 0 (size dataX)) (natpow (index dataX si11) 2)) 3)
+           3)))
+        2))
+      (recip
+       (+
+        (*
+         (nat2real (size dataX))
+         (summate (si12 0 (size dataX)) (natpow (index dataX si12) 2))
+         (summate (si13 0 (size dataX)) (natpow (index x6 si13) 2))
+         10)
+        (*
+         (nat2real (size dataX))
+         (natpow
+          (summate
+           (si14 0 (size dataX))
+           (* (index x6 si14) (index dataX si14)))
+          2)
+         -10)
+        (*
+         (summate (si15 0 (size dataX)) (natpow (index dataX si15) 2))
+         (natpow (summate (si16 0 (size dataX)) (index x6 si16)) 2)
+         -10)
+        (*
+         (summate (si17 0 (size dataX)) (natpow (index x6 si17) 2))
+         (natpow (summate (si18 0 (size dataX)) (index dataX si18)) 2)
+         -10)
+        (*
+         (summate (si19 0 (size dataX)) (* (index x6 si19) (index dataX si19)))
+         (summate (si20 0 (size dataX)) (index dataX si20))
+         (summate (si21 0 (size dataX)) (index x6 si21))
+         20)
+        (*
+         (nat2real (size dataX))
+         (summate (si22 0 (size dataX)) (natpow (index dataX si22) 2))
+         95)
+        (*
+         (nat2real (size dataX))
+         (summate (si23 0 (size dataX)) (natpow (index x6 si23) 2))
+         10)
+        (*
+         (summate (si24 0 (size dataX)) (natpow (index dataX si24) 2))
+         (summate (si25 0 (size dataX)) (natpow (index x6 si25) 2))
+         3)
+        (*
+         (summate (si26 0 (size dataX)) (natpow (index dataX si26) 2))
+         (summate (si27 0 (size dataX)) (index x6 si27))
+         -30)
+        (*
+         (natpow
+          (summate
+           (si28 0 (size dataX))
+           (* (index x6 si28) (index dataX si28)))
+          2)
+         -3)
+        (*
+         (summate (si29 0 (size dataX)) (* (index x6 si29) (index dataX si29)))
+         (summate (si30 0 (size dataX)) (index dataX si30))
+         30)
+        (* (natpow (summate (si31 0 (size dataX)) (index dataX si31)) 2) -95)
+        (* (natpow (summate (si32 0 (size dataX)) (index x6 si32)) 2) -10)
+        (nat2real (* (size dataX) 95))
+        (* (summate (si33 0 (size dataX)) (natpow (index dataX si33) 2)) 6)
+        (* (summate (si34 0 (size dataX)) (natpow (index x6 si34) 2)) 3)
+        (* (summate (si35 0 (size dataX)) (index x6 si35)) -30)
+        6))
+      (+
+       (*
+        (nat2real (size dataX))
+        (summate (si36 0 (size dataX)) (natpow (index dataX si36) 2))
+        10)
+       (* (natpow (summate (si37 0 (size dataX)) (index dataX si37)) 2) -10)
+       (nat2real (* (size dataX) 10))
+       (* (summate (si38 0 (size dataX)) (natpow (index dataX si38) 2)) 3)
+       3)
+      (prob2real
+       (realpow
+        (real2prob
+         (*
+          (recip
+           (+
+            (*
+             (nat2real (size dataX))
+             (summate (si39 0 (size dataX)) (natpow (index dataX si39) 2))
+             (summate (si40 0 (size dataX)) (natpow (index x6 si40) 2))
+             10)
+            (*
+             (nat2real (size dataX))
+             (natpow
+              (summate
+               (si41 0 (size dataX))
+               (* (index x6 si41) (index dataX si41)))
+              2)
+             -10)
+            (*
+             (summate (si42 0 (size dataX)) (natpow (index dataX si42) 2))
+             (natpow (summate (si43 0 (size dataX)) (index x6 si43)) 2)
+             -10)
+            (*
+             (summate (si44 0 (size dataX)) (natpow (index x6 si44) 2))
+             (natpow (summate (si45 0 (size dataX)) (index dataX si45)) 2)
+             -10)
+            (*
+             (summate
+              (si46 0 (size dataX))
+              (* (index x6 si46) (index dataX si46)))
+             (summate (si47 0 (size dataX)) (index dataX si47))
+             (summate (si48 0 (size dataX)) (index x6 si48))
+             20)
+            (*
+             (nat2real (size dataX))
+             (summate (si49 0 (size dataX)) (natpow (index dataX si49) 2))
+             95)
+            (*
+             (nat2real (size dataX))
+             (summate (si50 0 (size dataX)) (natpow (index x6 si50) 2))
+             10)
+            (*
+             (summate (si51 0 (size dataX)) (natpow (index dataX si51) 2))
+             (summate (si52 0 (size dataX)) (natpow (index x6 si52) 2))
+             3)
+            (*
+             (summate (si53 0 (size dataX)) (natpow (index dataX si53) 2))
+             (summate (si54 0 (size dataX)) (index x6 si54))
+             -30)
+            (*
+             (natpow
+              (summate
+               (si55 0 (size dataX))
+               (* (index x6 si55) (index dataX si55)))
+              2)
+             -3)
+            (*
+             (summate
+              (si56 0 (size dataX))
+              (* (index x6 si56) (index dataX si56)))
+             (summate (si57 0 (size dataX)) (index dataX si57))
+             30)
+            (*
+             (natpow (summate (si58 0 (size dataX)) (index dataX si58)) 2)
+             -95)
+            (* (natpow (summate (si59 0 (size dataX)) (index x6 si59)) 2) -10)
+            (nat2real (* (size dataX) 95))
+            (* (summate (si60 0 (size dataX)) (natpow (index dataX si60) 2)) 6)
+            (* (summate (si61 0 (size dataX)) (natpow (index x6 si61) 2)) 3)
+            (* (summate (si62 0 (size dataX)) (index x6 si62)) -30)
+            6))
+          (+
+           (*
+            (nat2real (size dataX))
+            (summate (si63 0 (size dataX)) (natpow (index dataX si63) 2))
+            10)
+           (*
+            (natpow (summate (si64 0 (size dataX)) (index dataX si64)) 2)
+            -10)
+           (nat2real (* (size dataX) 10))
+           (* (summate (si65 0 (size dataX)) (natpow (index dataX si65) 2)) 3)
+           3)))
+        (* (nat2real (size dataX)) (/ 1 2))))
+      (prob2real (gamma (+ 1 (* (nat2real (size dataX)) (/ 1 2)))))
+      2))
+    (mbind
+     (gamma
+      (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+      (real2prob
+       (*
+        (recip
+         (+
+          (*
+           (nat2real (size dataX))
+           (summate (si66 0 (size dataX)) (natpow (index dataX si66) 2))
+           (summate (si67 0 (size dataX)) (natpow (index x6 si67) 2))
+           10)
+          (*
+           (nat2real (size dataX))
+           (natpow
+            (summate
+             (si68 0 (size dataX))
+             (* (index x6 si68) (index dataX si68)))
+            2)
+           -10)
+          (*
+           (summate (si69 0 (size dataX)) (natpow (index dataX si69) 2))
+           (natpow (summate (si70 0 (size dataX)) (index x6 si70)) 2)
+           -10)
+          (*
+           (summate (si71 0 (size dataX)) (natpow (index x6 si71) 2))
+           (natpow (summate (si72 0 (size dataX)) (index dataX si72)) 2)
+           -10)
+          (*
+           (summate
+            (si73 0 (size dataX))
+            (* (index x6 si73) (index dataX si73)))
+           (summate (si74 0 (size dataX)) (index dataX si74))
+           (summate (si75 0 (size dataX)) (index x6 si75))
+           20)
+          (*
+           (nat2real (size dataX))
+           (summate (si76 0 (size dataX)) (natpow (index dataX si76) 2))
+           95)
+          (*
+           (nat2real (size dataX))
+           (summate (si77 0 (size dataX)) (natpow (index x6 si77) 2))
+           10)
+          (*
+           (summate (si78 0 (size dataX)) (natpow (index dataX si78) 2))
+           (summate (si79 0 (size dataX)) (natpow (index x6 si79) 2))
+           3)
+          (*
+           (summate (si80 0 (size dataX)) (natpow (index dataX si80) 2))
+           (summate (si81 0 (size dataX)) (index x6 si81))
+           -30)
+          (*
+           (natpow
+            (summate
+             (si82 0 (size dataX))
+             (* (index x6 si82) (index dataX si82)))
+            2)
+           -3)
+          (*
+           (summate
+            (si83 0 (size dataX))
+            (* (index x6 si83) (index dataX si83)))
+           (summate (si84 0 (size dataX)) (index dataX si84))
+           30)
+          (* (natpow (summate (si85 0 (size dataX)) (index dataX si85)) 2) -95)
+          (* (natpow (summate (si86 0 (size dataX)) (index x6 si86)) 2) -10)
+          (nat2real (* (size dataX) 95))
+          (* (summate (si87 0 (size dataX)) (natpow (index dataX si87) 2)) 6)
+          (* (summate (si88 0 (size dataX)) (natpow (index x6 si88) 2)) 3)
+          (* (summate (si89 0 (size dataX)) (index x6 si89)) -30)
+          6))
+        (+
+         (*
+          (nat2real (size dataX))
+          (summate (si90 0 (size dataX)) (natpow (index dataX si90) 2))
+          10)
+         (* (natpow (summate (si91 0 (size dataX)) (index dataX si91)) 2) -10)
+         (nat2real (* (size dataX) 10))
+         (* (summate (si92 0 (size dataX)) (natpow (index dataX si92) 2)) 3)
+         3)
+        2)))
+     (/
+      bi3
+      ->
+      (mbind
+       (normal
+        (*
+         (+
+          (*
+           (nat2real (size dataX))
+           (summate
+            (si93 0 (size dataX))
+            (* (index x6 si93) (index dataX si93)))
+           10)
+          (*
+           (summate (si94 0 (size dataX)) (index dataX si94))
+           (summate (si95 0 (size dataX)) (index x6 si95))
+           -10)
+          (*
+           (summate
+            (si96 0 (size dataX))
+            (* (index x6 si96) (index dataX si96)))
+           3)
+          (* (summate (si97 0 (size dataX)) (index dataX si97)) -15))
+         (recip
+          (+
+           (*
+            (nat2real (size dataX))
+            (summate (si98 0 (size dataX)) (natpow (index dataX si98) 2))
+            10)
+           (*
+            (natpow (summate (si99 0 (size dataX)) (index dataX si99)) 2)
+            -10)
+           (nat2real (* (size dataX) 10))
+           (*
+            (summate (si100 0 (size dataX)) (natpow (index dataX si100) 2))
+            3)
+           3)))
+        (*
+         (recip (root bi3 2))
+         (root
+          (real2prob
+           (*
+            (recip
+             (+
+              (*
+               (nat2real (size dataX))
+               (summate (si101 0 (size dataX)) (natpow (index dataX si101) 2))
+               10)
+              (*
+               (natpow (summate (si102 0 (size dataX)) (index dataX si102)) 2)
+               -10)
+              (nat2real (* (size dataX) 10))
+              (*
+               (summate (si103 0 (size dataX)) (natpow (index dataX si103) 2))
+               3)
+              3))
+            (nat2real (+ (* (size dataX) 10) 3))))
+          2)))
+       (/
+        bi4
+        ->
+        (mbind
+         (normal
+          (*
+           (+
+            (* (summate (si104 0 (size dataX)) (index dataX si104)) bi4 2)
+            (* (summate (si105 0 (size dataX)) (index x6 si105)) -2)
+            -3)
+           (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+           -5)
+          (*
+           (root 10 2)
+           (recip (root bi3 2))
+           (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2)))
+         (/ bi5 -> (dirac (array-literal bi4 bi5 (prob2real bi3)))))))))))))
+applying pass: macro-functions
+((main
+  (function
+   (dataX x6)
+   (mbind
+    (gamma
+     (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+     (real2prob
+      (*
+       (recip
+        (+
+         (*
+          (nat2real (size dataX))
+          (summate (si66 0 (size dataX)) (natpow (index dataX si66) 2))
+          (summate (si67 0 (size dataX)) (natpow (index x6 si67) 2))
+          10)
+         (*
+          (nat2real (size dataX))
+          (natpow
+           (summate
+            (si68 0 (size dataX))
+            (* (index x6 si68) (index dataX si68)))
+           2)
+          -10)
+         (*
+          (summate (si69 0 (size dataX)) (natpow (index dataX si69) 2))
+          (natpow (summate (si70 0 (size dataX)) (index x6 si70)) 2)
+          -10)
+         (*
+          (summate (si71 0 (size dataX)) (natpow (index x6 si71) 2))
+          (natpow (summate (si72 0 (size dataX)) (index dataX si72)) 2)
+          -10)
+         (*
+          (summate
+           (si73 0 (size dataX))
+           (* (index x6 si73) (index dataX si73)))
+          (summate (si74 0 (size dataX)) (index dataX si74))
+          (summate (si75 0 (size dataX)) (index x6 si75))
+          20)
+         (*
+          (nat2real (size dataX))
+          (summate (si76 0 (size dataX)) (natpow (index dataX si76) 2))
+          95)
+         (*
+          (nat2real (size dataX))
+          (summate (si77 0 (size dataX)) (natpow (index x6 si77) 2))
+          10)
+         (*
+          (summate (si78 0 (size dataX)) (natpow (index dataX si78) 2))
+          (summate (si79 0 (size dataX)) (natpow (index x6 si79) 2))
+          3)
+         (*
+          (summate (si80 0 (size dataX)) (natpow (index dataX si80) 2))
+          (summate (si81 0 (size dataX)) (index x6 si81))
+          -30)
+         (*
+          (natpow
+           (summate
+            (si82 0 (size dataX))
+            (* (index x6 si82) (index dataX si82)))
+           2)
+          -3)
+         (*
+          (summate
+           (si83 0 (size dataX))
+           (* (index x6 si83) (index dataX si83)))
+          (summate (si84 0 (size dataX)) (index dataX si84))
+          30)
+         (* (natpow (summate (si85 0 (size dataX)) (index dataX si85)) 2) -95)
+         (* (natpow (summate (si86 0 (size dataX)) (index x6 si86)) 2) -10)
+         (nat2real (* (size dataX) 95))
+         (* (summate (si87 0 (size dataX)) (natpow (index dataX si87) 2)) 6)
+         (* (summate (si88 0 (size dataX)) (natpow (index x6 si88) 2)) 3)
+         (* (summate (si89 0 (size dataX)) (index x6 si89)) -30)
+         6))
+       (+
+        (*
+         (nat2real (size dataX))
+         (summate (si90 0 (size dataX)) (natpow (index dataX si90) 2))
+         10)
+        (* (natpow (summate (si91 0 (size dataX)) (index dataX si91)) 2) -10)
+        (nat2real (* (size dataX) 10))
+        (* (summate (si92 0 (size dataX)) (natpow (index dataX si92) 2)) 3)
+        3)
+       2)))
+    (/
+     bi3
+     ->
+     (mbind
+      (normal
+       (*
+        (+
+         (*
+          (nat2real (size dataX))
+          (summate
+           (si93 0 (size dataX))
+           (* (index x6 si93) (index dataX si93)))
+          10)
+         (*
+          (summate (si94 0 (size dataX)) (index dataX si94))
+          (summate (si95 0 (size dataX)) (index x6 si95))
+          -10)
+         (*
+          (summate
+           (si96 0 (size dataX))
+           (* (index x6 si96) (index dataX si96)))
+          3)
+         (* (summate (si97 0 (size dataX)) (index dataX si97)) -15))
+        (recip
+         (+
+          (*
+           (nat2real (size dataX))
+           (summate (si98 0 (size dataX)) (natpow (index dataX si98) 2))
+           10)
+          (* (natpow (summate (si99 0 (size dataX)) (index dataX si99)) 2) -10)
+          (nat2real (* (size dataX) 10))
+          (* (summate (si100 0 (size dataX)) (natpow (index dataX si100) 2)) 3)
+          3)))
+       (*
+        (recip (root bi3 2))
+        (root
+         (real2prob
+          (*
+           (recip
+            (+
+             (*
+              (nat2real (size dataX))
+              (summate (si101 0 (size dataX)) (natpow (index dataX si101) 2))
+              10)
+             (*
+              (natpow (summate (si102 0 (size dataX)) (index dataX si102)) 2)
+              -10)
+             (nat2real (* (size dataX) 10))
+             (*
+              (summate (si103 0 (size dataX)) (natpow (index dataX si103) 2))
+              3)
+             3))
+           (nat2real (+ (* (size dataX) 10) 3))))
+         2)))
+      (/
+       bi4
+       ->
+       (mbind
+        (normal
+         (*
+          (+
+           (* (summate (si104 0 (size dataX)) (index dataX si104)) bi4 2)
+           (* (summate (si105 0 (size dataX)) (index x6 si105)) -2)
+           -3)
+          (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+          -5)
+         (*
+          (root 10 2)
+          (recip (root bi3 2))
+          (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2)))
+        (/ bi5 -> (array-literal bi4 bi5 (prob2real bi3)))))))))))
+applying pass: simplify-match
+((main
+  (function
+   (dataX x6)
+   (mbind
+    (gamma
+     (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+     (real2prob
+      (*
+       (recip
+        (+
+         (*
+          (nat2real (size dataX))
+          (summate (si66 0 (size dataX)) (natpow (index dataX si66) 2))
+          (summate (si67 0 (size dataX)) (natpow (index x6 si67) 2))
+          10)
+         (*
+          (nat2real (size dataX))
+          (natpow
+           (summate
+            (si68 0 (size dataX))
+            (* (index x6 si68) (index dataX si68)))
+           2)
+          -10)
+         (*
+          (summate (si69 0 (size dataX)) (natpow (index dataX si69) 2))
+          (natpow (summate (si70 0 (size dataX)) (index x6 si70)) 2)
+          -10)
+         (*
+          (summate (si71 0 (size dataX)) (natpow (index x6 si71) 2))
+          (natpow (summate (si72 0 (size dataX)) (index dataX si72)) 2)
+          -10)
+         (*
+          (summate
+           (si73 0 (size dataX))
+           (* (index x6 si73) (index dataX si73)))
+          (summate (si74 0 (size dataX)) (index dataX si74))
+          (summate (si75 0 (size dataX)) (index x6 si75))
+          20)
+         (*
+          (nat2real (size dataX))
+          (summate (si76 0 (size dataX)) (natpow (index dataX si76) 2))
+          95)
+         (*
+          (nat2real (size dataX))
+          (summate (si77 0 (size dataX)) (natpow (index x6 si77) 2))
+          10)
+         (*
+          (summate (si78 0 (size dataX)) (natpow (index dataX si78) 2))
+          (summate (si79 0 (size dataX)) (natpow (index x6 si79) 2))
+          3)
+         (*
+          (summate (si80 0 (size dataX)) (natpow (index dataX si80) 2))
+          (summate (si81 0 (size dataX)) (index x6 si81))
+          -30)
+         (*
+          (natpow
+           (summate
+            (si82 0 (size dataX))
+            (* (index x6 si82) (index dataX si82)))
+           2)
+          -3)
+         (*
+          (summate
+           (si83 0 (size dataX))
+           (* (index x6 si83) (index dataX si83)))
+          (summate (si84 0 (size dataX)) (index dataX si84))
+          30)
+         (* (natpow (summate (si85 0 (size dataX)) (index dataX si85)) 2) -95)
+         (* (natpow (summate (si86 0 (size dataX)) (index x6 si86)) 2) -10)
+         (nat2real (* (size dataX) 95))
+         (* (summate (si87 0 (size dataX)) (natpow (index dataX si87) 2)) 6)
+         (* (summate (si88 0 (size dataX)) (natpow (index x6 si88) 2)) 3)
+         (* (summate (si89 0 (size dataX)) (index x6 si89)) -30)
+         6))
+       (+
+        (*
+         (nat2real (size dataX))
+         (summate (si90 0 (size dataX)) (natpow (index dataX si90) 2))
+         10)
+        (* (natpow (summate (si91 0 (size dataX)) (index dataX si91)) 2) -10)
+        (nat2real (* (size dataX) 10))
+        (* (summate (si92 0 (size dataX)) (natpow (index dataX si92) 2)) 3)
+        3)
+       2)))
+    (/
+     bi3
+     ->
+     (mbind
+      (normal
+       (*
+        (+
+         (*
+          (nat2real (size dataX))
+          (summate
+           (si93 0 (size dataX))
+           (* (index x6 si93) (index dataX si93)))
+          10)
+         (*
+          (summate (si94 0 (size dataX)) (index dataX si94))
+          (summate (si95 0 (size dataX)) (index x6 si95))
+          -10)
+         (*
+          (summate
+           (si96 0 (size dataX))
+           (* (index x6 si96) (index dataX si96)))
+          3)
+         (* (summate (si97 0 (size dataX)) (index dataX si97)) -15))
+        (recip
+         (+
+          (*
+           (nat2real (size dataX))
+           (summate (si98 0 (size dataX)) (natpow (index dataX si98) 2))
+           10)
+          (* (natpow (summate (si99 0 (size dataX)) (index dataX si99)) 2) -10)
+          (nat2real (* (size dataX) 10))
+          (* (summate (si100 0 (size dataX)) (natpow (index dataX si100) 2)) 3)
+          3)))
+       (*
+        (recip (root bi3 2))
+        (root
+         (real2prob
+          (*
+           (recip
+            (+
+             (*
+              (nat2real (size dataX))
+              (summate (si101 0 (size dataX)) (natpow (index dataX si101) 2))
+              10)
+             (*
+              (natpow (summate (si102 0 (size dataX)) (index dataX si102)) 2)
+              -10)
+             (nat2real (* (size dataX) 10))
+             (*
+              (summate (si103 0 (size dataX)) (natpow (index dataX si103) 2))
+              3)
+             3))
+           (nat2real (+ (* (size dataX) 10) 3))))
+         2)))
+      (/
+       bi4
+       ->
+       (mbind
+        (normal
+         (*
+          (+
+           (* (summate (si104 0 (size dataX)) (index dataX si104)) bi4 2)
+           (* (summate (si105 0 (size dataX)) (index x6 si105)) -2)
+           -3)
+          (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+          -5)
+         (*
+          (root 10 2)
+          (recip (root bi3 2))
+          (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2)))
+        (/ bi5 -> (array-literal bi4 bi5 (prob2real bi3)))))))))))
+mbind bi5: (measure real)
+mbind bi4: (measure real)
+mbind bi3: (measure prob)
+applying pass: mbind->let
+((main
+  (function
+   (dataX x6)
+   (let (bi3
+         (gamma
+          (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+          (real2prob
+           (*
+            (recip
+             (+
+              (*
+               (nat2real (size dataX))
+               (summate (si66 0 (size dataX)) (natpow (index dataX si66) 2))
+               (summate (si67 0 (size dataX)) (natpow (index x6 si67) 2))
+               10)
+              (*
+               (nat2real (size dataX))
+               (natpow
+                (summate
+                 (si68 0 (size dataX))
+                 (* (index x6 si68) (index dataX si68)))
+                2)
+               -10)
+              (*
+               (summate (si69 0 (size dataX)) (natpow (index dataX si69) 2))
+               (natpow (summate (si70 0 (size dataX)) (index x6 si70)) 2)
+               -10)
+              (*
+               (summate (si71 0 (size dataX)) (natpow (index x6 si71) 2))
+               (natpow (summate (si72 0 (size dataX)) (index dataX si72)) 2)
+               -10)
+              (*
+               (summate
+                (si73 0 (size dataX))
+                (* (index x6 si73) (index dataX si73)))
+               (summate (si74 0 (size dataX)) (index dataX si74))
+               (summate (si75 0 (size dataX)) (index x6 si75))
+               20)
+              (*
+               (nat2real (size dataX))
+               (summate (si76 0 (size dataX)) (natpow (index dataX si76) 2))
+               95)
+              (*
+               (nat2real (size dataX))
+               (summate (si77 0 (size dataX)) (natpow (index x6 si77) 2))
+               10)
+              (*
+               (summate (si78 0 (size dataX)) (natpow (index dataX si78) 2))
+               (summate (si79 0 (size dataX)) (natpow (index x6 si79) 2))
+               3)
+              (*
+               (summate (si80 0 (size dataX)) (natpow (index dataX si80) 2))
+               (summate (si81 0 (size dataX)) (index x6 si81))
+               -30)
+              (*
+               (natpow
+                (summate
+                 (si82 0 (size dataX))
+                 (* (index x6 si82) (index dataX si82)))
+                2)
+               -3)
+              (*
+               (summate
+                (si83 0 (size dataX))
+                (* (index x6 si83) (index dataX si83)))
+               (summate (si84 0 (size dataX)) (index dataX si84))
+               30)
+              (*
+               (natpow (summate (si85 0 (size dataX)) (index dataX si85)) 2)
+               -95)
+              (*
+               (natpow (summate (si86 0 (size dataX)) (index x6 si86)) 2)
+               -10)
+              (nat2real (* (size dataX) 95))
+              (*
+               (summate (si87 0 (size dataX)) (natpow (index dataX si87) 2))
+               6)
+              (* (summate (si88 0 (size dataX)) (natpow (index x6 si88) 2)) 3)
+              (* (summate (si89 0 (size dataX)) (index x6 si89)) -30)
+              6))
+            (+
+             (*
+              (nat2real (size dataX))
+              (summate (si90 0 (size dataX)) (natpow (index dataX si90) 2))
+              10)
+             (*
+              (natpow (summate (si91 0 (size dataX)) (index dataX si91)) 2)
+              -10)
+             (nat2real (* (size dataX) 10))
+             (*
+              (summate (si92 0 (size dataX)) (natpow (index dataX si92) 2))
+              3)
+             3)
+            2))))
+     (let (bi4
+           (normal
+            (*
+             (+
+              (*
+               (nat2real (size dataX))
+               (summate
+                (si93 0 (size dataX))
+                (* (index x6 si93) (index dataX si93)))
+               10)
+              (*
+               (summate (si94 0 (size dataX)) (index dataX si94))
+               (summate (si95 0 (size dataX)) (index x6 si95))
+               -10)
+              (*
+               (summate
+                (si96 0 (size dataX))
+                (* (index x6 si96) (index dataX si96)))
+               3)
+              (* (summate (si97 0 (size dataX)) (index dataX si97)) -15))
+             (recip
+              (+
+               (*
+                (nat2real (size dataX))
+                (summate (si98 0 (size dataX)) (natpow (index dataX si98) 2))
+                10)
+               (*
+                (natpow (summate (si99 0 (size dataX)) (index dataX si99)) 2)
+                -10)
+               (nat2real (* (size dataX) 10))
+               (*
+                (summate (si100 0 (size dataX)) (natpow (index dataX si100) 2))
+                3)
+               3)))
+            (*
+             (recip (root bi3 2))
+             (root
+              (real2prob
+               (*
+                (recip
+                 (+
+                  (*
+                   (nat2real (size dataX))
+                   (summate
+                    (si101 0 (size dataX))
+                    (natpow (index dataX si101) 2))
+                   10)
+                  (*
+                   (natpow
+                    (summate (si102 0 (size dataX)) (index dataX si102))
+                    2)
+                   -10)
+                  (nat2real (* (size dataX) 10))
+                  (*
+                   (summate
+                    (si103 0 (size dataX))
+                    (natpow (index dataX si103) 2))
+                   3)
+                  3))
+                (nat2real (+ (* (size dataX) 10) 3))))
+              2))))
+       (let (bi5
+             (normal
+              (*
+               (+
+                (* (summate (si104 0 (size dataX)) (index dataX si104)) bi4 2)
+                (* (summate (si105 0 (size dataX)) (index x6 si105)) -2)
+                -3)
+               (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+               -5)
+              (*
+               (root 10 2)
+               (recip (root bi3 2))
+               (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2))))
+         (array-literal bi4 bi5 (prob2real bi3))))))))
+applying pass: remove-array-literals
+((main
+  (function
+   (dataX x6)
+   (let (bi3
+         (gamma
+          (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+          (real2prob
+           (*
+            (recip
+             (+
+              (*
+               (nat2real (size dataX))
+               (summate (si66 0 (size dataX)) (natpow (index dataX si66) 2))
+               (summate (si67 0 (size dataX)) (natpow (index x6 si67) 2))
+               10)
+              (*
+               (nat2real (size dataX))
+               (natpow
+                (summate
+                 (si68 0 (size dataX))
+                 (* (index x6 si68) (index dataX si68)))
+                2)
+               -10)
+              (*
+               (summate (si69 0 (size dataX)) (natpow (index dataX si69) 2))
+               (natpow (summate (si70 0 (size dataX)) (index x6 si70)) 2)
+               -10)
+              (*
+               (summate (si71 0 (size dataX)) (natpow (index x6 si71) 2))
+               (natpow (summate (si72 0 (size dataX)) (index dataX si72)) 2)
+               -10)
+              (*
+               (summate
+                (si73 0 (size dataX))
+                (* (index x6 si73) (index dataX si73)))
+               (summate (si74 0 (size dataX)) (index dataX si74))
+               (summate (si75 0 (size dataX)) (index x6 si75))
+               20)
+              (*
+               (nat2real (size dataX))
+               (summate (si76 0 (size dataX)) (natpow (index dataX si76) 2))
+               95)
+              (*
+               (nat2real (size dataX))
+               (summate (si77 0 (size dataX)) (natpow (index x6 si77) 2))
+               10)
+              (*
+               (summate (si78 0 (size dataX)) (natpow (index dataX si78) 2))
+               (summate (si79 0 (size dataX)) (natpow (index x6 si79) 2))
+               3)
+              (*
+               (summate (si80 0 (size dataX)) (natpow (index dataX si80) 2))
+               (summate (si81 0 (size dataX)) (index x6 si81))
+               -30)
+              (*
+               (natpow
+                (summate
+                 (si82 0 (size dataX))
+                 (* (index x6 si82) (index dataX si82)))
+                2)
+               -3)
+              (*
+               (summate
+                (si83 0 (size dataX))
+                (* (index x6 si83) (index dataX si83)))
+               (summate (si84 0 (size dataX)) (index dataX si84))
+               30)
+              (*
+               (natpow (summate (si85 0 (size dataX)) (index dataX si85)) 2)
+               -95)
+              (*
+               (natpow (summate (si86 0 (size dataX)) (index x6 si86)) 2)
+               -10)
+              (nat2real (* (size dataX) 95))
+              (*
+               (summate (si87 0 (size dataX)) (natpow (index dataX si87) 2))
+               6)
+              (* (summate (si88 0 (size dataX)) (natpow (index x6 si88) 2)) 3)
+              (* (summate (si89 0 (size dataX)) (index x6 si89)) -30)
+              6))
+            (+
+             (*
+              (nat2real (size dataX))
+              (summate (si90 0 (size dataX)) (natpow (index dataX si90) 2))
+              10)
+             (*
+              (natpow (summate (si91 0 (size dataX)) (index dataX si91)) 2)
+              -10)
+             (nat2real (* (size dataX) 10))
+             (*
+              (summate (si92 0 (size dataX)) (natpow (index dataX si92) 2))
+              3)
+             3)
+            2))))
+     (let (bi4
+           (normal
+            (*
+             (+
+              (*
+               (nat2real (size dataX))
+               (summate
+                (si93 0 (size dataX))
+                (* (index x6 si93) (index dataX si93)))
+               10)
+              (*
+               (summate (si94 0 (size dataX)) (index dataX si94))
+               (summate (si95 0 (size dataX)) (index x6 si95))
+               -10)
+              (*
+               (summate
+                (si96 0 (size dataX))
+                (* (index x6 si96) (index dataX si96)))
+               3)
+              (* (summate (si97 0 (size dataX)) (index dataX si97)) -15))
+             (recip
+              (+
+               (*
+                (nat2real (size dataX))
+                (summate (si98 0 (size dataX)) (natpow (index dataX si98) 2))
+                10)
+               (*
+                (natpow (summate (si99 0 (size dataX)) (index dataX si99)) 2)
+                -10)
+               (nat2real (* (size dataX) 10))
+               (*
+                (summate (si100 0 (size dataX)) (natpow (index dataX si100) 2))
+                3)
+               3)))
+            (*
+             (recip (root bi3 2))
+             (root
+              (real2prob
+               (*
+                (recip
+                 (+
+                  (*
+                   (nat2real (size dataX))
+                   (summate
+                    (si101 0 (size dataX))
+                    (natpow (index dataX si101) 2))
+                   10)
+                  (*
+                   (natpow
+                    (summate (si102 0 (size dataX)) (index dataX si102))
+                    2)
+                   -10)
+                  (nat2real (* (size dataX) 10))
+                  (*
+                   (summate
+                    (si103 0 (size dataX))
+                    (natpow (index dataX si103) 2))
+                   3)
+                  3))
+                (nat2real (+ (* (size dataX) 10) 3))))
+              2))))
+       (let (bi5
+             (normal
+              (*
+               (+
+                (* (summate (si104 0 (size dataX)) (index dataX si104)) bi4 2)
+                (* (summate (si105 0 (size dataX)) (index x6 si105)) -2)
+                -3)
+               (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+               -5)
+              (*
+               (root 10 2)
+               (recip (root bi3 2))
+               (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2))))
+         (array-literal bi4 bi5 (prob2real bi3))))))))
+applying pass: flatten-anf
+((main
+  (function
+   (dataX x6)
+   (lets
+    ((sm91 (summate (si87 0 (size dataX)) (natpow (index dataX si87) 2)))
+     (sm87
+      (summate (si83 0 (size dataX)) (* (index x6 si83) (index dataX si83))))
+     (sm82 (summate (si78 0 (size dataX)) (natpow (index dataX si78) 2)))
+     (sm80 (summate (si76 0 (size dataX)) (natpow (index dataX si76) 2)))
+     (sm58 (summate (si105 0 (size dataX)) (index x6 si105)))
+     (sm79 (summate (si75 0 (size dataX)) (index x6 si75)))
+     (sm85 (summate (si81 0 (size dataX)) (index x6 si81)))
+     (sm69 (summate (si103 0 (size dataX)) (natpow (index dataX si103) 2)))
+     (sm70 (summate (si66 0 (size dataX)) (natpow (index dataX si66) 2)))
+     (sm76 (summate (si72 0 (size dataX)) (index dataX si72)))
+     (sm92 (summate (si88 0 (size dataX)) (natpow (index x6 si88) 2)))
+     (sm66 (summate (si100 0 (size dataX)) (natpow (index dataX si100) 2)))
+     (sm65 (summate (si99 0 (size dataX)) (index dataX si99)))
+     (sm73 (summate (si69 0 (size dataX)) (natpow (index dataX si69) 2)))
+     (sm88 (summate (si84 0 (size dataX)) (index dataX si84)))
+     (sm59
+      (summate (si93 0 (size dataX)) (* (index x6 si93) (index dataX si93))))
+     (sm86
+      (summate (si82 0 (size dataX)) (* (index x6 si82) (index dataX si82))))
+     (sm74 (summate (si70 0 (size dataX)) (index x6 si70)))
+     (sm93 (summate (si89 0 (size dataX)) (index x6 si89)))
+     (sm89 (summate (si85 0 (size dataX)) (index dataX si85)))
+     (sm64 (summate (si98 0 (size dataX)) (natpow (index dataX si98) 2)))
+     (sm81 (summate (si77 0 (size dataX)) (natpow (index x6 si77) 2)))
+     (sm96 (summate (si92 0 (size dataX)) (natpow (index dataX si92) 2)))
+     (sm68 (summate (si102 0 (size dataX)) (index dataX si102)))
+     (sm63 (summate (si97 0 (size dataX)) (index dataX si97)))
+     (sm94 (summate (si90 0 (size dataX)) (natpow (index dataX si90) 2)))
+     (sm72
+      (summate (si68 0 (size dataX)) (* (index x6 si68) (index dataX si68))))
+     (sm71 (summate (si67 0 (size dataX)) (natpow (index x6 si67) 2)))
+     (sm77
+      (summate (si73 0 (size dataX)) (* (index x6 si73) (index dataX si73))))
+     (sm78 (summate (si74 0 (size dataX)) (index dataX si74)))
+     (sm61 (summate (si95 0 (size dataX)) (index x6 si95)))
+     (sm62
+      (summate (si96 0 (size dataX)) (* (index x6 si96) (index dataX si96))))
+     (sm84 (summate (si80 0 (size dataX)) (natpow (index dataX si80) 2)))
+     (sm60 (summate (si94 0 (size dataX)) (index dataX si94)))
+     (sm95 (summate (si91 0 (size dataX)) (index dataX si91)))
+     (sm90 (summate (si86 0 (size dataX)) (index x6 si86)))
+     (sm67 (summate (si101 0 (size dataX)) (natpow (index dataX si101) 2)))
+     (sm75 (summate (si71 0 (size dataX)) (natpow (index x6 si71) 2)))
+     (sm83 (summate (si79 0 (size dataX)) (natpow (index x6 si79) 2)))
+     (sm57 (summate (si104 0 (size dataX)) (index dataX si104))))
+    (let (bi3
+          (gamma
+           (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+           (real2prob
+            (*
+             (recip
+              (+
+               (* (nat2real (size dataX)) sm70 sm71 10)
+               (* (nat2real (size dataX)) (natpow sm72 2) -10)
+               (* sm73 (natpow sm74 2) -10)
+               (* sm75 (natpow sm76 2) -10)
+               (* sm77 sm78 sm79 20)
+               (* (nat2real (size dataX)) sm80 95)
+               (* (nat2real (size dataX)) sm81 10)
+               (* sm82 sm83 3)
+               (* sm84 sm85 -30)
+               (* (natpow sm86 2) -3)
+               (* sm87 sm88 30)
+               (* (natpow sm89 2) -95)
+               (* (natpow sm90 2) -10)
+               (nat2real (* (size dataX) 95))
+               (* sm91 6)
+               (* sm92 3)
+               (* sm93 -30)
+               6))
+             (+
+              (* (nat2real (size dataX)) sm94 10)
+              (* (natpow sm95 2) -10)
+              (nat2real (* (size dataX) 10))
+              (* sm96 3)
+              3)
+             2))))
+      (let (bi4
+            (normal
+             (*
+              (+
+               (* (nat2real (size dataX)) sm59 10)
+               (* sm60 sm61 -10)
+               (* sm62 3)
+               (* sm63 -15))
+              (recip
+               (+
+                (* (nat2real (size dataX)) sm64 10)
+                (* (natpow sm65 2) -10)
+                (nat2real (* (size dataX) 10))
+                (* sm66 3)
+                3)))
+             (*
+              (recip (root bi3 2))
+              (root
+               (real2prob
+                (*
+                 (recip
+                  (+
+                   (* (nat2real (size dataX)) sm67 10)
+                   (* (natpow sm68 2) -10)
+                   (nat2real (* (size dataX) 10))
+                   (* sm69 3)
+                   3))
+                 (nat2real (+ (* (size dataX) 10) 3))))
+               2))))
+        (let (bi5
+              (normal
+               (*
+                (+ (* sm57 bi4 2) (* sm58 -2) -3)
+                (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+                -5)
+               (*
+                (root 10 2)
+                (recip (root bi3 2))
+                (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2))))
+          (array-literal bi4 bi5 (prob2real bi3)))))))))
+loop-var-map: (sm91 sm87 sm82 sm80 sm58 sm79 sm85 sm69 sm70 sm76 sm92 sm66 sm65 sm73 sm88 sm59 sm86 sm74 sm93 sm89 sm64 sm81 sm96 sm68 sm63 sm94 sm72 sm71 sm77 sm78 sm61 sm62 sm84 sm60 sm95 sm90 sm67 sm75 sm83 sm57)
+loop-groups: ((sm91 sm87 sm82 sm80 sm58 sm79 sm85 sm69 sm70 sm76 sm92 sm66 sm65 sm73 sm88 sm59 sm86 sm74 sm93 sm89 sm64 sm81 sm96 sm68 sm63 sm94 sm72 sm71 sm77 sm78 sm61 sm62 sm84 sm60 sm95 sm90 sm67 sm75 sm83 sm57))
+applying pass: combine-loops
+((main
+  (function
+   (dataX x6)
+   (lets
+    ()
+    (lets
+     ((sm57 0)
+      (sm83 0)
+      (sm75 0)
+      (sm67 0)
+      (sm90 0)
+      (sm95 0)
+      (sm60 0)
+      (sm84 0)
+      (sm62 0)
+      (sm61 0)
+      (sm78 0)
+      (sm77 0)
+      (sm71 0)
+      (sm72 0)
+      (sm94 0)
+      (sm63 0)
+      (sm68 0)
+      (sm96 0)
+      (sm81 0)
+      (sm64 0)
+      (sm89 0)
+      (sm93 0)
+      (sm74 0)
+      (sm86 0)
+      (sm59 0)
+      (sm88 0)
+      (sm73 0)
+      (sm65 0)
+      (sm66 0)
+      (sm92 0)
+      (sm76 0)
+      (sm70 0)
+      (sm69 0)
+      (sm85 0)
+      (sm79 0)
+      (sm58 0)
+      (sm80 0)
+      (sm82 0)
+      (sm87 0)
+      (sm91 0))
+     (expr-block
+      (for-stmt
+       (ci2 0 (size dataX))
+       (block-stmt
+        (elet-stmt ((si104 ci2)) (set! sm57 (+ sm57 (index dataX si104))))
+        (elet-stmt
+         ((si79 ci2))
+         (set! sm83 (+ sm83 (natpow (index x6 si79) 2))))
+        (elet-stmt
+         ((si71 ci2))
+         (set! sm75 (+ sm75 (natpow (index x6 si71) 2))))
+        (elet-stmt
+         ((si101 ci2))
+         (set! sm67 (+ sm67 (natpow (index dataX si101) 2))))
+        (elet-stmt ((si86 ci2)) (set! sm90 (+ sm90 (index x6 si86))))
+        (elet-stmt ((si91 ci2)) (set! sm95 (+ sm95 (index dataX si91))))
+        (elet-stmt ((si94 ci2)) (set! sm60 (+ sm60 (index dataX si94))))
+        (elet-stmt
+         ((si80 ci2))
+         (set! sm84 (+ sm84 (natpow (index dataX si80) 2))))
+        (elet-stmt
+         ((si96 ci2))
+         (set! sm62 (+ sm62 (* (index x6 si96) (index dataX si96)))))
+        (elet-stmt ((si95 ci2)) (set! sm61 (+ sm61 (index x6 si95))))
+        (elet-stmt ((si74 ci2)) (set! sm78 (+ sm78 (index dataX si74))))
+        (elet-stmt
+         ((si73 ci2))
+         (set! sm77 (+ sm77 (* (index x6 si73) (index dataX si73)))))
+        (elet-stmt
+         ((si67 ci2))
+         (set! sm71 (+ sm71 (natpow (index x6 si67) 2))))
+        (elet-stmt
+         ((si68 ci2))
+         (set! sm72 (+ sm72 (* (index x6 si68) (index dataX si68)))))
+        (elet-stmt
+         ((si90 ci2))
+         (set! sm94 (+ sm94 (natpow (index dataX si90) 2))))
+        (elet-stmt ((si97 ci2)) (set! sm63 (+ sm63 (index dataX si97))))
+        (elet-stmt ((si102 ci2)) (set! sm68 (+ sm68 (index dataX si102))))
+        (elet-stmt
+         ((si92 ci2))
+         (set! sm96 (+ sm96 (natpow (index dataX si92) 2))))
+        (elet-stmt
+         ((si77 ci2))
+         (set! sm81 (+ sm81 (natpow (index x6 si77) 2))))
+        (elet-stmt
+         ((si98 ci2))
+         (set! sm64 (+ sm64 (natpow (index dataX si98) 2))))
+        (elet-stmt ((si85 ci2)) (set! sm89 (+ sm89 (index dataX si85))))
+        (elet-stmt ((si89 ci2)) (set! sm93 (+ sm93 (index x6 si89))))
+        (elet-stmt ((si70 ci2)) (set! sm74 (+ sm74 (index x6 si70))))
+        (elet-stmt
+         ((si82 ci2))
+         (set! sm86 (+ sm86 (* (index x6 si82) (index dataX si82)))))
+        (elet-stmt
+         ((si93 ci2))
+         (set! sm59 (+ sm59 (* (index x6 si93) (index dataX si93)))))
+        (elet-stmt ((si84 ci2)) (set! sm88 (+ sm88 (index dataX si84))))
+        (elet-stmt
+         ((si69 ci2))
+         (set! sm73 (+ sm73 (natpow (index dataX si69) 2))))
+        (elet-stmt ((si99 ci2)) (set! sm65 (+ sm65 (index dataX si99))))
+        (elet-stmt
+         ((si100 ci2))
+         (set! sm66 (+ sm66 (natpow (index dataX si100) 2))))
+        (elet-stmt
+         ((si88 ci2))
+         (set! sm92 (+ sm92 (natpow (index x6 si88) 2))))
+        (elet-stmt ((si72 ci2)) (set! sm76 (+ sm76 (index dataX si72))))
+        (elet-stmt
+         ((si66 ci2))
+         (set! sm70 (+ sm70 (natpow (index dataX si66) 2))))
+        (elet-stmt
+         ((si103 ci2))
+         (set! sm69 (+ sm69 (natpow (index dataX si103) 2))))
+        (elet-stmt ((si81 ci2)) (set! sm85 (+ sm85 (index x6 si81))))
+        (elet-stmt ((si75 ci2)) (set! sm79 (+ sm79 (index x6 si75))))
+        (elet-stmt ((si105 ci2)) (set! sm58 (+ sm58 (index x6 si105))))
+        (elet-stmt
+         ((si76 ci2))
+         (set! sm80 (+ sm80 (natpow (index dataX si76) 2))))
+        (elet-stmt
+         ((si78 ci2))
+         (set! sm82 (+ sm82 (natpow (index dataX si78) 2))))
+        (elet-stmt
+         ((si83 ci2))
+         (set! sm87 (+ sm87 (* (index x6 si83) (index dataX si83)))))
+        (elet-stmt
+         ((si87 ci2))
+         (set! sm91 (+ sm91 (natpow (index dataX si87) 2))))))
+      (let (bi3
+            (gamma
+             (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+             (real2prob
+              (*
+               (recip
+                (+
+                 (* (nat2real (size dataX)) sm70 sm71 10)
+                 (* (nat2real (size dataX)) (natpow sm72 2) -10)
+                 (* sm73 (natpow sm74 2) -10)
+                 (* sm75 (natpow sm76 2) -10)
+                 (* sm77 sm78 sm79 20)
+                 (* (nat2real (size dataX)) sm80 95)
+                 (* (nat2real (size dataX)) sm81 10)
+                 (* sm82 sm83 3)
+                 (* sm84 sm85 -30)
+                 (* (natpow sm86 2) -3)
+                 (* sm87 sm88 30)
+                 (* (natpow sm89 2) -95)
+                 (* (natpow sm90 2) -10)
+                 (nat2real (* (size dataX) 95))
+                 (* sm91 6)
+                 (* sm92 3)
+                 (* sm93 -30)
+                 6))
+               (+
+                (* (nat2real (size dataX)) sm94 10)
+                (* (natpow sm95 2) -10)
+                (nat2real (* (size dataX) 10))
+                (* sm96 3)
+                3)
+               2))))
+        (let (bi4
+              (normal
+               (*
+                (+
+                 (* (nat2real (size dataX)) sm59 10)
+                 (* sm60 sm61 -10)
+                 (* sm62 3)
+                 (* sm63 -15))
+                (recip
+                 (+
+                  (* (nat2real (size dataX)) sm64 10)
+                  (* (natpow sm65 2) -10)
+                  (nat2real (* (size dataX) 10))
+                  (* sm66 3)
+                  3)))
+               (*
+                (recip (root bi3 2))
+                (root
+                 (real2prob
+                  (*
+                   (recip
+                    (+
+                     (* (nat2real (size dataX)) sm67 10)
+                     (* (natpow sm68 2) -10)
+                     (nat2real (* (size dataX) 10))
+                     (* sm69 3)
+                     3))
+                   (nat2real (+ (* (size dataX) 10) 3))))
+                 2))))
+          (let (bi5
+                (normal
+                 (*
+                  (+ (* sm57 bi4 2) (* sm58 -2) -3)
+                  (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+                  -5)
+                 (*
+                  (root 10 2)
+                  (recip (root bi3 2))
+                  (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2))))
+            (array-literal bi4 bi5 (prob2real bi3)))))))))))
+applying pass: remove-unit-lets
+((main
+  (function
+   (dataX x6)
+   (lets
+    ()
+    (lets
+     ((sm57 0)
+      (sm83 0)
+      (sm75 0)
+      (sm67 0)
+      (sm90 0)
+      (sm95 0)
+      (sm60 0)
+      (sm84 0)
+      (sm62 0)
+      (sm61 0)
+      (sm78 0)
+      (sm77 0)
+      (sm71 0)
+      (sm72 0)
+      (sm94 0)
+      (sm63 0)
+      (sm68 0)
+      (sm96 0)
+      (sm81 0)
+      (sm64 0)
+      (sm89 0)
+      (sm93 0)
+      (sm74 0)
+      (sm86 0)
+      (sm59 0)
+      (sm88 0)
+      (sm73 0)
+      (sm65 0)
+      (sm66 0)
+      (sm92 0)
+      (sm76 0)
+      (sm70 0)
+      (sm69 0)
+      (sm85 0)
+      (sm79 0)
+      (sm58 0)
+      (sm80 0)
+      (sm82 0)
+      (sm87 0)
+      (sm91 0))
+     (expr-block
+      (for-stmt
+       (ci2 0 (size dataX))
+       (block-stmt
+        (elet-stmt ((si104 ci2)) (set! sm57 (+ sm57 (index dataX si104))))
+        (elet-stmt
+         ((si79 ci2))
+         (set! sm83 (+ sm83 (natpow (index x6 si79) 2))))
+        (elet-stmt
+         ((si71 ci2))
+         (set! sm75 (+ sm75 (natpow (index x6 si71) 2))))
+        (elet-stmt
+         ((si101 ci2))
+         (set! sm67 (+ sm67 (natpow (index dataX si101) 2))))
+        (elet-stmt ((si86 ci2)) (set! sm90 (+ sm90 (index x6 si86))))
+        (elet-stmt ((si91 ci2)) (set! sm95 (+ sm95 (index dataX si91))))
+        (elet-stmt ((si94 ci2)) (set! sm60 (+ sm60 (index dataX si94))))
+        (elet-stmt
+         ((si80 ci2))
+         (set! sm84 (+ sm84 (natpow (index dataX si80) 2))))
+        (elet-stmt
+         ((si96 ci2))
+         (set! sm62 (+ sm62 (* (index x6 si96) (index dataX si96)))))
+        (elet-stmt ((si95 ci2)) (set! sm61 (+ sm61 (index x6 si95))))
+        (elet-stmt ((si74 ci2)) (set! sm78 (+ sm78 (index dataX si74))))
+        (elet-stmt
+         ((si73 ci2))
+         (set! sm77 (+ sm77 (* (index x6 si73) (index dataX si73)))))
+        (elet-stmt
+         ((si67 ci2))
+         (set! sm71 (+ sm71 (natpow (index x6 si67) 2))))
+        (elet-stmt
+         ((si68 ci2))
+         (set! sm72 (+ sm72 (* (index x6 si68) (index dataX si68)))))
+        (elet-stmt
+         ((si90 ci2))
+         (set! sm94 (+ sm94 (natpow (index dataX si90) 2))))
+        (elet-stmt ((si97 ci2)) (set! sm63 (+ sm63 (index dataX si97))))
+        (elet-stmt ((si102 ci2)) (set! sm68 (+ sm68 (index dataX si102))))
+        (elet-stmt
+         ((si92 ci2))
+         (set! sm96 (+ sm96 (natpow (index dataX si92) 2))))
+        (elet-stmt
+         ((si77 ci2))
+         (set! sm81 (+ sm81 (natpow (index x6 si77) 2))))
+        (elet-stmt
+         ((si98 ci2))
+         (set! sm64 (+ sm64 (natpow (index dataX si98) 2))))
+        (elet-stmt ((si85 ci2)) (set! sm89 (+ sm89 (index dataX si85))))
+        (elet-stmt ((si89 ci2)) (set! sm93 (+ sm93 (index x6 si89))))
+        (elet-stmt ((si70 ci2)) (set! sm74 (+ sm74 (index x6 si70))))
+        (elet-stmt
+         ((si82 ci2))
+         (set! sm86 (+ sm86 (* (index x6 si82) (index dataX si82)))))
+        (elet-stmt
+         ((si93 ci2))
+         (set! sm59 (+ sm59 (* (index x6 si93) (index dataX si93)))))
+        (elet-stmt ((si84 ci2)) (set! sm88 (+ sm88 (index dataX si84))))
+        (elet-stmt
+         ((si69 ci2))
+         (set! sm73 (+ sm73 (natpow (index dataX si69) 2))))
+        (elet-stmt ((si99 ci2)) (set! sm65 (+ sm65 (index dataX si99))))
+        (elet-stmt
+         ((si100 ci2))
+         (set! sm66 (+ sm66 (natpow (index dataX si100) 2))))
+        (elet-stmt
+         ((si88 ci2))
+         (set! sm92 (+ sm92 (natpow (index x6 si88) 2))))
+        (elet-stmt ((si72 ci2)) (set! sm76 (+ sm76 (index dataX si72))))
+        (elet-stmt
+         ((si66 ci2))
+         (set! sm70 (+ sm70 (natpow (index dataX si66) 2))))
+        (elet-stmt
+         ((si103 ci2))
+         (set! sm69 (+ sm69 (natpow (index dataX si103) 2))))
+        (elet-stmt ((si81 ci2)) (set! sm85 (+ sm85 (index x6 si81))))
+        (elet-stmt ((si75 ci2)) (set! sm79 (+ sm79 (index x6 si75))))
+        (elet-stmt ((si105 ci2)) (set! sm58 (+ sm58 (index x6 si105))))
+        (elet-stmt
+         ((si76 ci2))
+         (set! sm80 (+ sm80 (natpow (index dataX si76) 2))))
+        (elet-stmt
+         ((si78 ci2))
+         (set! sm82 (+ sm82 (natpow (index dataX si78) 2))))
+        (elet-stmt
+         ((si83 ci2))
+         (set! sm87 (+ sm87 (* (index x6 si83) (index dataX si83)))))
+        (elet-stmt
+         ((si87 ci2))
+         (set! sm91 (+ sm91 (natpow (index dataX si87) 2))))))
+      (let (bi3
+            (gamma
+             (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+             (real2prob
+              (*
+               (recip
+                (+
+                 (* (nat2real (size dataX)) sm70 sm71 10)
+                 (* (nat2real (size dataX)) (natpow sm72 2) -10)
+                 (* sm73 (natpow sm74 2) -10)
+                 (* sm75 (natpow sm76 2) -10)
+                 (* sm77 sm78 sm79 20)
+                 (* (nat2real (size dataX)) sm80 95)
+                 (* (nat2real (size dataX)) sm81 10)
+                 (* sm82 sm83 3)
+                 (* sm84 sm85 -30)
+                 (* (natpow sm86 2) -3)
+                 (* sm87 sm88 30)
+                 (* (natpow sm89 2) -95)
+                 (* (natpow sm90 2) -10)
+                 (nat2real (* (size dataX) 95))
+                 (* sm91 6)
+                 (* sm92 3)
+                 (* sm93 -30)
+                 6))
+               (+
+                (* (nat2real (size dataX)) sm94 10)
+                (* (natpow sm95 2) -10)
+                (nat2real (* (size dataX) 10))
+                (* sm96 3)
+                3)
+               2))))
+        (let (bi4
+              (normal
+               (*
+                (+
+                 (* (nat2real (size dataX)) sm59 10)
+                 (* sm60 sm61 -10)
+                 (* sm62 3)
+                 (* sm63 -15))
+                (recip
+                 (+
+                  (* (nat2real (size dataX)) sm64 10)
+                  (* (natpow sm65 2) -10)
+                  (nat2real (* (size dataX) 10))
+                  (* sm66 3)
+                  3)))
+               (*
+                (recip (root bi3 2))
+                (root
+                 (real2prob
+                  (*
+                   (recip
+                    (+
+                     (* (nat2real (size dataX)) sm67 10)
+                     (* (natpow sm68 2) -10)
+                     (nat2real (* (size dataX) 10))
+                     (* sm69 3)
+                     3))
+                   (nat2real (+ (* (size dataX) 10) 3))))
+                 2))))
+          (let (bi5
+                (normal
+                 (*
+                  (+ (* sm57 bi4 2) (* sm58 -2) -3)
+                  (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+                  -5)
+                 (*
+                  (root 10 2)
+                  (recip (root bi3 2))
+                  (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2))))
+            (array-literal bi4 bi5 (prob2real bi3)))))))))))
+replacing: si104 with ci2
+	replaced: si104 with ci2
+replacing: si79 with ci2
+	replaced: si79 with ci2
+replacing: si71 with ci2
+	replaced: si71 with ci2
+replacing: si101 with ci2
+	replaced: si101 with ci2
+replacing: si86 with ci2
+	replaced: si86 with ci2
+replacing: si91 with ci2
+	replaced: si91 with ci2
+replacing: si94 with ci2
+	replaced: si94 with ci2
+replacing: si80 with ci2
+	replaced: si80 with ci2
+replacing: si96 with ci2
+	replaced: si96 with ci2
+	replaced: si96 with ci2
+replacing: si95 with ci2
+	replaced: si95 with ci2
+replacing: si74 with ci2
+	replaced: si74 with ci2
+replacing: si73 with ci2
+	replaced: si73 with ci2
+	replaced: si73 with ci2
+replacing: si67 with ci2
+	replaced: si67 with ci2
+replacing: si68 with ci2
+	replaced: si68 with ci2
+	replaced: si68 with ci2
+replacing: si90 with ci2
+	replaced: si90 with ci2
+replacing: si97 with ci2
+	replaced: si97 with ci2
+replacing: si102 with ci2
+	replaced: si102 with ci2
+replacing: si92 with ci2
+	replaced: si92 with ci2
+replacing: si77 with ci2
+	replaced: si77 with ci2
+replacing: si98 with ci2
+	replaced: si98 with ci2
+replacing: si85 with ci2
+	replaced: si85 with ci2
+replacing: si89 with ci2
+	replaced: si89 with ci2
+replacing: si70 with ci2
+	replaced: si70 with ci2
+replacing: si82 with ci2
+	replaced: si82 with ci2
+	replaced: si82 with ci2
+replacing: si93 with ci2
+	replaced: si93 with ci2
+	replaced: si93 with ci2
+replacing: si84 with ci2
+	replaced: si84 with ci2
+replacing: si69 with ci2
+	replaced: si69 with ci2
+replacing: si99 with ci2
+	replaced: si99 with ci2
+replacing: si100 with ci2
+	replaced: si100 with ci2
+replacing: si88 with ci2
+	replaced: si88 with ci2
+replacing: si72 with ci2
+	replaced: si72 with ci2
+replacing: si66 with ci2
+	replaced: si66 with ci2
+replacing: si103 with ci2
+	replaced: si103 with ci2
+replacing: si81 with ci2
+	replaced: si81 with ci2
+replacing: si75 with ci2
+	replaced: si75 with ci2
+replacing: si105 with ci2
+	replaced: si105 with ci2
+replacing: si76 with ci2
+	replaced: si76 with ci2
+replacing: si78 with ci2
+	replaced: si78 with ci2
+replacing: si83 with ci2
+	replaced: si83 with ci2
+	replaced: si83 with ci2
+replacing: si87 with ci2
+	replaced: si87 with ci2
+applying pass: simplify-lets
+((main
+  (function
+   (dataX x6)
+   (lets
+    ((sm91 0)
+     (sm87 0)
+     (sm82 0)
+     (sm80 0)
+     (sm58 0)
+     (sm79 0)
+     (sm85 0)
+     (sm69 0)
+     (sm70 0)
+     (sm76 0)
+     (sm92 0)
+     (sm66 0)
+     (sm65 0)
+     (sm73 0)
+     (sm88 0)
+     (sm59 0)
+     (sm86 0)
+     (sm74 0)
+     (sm93 0)
+     (sm89 0)
+     (sm64 0)
+     (sm81 0)
+     (sm96 0)
+     (sm68 0)
+     (sm63 0)
+     (sm94 0)
+     (sm72 0)
+     (sm71 0)
+     (sm77 0)
+     (sm78 0)
+     (sm61 0)
+     (sm62 0)
+     (sm84 0)
+     (sm60 0)
+     (sm95 0)
+     (sm90 0)
+     (sm67 0)
+     (sm75 0)
+     (sm83 0)
+     (sm57 0))
+    (expr-block
+     (for-stmt
+      (ci2 0 (size dataX))
+      (block-stmt
+       (set! sm57 (+ sm57 (index dataX ci2)))
+       (set! sm83 (+ sm83 (natpow (index x6 ci2) 2)))
+       (set! sm75 (+ sm75 (natpow (index x6 ci2) 2)))
+       (set! sm67 (+ sm67 (natpow (index dataX ci2) 2)))
+       (set! sm90 (+ sm90 (index x6 ci2)))
+       (set! sm95 (+ sm95 (index dataX ci2)))
+       (set! sm60 (+ sm60 (index dataX ci2)))
+       (set! sm84 (+ sm84 (natpow (index dataX ci2) 2)))
+       (set! sm62 (+ sm62 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm61 (+ sm61 (index x6 ci2)))
+       (set! sm78 (+ sm78 (index dataX ci2)))
+       (set! sm77 (+ sm77 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm71 (+ sm71 (natpow (index x6 ci2) 2)))
+       (set! sm72 (+ sm72 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm94 (+ sm94 (natpow (index dataX ci2) 2)))
+       (set! sm63 (+ sm63 (index dataX ci2)))
+       (set! sm68 (+ sm68 (index dataX ci2)))
+       (set! sm96 (+ sm96 (natpow (index dataX ci2) 2)))
+       (set! sm81 (+ sm81 (natpow (index x6 ci2) 2)))
+       (set! sm64 (+ sm64 (natpow (index dataX ci2) 2)))
+       (set! sm89 (+ sm89 (index dataX ci2)))
+       (set! sm93 (+ sm93 (index x6 ci2)))
+       (set! sm74 (+ sm74 (index x6 ci2)))
+       (set! sm86 (+ sm86 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm59 (+ sm59 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm88 (+ sm88 (index dataX ci2)))
+       (set! sm73 (+ sm73 (natpow (index dataX ci2) 2)))
+       (set! sm65 (+ sm65 (index dataX ci2)))
+       (set! sm66 (+ sm66 (natpow (index dataX ci2) 2)))
+       (set! sm92 (+ sm92 (natpow (index x6 ci2) 2)))
+       (set! sm76 (+ sm76 (index dataX ci2)))
+       (set! sm70 (+ sm70 (natpow (index dataX ci2) 2)))
+       (set! sm69 (+ sm69 (natpow (index dataX ci2) 2)))
+       (set! sm85 (+ sm85 (index x6 ci2)))
+       (set! sm79 (+ sm79 (index x6 ci2)))
+       (set! sm58 (+ sm58 (index x6 ci2)))
+       (set! sm80 (+ sm80 (natpow (index dataX ci2) 2)))
+       (set! sm82 (+ sm82 (natpow (index dataX ci2) 2)))
+       (set! sm87 (+ sm87 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm91 (+ sm91 (natpow (index dataX ci2) 2)))))
+     (let (bi3
+           (gamma
+            (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+            (real2prob
+             (*
+              (recip
+               (+
+                (* (nat2real (size dataX)) sm70 sm71 10)
+                (* (nat2real (size dataX)) (natpow sm72 2) -10)
+                (* sm73 (natpow sm74 2) -10)
+                (* sm75 (natpow sm76 2) -10)
+                (* sm77 sm78 sm79 20)
+                (* (nat2real (size dataX)) sm80 95)
+                (* (nat2real (size dataX)) sm81 10)
+                (* sm82 sm83 3)
+                (* sm84 sm85 -30)
+                (* (natpow sm86 2) -3)
+                (* sm87 sm88 30)
+                (* (natpow sm89 2) -95)
+                (* (natpow sm90 2) -10)
+                (nat2real (* (size dataX) 95))
+                (* sm91 6)
+                (* sm92 3)
+                (* sm93 -30)
+                6))
+              (+
+               (* (nat2real (size dataX)) sm94 10)
+               (* (natpow sm95 2) -10)
+               (nat2real (* (size dataX) 10))
+               (* sm96 3)
+               3)
+              2))))
+       (let (bi4
+             (normal
+              (*
+               (+
+                (* (nat2real (size dataX)) sm59 10)
+                (* sm60 sm61 -10)
+                (* sm62 3)
+                (* sm63 -15))
+               (recip
+                (+
+                 (* (nat2real (size dataX)) sm64 10)
+                 (* (natpow sm65 2) -10)
+                 (nat2real (* (size dataX) 10))
+                 (* sm66 3)
+                 3)))
+              (*
+               (recip (root bi3 2))
+               (root
+                (real2prob
+                 (*
+                  (recip
+                   (+
+                    (* (nat2real (size dataX)) sm67 10)
+                    (* (natpow sm68 2) -10)
+                    (nat2real (* (size dataX) 10))
+                    (* sm69 3)
+                    3))
+                  (nat2real (+ (* (size dataX) 10) 3))))
+                2))))
+         (let (bi5
+               (normal
+                (*
+                 (+ (* sm57 bi4 2) (* sm58 -2) -3)
+                 (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+                 -5)
+                (*
+                 (root 10 2)
+                 (recip (root bi3 2))
+                 (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2))))
+           (array-literal bi4 bi5 (prob2real bi3))))))))))
+applying pass: remove-empty-lets
+((main
+  (function
+   (dataX x6)
+   (lets
+    ((sm91 0)
+     (sm87 0)
+     (sm82 0)
+     (sm80 0)
+     (sm58 0)
+     (sm79 0)
+     (sm85 0)
+     (sm69 0)
+     (sm70 0)
+     (sm76 0)
+     (sm92 0)
+     (sm66 0)
+     (sm65 0)
+     (sm73 0)
+     (sm88 0)
+     (sm59 0)
+     (sm86 0)
+     (sm74 0)
+     (sm93 0)
+     (sm89 0)
+     (sm64 0)
+     (sm81 0)
+     (sm96 0)
+     (sm68 0)
+     (sm63 0)
+     (sm94 0)
+     (sm72 0)
+     (sm71 0)
+     (sm77 0)
+     (sm78 0)
+     (sm61 0)
+     (sm62 0)
+     (sm84 0)
+     (sm60 0)
+     (sm95 0)
+     (sm90 0)
+     (sm67 0)
+     (sm75 0)
+     (sm83 0)
+     (sm57 0))
+    (expr-block
+     (for-stmt
+      (ci2 0 (size dataX))
+      (block-stmt
+       (set! sm57 (+ sm57 (index dataX ci2)))
+       (set! sm83 (+ sm83 (natpow (index x6 ci2) 2)))
+       (set! sm75 (+ sm75 (natpow (index x6 ci2) 2)))
+       (set! sm67 (+ sm67 (natpow (index dataX ci2) 2)))
+       (set! sm90 (+ sm90 (index x6 ci2)))
+       (set! sm95 (+ sm95 (index dataX ci2)))
+       (set! sm60 (+ sm60 (index dataX ci2)))
+       (set! sm84 (+ sm84 (natpow (index dataX ci2) 2)))
+       (set! sm62 (+ sm62 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm61 (+ sm61 (index x6 ci2)))
+       (set! sm78 (+ sm78 (index dataX ci2)))
+       (set! sm77 (+ sm77 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm71 (+ sm71 (natpow (index x6 ci2) 2)))
+       (set! sm72 (+ sm72 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm94 (+ sm94 (natpow (index dataX ci2) 2)))
+       (set! sm63 (+ sm63 (index dataX ci2)))
+       (set! sm68 (+ sm68 (index dataX ci2)))
+       (set! sm96 (+ sm96 (natpow (index dataX ci2) 2)))
+       (set! sm81 (+ sm81 (natpow (index x6 ci2) 2)))
+       (set! sm64 (+ sm64 (natpow (index dataX ci2) 2)))
+       (set! sm89 (+ sm89 (index dataX ci2)))
+       (set! sm93 (+ sm93 (index x6 ci2)))
+       (set! sm74 (+ sm74 (index x6 ci2)))
+       (set! sm86 (+ sm86 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm59 (+ sm59 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm88 (+ sm88 (index dataX ci2)))
+       (set! sm73 (+ sm73 (natpow (index dataX ci2) 2)))
+       (set! sm65 (+ sm65 (index dataX ci2)))
+       (set! sm66 (+ sm66 (natpow (index dataX ci2) 2)))
+       (set! sm92 (+ sm92 (natpow (index x6 ci2) 2)))
+       (set! sm76 (+ sm76 (index dataX ci2)))
+       (set! sm70 (+ sm70 (natpow (index dataX ci2) 2)))
+       (set! sm69 (+ sm69 (natpow (index dataX ci2) 2)))
+       (set! sm85 (+ sm85 (index x6 ci2)))
+       (set! sm79 (+ sm79 (index x6 ci2)))
+       (set! sm58 (+ sm58 (index x6 ci2)))
+       (set! sm80 (+ sm80 (natpow (index dataX ci2) 2)))
+       (set! sm82 (+ sm82 (natpow (index dataX ci2) 2)))
+       (set! sm87 (+ sm87 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm91 (+ sm91 (natpow (index dataX ci2) 2)))))
+     (let (bi3
+           (gamma
+            (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+            (real2prob
+             (*
+              (recip
+               (+
+                (* (nat2real (size dataX)) sm70 sm71 10)
+                (* (nat2real (size dataX)) (natpow sm72 2) -10)
+                (* sm73 (natpow sm74 2) -10)
+                (* sm75 (natpow sm76 2) -10)
+                (* sm77 sm78 sm79 20)
+                (* (nat2real (size dataX)) sm80 95)
+                (* (nat2real (size dataX)) sm81 10)
+                (* sm82 sm83 3)
+                (* sm84 sm85 -30)
+                (* (natpow sm86 2) -3)
+                (* sm87 sm88 30)
+                (* (natpow sm89 2) -95)
+                (* (natpow sm90 2) -10)
+                (nat2real (* (size dataX) 95))
+                (* sm91 6)
+                (* sm92 3)
+                (* sm93 -30)
+                6))
+              (+
+               (* (nat2real (size dataX)) sm94 10)
+               (* (natpow sm95 2) -10)
+               (nat2real (* (size dataX) 10))
+               (* sm96 3)
+               3)
+              2))))
+       (let (bi4
+             (normal
+              (*
+               (+
+                (* (nat2real (size dataX)) sm59 10)
+                (* sm60 sm61 -10)
+                (* sm62 3)
+                (* sm63 -15))
+               (recip
+                (+
+                 (* (nat2real (size dataX)) sm64 10)
+                 (* (natpow sm65 2) -10)
+                 (nat2real (* (size dataX) 10))
+                 (* sm66 3)
+                 3)))
+              (*
+               (recip (root bi3 2))
+               (root
+                (real2prob
+                 (*
+                  (recip
+                   (+
+                    (* (nat2real (size dataX)) sm67 10)
+                    (* (natpow sm68 2) -10)
+                    (nat2real (* (size dataX) 10))
+                    (* sm69 3)
+                    3))
+                  (nat2real (+ (* (size dataX) 10) 3))))
+                2))))
+         (let (bi5
+               (normal
+                (*
+                 (+ (* sm57 bi4 2) (* sm58 -2) -3)
+                 (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+                 -5)
+                (*
+                 (root 10 2)
+                 (recip (root bi3 2))
+                 (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2))))
+           (array-literal bi4 bi5 (prob2real bi3))))))))))
+applying pass: remove-unused-lets
+((main
+  (function
+   (dataX x6)
+   (lets
+    ((sm91 0)
+     (sm87 0)
+     (sm82 0)
+     (sm80 0)
+     (sm58 0)
+     (sm79 0)
+     (sm85 0)
+     (sm69 0)
+     (sm70 0)
+     (sm76 0)
+     (sm92 0)
+     (sm66 0)
+     (sm65 0)
+     (sm73 0)
+     (sm88 0)
+     (sm59 0)
+     (sm86 0)
+     (sm74 0)
+     (sm93 0)
+     (sm89 0)
+     (sm64 0)
+     (sm81 0)
+     (sm96 0)
+     (sm68 0)
+     (sm63 0)
+     (sm94 0)
+     (sm72 0)
+     (sm71 0)
+     (sm77 0)
+     (sm78 0)
+     (sm61 0)
+     (sm62 0)
+     (sm84 0)
+     (sm60 0)
+     (sm95 0)
+     (sm90 0)
+     (sm67 0)
+     (sm75 0)
+     (sm83 0)
+     (sm57 0))
+    (expr-block
+     (for-stmt
+      (ci2 0 (size dataX))
+      (block-stmt
+       (set! sm57 (+ sm57 (index dataX ci2)))
+       (set! sm83 (+ sm83 (natpow (index x6 ci2) 2)))
+       (set! sm75 (+ sm75 (natpow (index x6 ci2) 2)))
+       (set! sm67 (+ sm67 (natpow (index dataX ci2) 2)))
+       (set! sm90 (+ sm90 (index x6 ci2)))
+       (set! sm95 (+ sm95 (index dataX ci2)))
+       (set! sm60 (+ sm60 (index dataX ci2)))
+       (set! sm84 (+ sm84 (natpow (index dataX ci2) 2)))
+       (set! sm62 (+ sm62 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm61 (+ sm61 (index x6 ci2)))
+       (set! sm78 (+ sm78 (index dataX ci2)))
+       (set! sm77 (+ sm77 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm71 (+ sm71 (natpow (index x6 ci2) 2)))
+       (set! sm72 (+ sm72 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm94 (+ sm94 (natpow (index dataX ci2) 2)))
+       (set! sm63 (+ sm63 (index dataX ci2)))
+       (set! sm68 (+ sm68 (index dataX ci2)))
+       (set! sm96 (+ sm96 (natpow (index dataX ci2) 2)))
+       (set! sm81 (+ sm81 (natpow (index x6 ci2) 2)))
+       (set! sm64 (+ sm64 (natpow (index dataX ci2) 2)))
+       (set! sm89 (+ sm89 (index dataX ci2)))
+       (set! sm93 (+ sm93 (index x6 ci2)))
+       (set! sm74 (+ sm74 (index x6 ci2)))
+       (set! sm86 (+ sm86 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm59 (+ sm59 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm88 (+ sm88 (index dataX ci2)))
+       (set! sm73 (+ sm73 (natpow (index dataX ci2) 2)))
+       (set! sm65 (+ sm65 (index dataX ci2)))
+       (set! sm66 (+ sm66 (natpow (index dataX ci2) 2)))
+       (set! sm92 (+ sm92 (natpow (index x6 ci2) 2)))
+       (set! sm76 (+ sm76 (index dataX ci2)))
+       (set! sm70 (+ sm70 (natpow (index dataX ci2) 2)))
+       (set! sm69 (+ sm69 (natpow (index dataX ci2) 2)))
+       (set! sm85 (+ sm85 (index x6 ci2)))
+       (set! sm79 (+ sm79 (index x6 ci2)))
+       (set! sm58 (+ sm58 (index x6 ci2)))
+       (set! sm80 (+ sm80 (natpow (index dataX ci2) 2)))
+       (set! sm82 (+ sm82 (natpow (index dataX ci2) 2)))
+       (set! sm87 (+ sm87 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm91 (+ sm91 (natpow (index dataX ci2) 2)))))
+     (let (bi3
+           (gamma
+            (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+            (real2prob
+             (*
+              (recip
+               (+
+                (* (nat2real (size dataX)) sm70 sm71 10)
+                (* (nat2real (size dataX)) (natpow sm72 2) -10)
+                (* sm73 (natpow sm74 2) -10)
+                (* sm75 (natpow sm76 2) -10)
+                (* sm77 sm78 sm79 20)
+                (* (nat2real (size dataX)) sm80 95)
+                (* (nat2real (size dataX)) sm81 10)
+                (* sm82 sm83 3)
+                (* sm84 sm85 -30)
+                (* (natpow sm86 2) -3)
+                (* sm87 sm88 30)
+                (* (natpow sm89 2) -95)
+                (* (natpow sm90 2) -10)
+                (nat2real (* (size dataX) 95))
+                (* sm91 6)
+                (* sm92 3)
+                (* sm93 -30)
+                6))
+              (+
+               (* (nat2real (size dataX)) sm94 10)
+               (* (natpow sm95 2) -10)
+               (nat2real (* (size dataX) 10))
+               (* sm96 3)
+               3)
+              2))))
+       (let (bi4
+             (normal
+              (*
+               (+
+                (* (nat2real (size dataX)) sm59 10)
+                (* sm60 sm61 -10)
+                (* sm62 3)
+                (* sm63 -15))
+               (recip
+                (+
+                 (* (nat2real (size dataX)) sm64 10)
+                 (* (natpow sm65 2) -10)
+                 (nat2real (* (size dataX) 10))
+                 (* sm66 3)
+                 3)))
+              (*
+               (recip (root bi3 2))
+               (root
+                (real2prob
+                 (*
+                  (recip
+                   (+
+                    (* (nat2real (size dataX)) sm67 10)
+                    (* (natpow sm68 2) -10)
+                    (nat2real (* (size dataX) 10))
+                    (* sm69 3)
+                    3))
+                  (nat2real (+ (* (size dataX) 10) 3))))
+                2))))
+         (let (bi5
+               (normal
+                (*
+                 (+ (* sm57 bi4 2) (* sm58 -2) -3)
+                 (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+                 -5)
+                (*
+                 (root 10 2)
+                 (recip (root bi3 2))
+                 (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2))))
+           (array-literal bi4 bi5 (prob2real bi3))))))))))
+applying pass: remove-pairs
+((main
+  (function
+   (dataX x6)
+   (lets
+    ((sm91 0)
+     (sm87 0)
+     (sm82 0)
+     (sm80 0)
+     (sm58 0)
+     (sm79 0)
+     (sm85 0)
+     (sm69 0)
+     (sm70 0)
+     (sm76 0)
+     (sm92 0)
+     (sm66 0)
+     (sm65 0)
+     (sm73 0)
+     (sm88 0)
+     (sm59 0)
+     (sm86 0)
+     (sm74 0)
+     (sm93 0)
+     (sm89 0)
+     (sm64 0)
+     (sm81 0)
+     (sm96 0)
+     (sm68 0)
+     (sm63 0)
+     (sm94 0)
+     (sm72 0)
+     (sm71 0)
+     (sm77 0)
+     (sm78 0)
+     (sm61 0)
+     (sm62 0)
+     (sm84 0)
+     (sm60 0)
+     (sm95 0)
+     (sm90 0)
+     (sm67 0)
+     (sm75 0)
+     (sm83 0)
+     (sm57 0))
+    (expr-block
+     (for-stmt
+      (ci2 0 (size dataX))
+      (block-stmt
+       (set! sm57 (+ sm57 (index dataX ci2)))
+       (set! sm83 (+ sm83 (natpow (index x6 ci2) 2)))
+       (set! sm75 (+ sm75 (natpow (index x6 ci2) 2)))
+       (set! sm67 (+ sm67 (natpow (index dataX ci2) 2)))
+       (set! sm90 (+ sm90 (index x6 ci2)))
+       (set! sm95 (+ sm95 (index dataX ci2)))
+       (set! sm60 (+ sm60 (index dataX ci2)))
+       (set! sm84 (+ sm84 (natpow (index dataX ci2) 2)))
+       (set! sm62 (+ sm62 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm61 (+ sm61 (index x6 ci2)))
+       (set! sm78 (+ sm78 (index dataX ci2)))
+       (set! sm77 (+ sm77 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm71 (+ sm71 (natpow (index x6 ci2) 2)))
+       (set! sm72 (+ sm72 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm94 (+ sm94 (natpow (index dataX ci2) 2)))
+       (set! sm63 (+ sm63 (index dataX ci2)))
+       (set! sm68 (+ sm68 (index dataX ci2)))
+       (set! sm96 (+ sm96 (natpow (index dataX ci2) 2)))
+       (set! sm81 (+ sm81 (natpow (index x6 ci2) 2)))
+       (set! sm64 (+ sm64 (natpow (index dataX ci2) 2)))
+       (set! sm89 (+ sm89 (index dataX ci2)))
+       (set! sm93 (+ sm93 (index x6 ci2)))
+       (set! sm74 (+ sm74 (index x6 ci2)))
+       (set! sm86 (+ sm86 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm59 (+ sm59 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm88 (+ sm88 (index dataX ci2)))
+       (set! sm73 (+ sm73 (natpow (index dataX ci2) 2)))
+       (set! sm65 (+ sm65 (index dataX ci2)))
+       (set! sm66 (+ sm66 (natpow (index dataX ci2) 2)))
+       (set! sm92 (+ sm92 (natpow (index x6 ci2) 2)))
+       (set! sm76 (+ sm76 (index dataX ci2)))
+       (set! sm70 (+ sm70 (natpow (index dataX ci2) 2)))
+       (set! sm69 (+ sm69 (natpow (index dataX ci2) 2)))
+       (set! sm85 (+ sm85 (index x6 ci2)))
+       (set! sm79 (+ sm79 (index x6 ci2)))
+       (set! sm58 (+ sm58 (index x6 ci2)))
+       (set! sm80 (+ sm80 (natpow (index dataX ci2) 2)))
+       (set! sm82 (+ sm82 (natpow (index dataX ci2) 2)))
+       (set! sm87 (+ sm87 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm91 (+ sm91 (natpow (index dataX ci2) 2)))))
+     (let (bi3
+           (gamma
+            (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+            (real2prob
+             (*
+              (recip
+               (+
+                (* (nat2real (size dataX)) sm70 sm71 10)
+                (* (nat2real (size dataX)) (natpow sm72 2) -10)
+                (* sm73 (natpow sm74 2) -10)
+                (* sm75 (natpow sm76 2) -10)
+                (* sm77 sm78 sm79 20)
+                (* (nat2real (size dataX)) sm80 95)
+                (* (nat2real (size dataX)) sm81 10)
+                (* sm82 sm83 3)
+                (* sm84 sm85 -30)
+                (* (natpow sm86 2) -3)
+                (* sm87 sm88 30)
+                (* (natpow sm89 2) -95)
+                (* (natpow sm90 2) -10)
+                (nat2real (* (size dataX) 95))
+                (* sm91 6)
+                (* sm92 3)
+                (* sm93 -30)
+                6))
+              (+
+               (* (nat2real (size dataX)) sm94 10)
+               (* (natpow sm95 2) -10)
+               (nat2real (* (size dataX) 10))
+               (* sm96 3)
+               3)
+              2))))
+       (let (bi4
+             (normal
+              (*
+               (+
+                (* (nat2real (size dataX)) sm59 10)
+                (* sm60 sm61 -10)
+                (* sm62 3)
+                (* sm63 -15))
+               (recip
+                (+
+                 (* (nat2real (size dataX)) sm64 10)
+                 (* (natpow sm65 2) -10)
+                 (nat2real (* (size dataX) 10))
+                 (* sm66 3)
+                 3)))
+              (*
+               (recip (root bi3 2))
+               (root
+                (real2prob
+                 (*
+                  (recip
+                   (+
+                    (* (nat2real (size dataX)) sm67 10)
+                    (* (natpow sm68 2) -10)
+                    (nat2real (* (size dataX) 10))
+                    (* sm69 3)
+                    3))
+                  (nat2real (+ (* (size dataX) 10) 3))))
+                2))))
+         (let (bi5
+               (normal
+                (*
+                 (+ (* sm57 bi4 2) (* sm58 -2) -3)
+                 (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+                 -5)
+                (*
+                 (root 10 2)
+                 (recip (root bi3 2))
+                 (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2))))
+           (array-literal bi4 bi5 (prob2real bi3))))))))))
+applying pass: simplify-lets
+((main
+  (function
+   (dataX x6)
+   (lets
+    ((sm57 0)
+     (sm83 0)
+     (sm75 0)
+     (sm67 0)
+     (sm90 0)
+     (sm95 0)
+     (sm60 0)
+     (sm84 0)
+     (sm62 0)
+     (sm61 0)
+     (sm78 0)
+     (sm77 0)
+     (sm71 0)
+     (sm72 0)
+     (sm94 0)
+     (sm63 0)
+     (sm68 0)
+     (sm96 0)
+     (sm81 0)
+     (sm64 0)
+     (sm89 0)
+     (sm93 0)
+     (sm74 0)
+     (sm86 0)
+     (sm59 0)
+     (sm88 0)
+     (sm73 0)
+     (sm65 0)
+     (sm66 0)
+     (sm92 0)
+     (sm76 0)
+     (sm70 0)
+     (sm69 0)
+     (sm85 0)
+     (sm79 0)
+     (sm58 0)
+     (sm80 0)
+     (sm82 0)
+     (sm87 0)
+     (sm91 0))
+    (expr-block
+     (for-stmt
+      (ci2 0 (size dataX))
+      (block-stmt
+       (set! sm57 (+ sm57 (index dataX ci2)))
+       (set! sm83 (+ sm83 (natpow (index x6 ci2) 2)))
+       (set! sm75 (+ sm75 (natpow (index x6 ci2) 2)))
+       (set! sm67 (+ sm67 (natpow (index dataX ci2) 2)))
+       (set! sm90 (+ sm90 (index x6 ci2)))
+       (set! sm95 (+ sm95 (index dataX ci2)))
+       (set! sm60 (+ sm60 (index dataX ci2)))
+       (set! sm84 (+ sm84 (natpow (index dataX ci2) 2)))
+       (set! sm62 (+ sm62 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm61 (+ sm61 (index x6 ci2)))
+       (set! sm78 (+ sm78 (index dataX ci2)))
+       (set! sm77 (+ sm77 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm71 (+ sm71 (natpow (index x6 ci2) 2)))
+       (set! sm72 (+ sm72 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm94 (+ sm94 (natpow (index dataX ci2) 2)))
+       (set! sm63 (+ sm63 (index dataX ci2)))
+       (set! sm68 (+ sm68 (index dataX ci2)))
+       (set! sm96 (+ sm96 (natpow (index dataX ci2) 2)))
+       (set! sm81 (+ sm81 (natpow (index x6 ci2) 2)))
+       (set! sm64 (+ sm64 (natpow (index dataX ci2) 2)))
+       (set! sm89 (+ sm89 (index dataX ci2)))
+       (set! sm93 (+ sm93 (index x6 ci2)))
+       (set! sm74 (+ sm74 (index x6 ci2)))
+       (set! sm86 (+ sm86 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm59 (+ sm59 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm88 (+ sm88 (index dataX ci2)))
+       (set! sm73 (+ sm73 (natpow (index dataX ci2) 2)))
+       (set! sm65 (+ sm65 (index dataX ci2)))
+       (set! sm66 (+ sm66 (natpow (index dataX ci2) 2)))
+       (set! sm92 (+ sm92 (natpow (index x6 ci2) 2)))
+       (set! sm76 (+ sm76 (index dataX ci2)))
+       (set! sm70 (+ sm70 (natpow (index dataX ci2) 2)))
+       (set! sm69 (+ sm69 (natpow (index dataX ci2) 2)))
+       (set! sm85 (+ sm85 (index x6 ci2)))
+       (set! sm79 (+ sm79 (index x6 ci2)))
+       (set! sm58 (+ sm58 (index x6 ci2)))
+       (set! sm80 (+ sm80 (natpow (index dataX ci2) 2)))
+       (set! sm82 (+ sm82 (natpow (index dataX ci2) 2)))
+       (set! sm87 (+ sm87 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm91 (+ sm91 (natpow (index dataX ci2) 2)))))
+     (let (bi3
+           (gamma
+            (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+            (real2prob
+             (*
+              (recip
+               (+
+                (* (nat2real (size dataX)) sm70 sm71 10)
+                (* (nat2real (size dataX)) (natpow sm72 2) -10)
+                (* sm73 (natpow sm74 2) -10)
+                (* sm75 (natpow sm76 2) -10)
+                (* sm77 sm78 sm79 20)
+                (* (nat2real (size dataX)) sm80 95)
+                (* (nat2real (size dataX)) sm81 10)
+                (* sm82 sm83 3)
+                (* sm84 sm85 -30)
+                (* (natpow sm86 2) -3)
+                (* sm87 sm88 30)
+                (* (natpow sm89 2) -95)
+                (* (natpow sm90 2) -10)
+                (nat2real (* (size dataX) 95))
+                (* sm91 6)
+                (* sm92 3)
+                (* sm93 -30)
+                6))
+              (+
+               (* (nat2real (size dataX)) sm94 10)
+               (* (natpow sm95 2) -10)
+               (nat2real (* (size dataX) 10))
+               (* sm96 3)
+               3)
+              2))))
+       (let (bi4
+             (normal
+              (*
+               (+
+                (* (nat2real (size dataX)) sm59 10)
+                (* sm60 sm61 -10)
+                (* sm62 3)
+                (* sm63 -15))
+               (recip
+                (+
+                 (* (nat2real (size dataX)) sm64 10)
+                 (* (natpow sm65 2) -10)
+                 (nat2real (* (size dataX) 10))
+                 (* sm66 3)
+                 3)))
+              (*
+               (recip (root bi3 2))
+               (root
+                (real2prob
+                 (*
+                  (recip
+                   (+
+                    (* (nat2real (size dataX)) sm67 10)
+                    (* (natpow sm68 2) -10)
+                    (nat2real (* (size dataX) 10))
+                    (* sm69 3)
+                    3))
+                  (nat2real (+ (* (size dataX) 10) 3))))
+                2))))
+         (let (bi5
+               (normal
+                (*
+                 (+ (* sm57 bi4 2) (* sm58 -2) -3)
+                 (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+                 -5)
+                (*
+                 (root 10 2)
+                 (recip (root bi3 2))
+                 (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2))))
+           (array-literal bi4 bi5 (prob2real bi3))))))))))
+applying pass: mod-stmt
+((main
+  (function
+   (dataX x6)
+   (elet-stmt
+    ((sm57 0)
+     (sm83 0)
+     (sm75 0)
+     (sm67 0)
+     (sm90 0)
+     (sm95 0)
+     (sm60 0)
+     (sm84 0)
+     (sm62 0)
+     (sm61 0)
+     (sm78 0)
+     (sm77 0)
+     (sm71 0)
+     (sm72 0)
+     (sm94 0)
+     (sm63 0)
+     (sm68 0)
+     (sm96 0)
+     (sm81 0)
+     (sm64 0)
+     (sm89 0)
+     (sm93 0)
+     (sm74 0)
+     (sm86 0)
+     (sm59 0)
+     (sm88 0)
+     (sm73 0)
+     (sm65 0)
+     (sm66 0)
+     (sm92 0)
+     (sm76 0)
+     (sm70 0)
+     (sm69 0)
+     (sm85 0)
+     (sm79 0)
+     (sm58 0)
+     (sm80 0)
+     (sm82 0)
+     (sm87 0)
+     (sm91 0))
+    (block-stmt
+     (for-stmt
+      (ci2 0 (size dataX))
+      (block-stmt
+       (set! sm57 (+ sm57 (index dataX ci2)))
+       (set! sm83 (+ sm83 (natpow (index x6 ci2) 2)))
+       (set! sm75 (+ sm75 (natpow (index x6 ci2) 2)))
+       (set! sm67 (+ sm67 (natpow (index dataX ci2) 2)))
+       (set! sm90 (+ sm90 (index x6 ci2)))
+       (set! sm95 (+ sm95 (index dataX ci2)))
+       (set! sm60 (+ sm60 (index dataX ci2)))
+       (set! sm84 (+ sm84 (natpow (index dataX ci2) 2)))
+       (set! sm62 (+ sm62 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm61 (+ sm61 (index x6 ci2)))
+       (set! sm78 (+ sm78 (index dataX ci2)))
+       (set! sm77 (+ sm77 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm71 (+ sm71 (natpow (index x6 ci2) 2)))
+       (set! sm72 (+ sm72 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm94 (+ sm94 (natpow (index dataX ci2) 2)))
+       (set! sm63 (+ sm63 (index dataX ci2)))
+       (set! sm68 (+ sm68 (index dataX ci2)))
+       (set! sm96 (+ sm96 (natpow (index dataX ci2) 2)))
+       (set! sm81 (+ sm81 (natpow (index x6 ci2) 2)))
+       (set! sm64 (+ sm64 (natpow (index dataX ci2) 2)))
+       (set! sm89 (+ sm89 (index dataX ci2)))
+       (set! sm93 (+ sm93 (index x6 ci2)))
+       (set! sm74 (+ sm74 (index x6 ci2)))
+       (set! sm86 (+ sm86 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm59 (+ sm59 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm88 (+ sm88 (index dataX ci2)))
+       (set! sm73 (+ sm73 (natpow (index dataX ci2) 2)))
+       (set! sm65 (+ sm65 (index dataX ci2)))
+       (set! sm66 (+ sm66 (natpow (index dataX ci2) 2)))
+       (set! sm92 (+ sm92 (natpow (index x6 ci2) 2)))
+       (set! sm76 (+ sm76 (index dataX ci2)))
+       (set! sm70 (+ sm70 (natpow (index dataX ci2) 2)))
+       (set! sm69 (+ sm69 (natpow (index dataX ci2) 2)))
+       (set! sm85 (+ sm85 (index x6 ci2)))
+       (set! sm79 (+ sm79 (index x6 ci2)))
+       (set! sm58 (+ sm58 (index x6 ci2)))
+       (set! sm80 (+ sm80 (natpow (index dataX ci2) 2)))
+       (set! sm82 (+ sm82 (natpow (index dataX ci2) 2)))
+       (set! sm87 (+ sm87 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm91 (+ sm91 (natpow (index dataX ci2) 2)))))
+     (elet-stmt
+      ((bi3
+        (gamma
+         (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+         (real2prob
+          (*
+           (recip
+            (+
+             (* (nat2real (size dataX)) sm70 sm71 10)
+             (* (nat2real (size dataX)) (natpow sm72 2) -10)
+             (* sm73 (natpow sm74 2) -10)
+             (* sm75 (natpow sm76 2) -10)
+             (* sm77 sm78 sm79 20)
+             (* (nat2real (size dataX)) sm80 95)
+             (* (nat2real (size dataX)) sm81 10)
+             (* sm82 sm83 3)
+             (* sm84 sm85 -30)
+             (* (natpow sm86 2) -3)
+             (* sm87 sm88 30)
+             (* (natpow sm89 2) -95)
+             (* (natpow sm90 2) -10)
+             (nat2real (* (size dataX) 95))
+             (* sm91 6)
+             (* sm92 3)
+             (* sm93 -30)
+             6))
+           (+
+            (* (nat2real (size dataX)) sm94 10)
+            (* (natpow sm95 2) -10)
+            (nat2real (* (size dataX) 10))
+            (* sm96 3)
+            3)
+           2)))))
+      (elet-stmt
+       ((bi4
+         (normal
+          (*
+           (+
+            (* (nat2real (size dataX)) sm59 10)
+            (* sm60 sm61 -10)
+            (* sm62 3)
+            (* sm63 -15))
+           (recip
+            (+
+             (* (nat2real (size dataX)) sm64 10)
+             (* (natpow sm65 2) -10)
+             (nat2real (* (size dataX) 10))
+             (* sm66 3)
+             3)))
+          (*
+           (recip (root bi3 2))
+           (root
+            (real2prob
+             (*
+              (recip
+               (+
+                (* (nat2real (size dataX)) sm67 10)
+                (* (natpow sm68 2) -10)
+                (nat2real (* (size dataX) 10))
+                (* sm69 3)
+                3))
+              (nat2real (+ (* (size dataX) 10) 3))))
+            2)))))
+       (elet-stmt
+        ((bi5
+          (normal
+           (*
+            (+ (* sm57 bi4 2) (* sm58 -2) -3)
+            (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+            -5)
+           (*
+            (root 10 2)
+            (recip (root bi3 2))
+            (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2)))))
+        (return (array-literal bi4 bi5 (prob2real bi3)))))))))))
+applying pass: simplify-set
+((main
+  (function
+   (dataX x6)
+   (elet-stmt
+    ((sm57 0)
+     (sm83 0)
+     (sm75 0)
+     (sm67 0)
+     (sm90 0)
+     (sm95 0)
+     (sm60 0)
+     (sm84 0)
+     (sm62 0)
+     (sm61 0)
+     (sm78 0)
+     (sm77 0)
+     (sm71 0)
+     (sm72 0)
+     (sm94 0)
+     (sm63 0)
+     (sm68 0)
+     (sm96 0)
+     (sm81 0)
+     (sm64 0)
+     (sm89 0)
+     (sm93 0)
+     (sm74 0)
+     (sm86 0)
+     (sm59 0)
+     (sm88 0)
+     (sm73 0)
+     (sm65 0)
+     (sm66 0)
+     (sm92 0)
+     (sm76 0)
+     (sm70 0)
+     (sm69 0)
+     (sm85 0)
+     (sm79 0)
+     (sm58 0)
+     (sm80 0)
+     (sm82 0)
+     (sm87 0)
+     (sm91 0))
+    (block-stmt
+     (for-stmt
+      (ci2 0 (size dataX))
+      (block-stmt
+       (set! sm57 (+ sm57 (index dataX ci2)))
+       (set! sm83 (+ sm83 (natpow (index x6 ci2) 2)))
+       (set! sm75 (+ sm75 (natpow (index x6 ci2) 2)))
+       (set! sm67 (+ sm67 (natpow (index dataX ci2) 2)))
+       (set! sm90 (+ sm90 (index x6 ci2)))
+       (set! sm95 (+ sm95 (index dataX ci2)))
+       (set! sm60 (+ sm60 (index dataX ci2)))
+       (set! sm84 (+ sm84 (natpow (index dataX ci2) 2)))
+       (set! sm62 (+ sm62 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm61 (+ sm61 (index x6 ci2)))
+       (set! sm78 (+ sm78 (index dataX ci2)))
+       (set! sm77 (+ sm77 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm71 (+ sm71 (natpow (index x6 ci2) 2)))
+       (set! sm72 (+ sm72 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm94 (+ sm94 (natpow (index dataX ci2) 2)))
+       (set! sm63 (+ sm63 (index dataX ci2)))
+       (set! sm68 (+ sm68 (index dataX ci2)))
+       (set! sm96 (+ sm96 (natpow (index dataX ci2) 2)))
+       (set! sm81 (+ sm81 (natpow (index x6 ci2) 2)))
+       (set! sm64 (+ sm64 (natpow (index dataX ci2) 2)))
+       (set! sm89 (+ sm89 (index dataX ci2)))
+       (set! sm93 (+ sm93 (index x6 ci2)))
+       (set! sm74 (+ sm74 (index x6 ci2)))
+       (set! sm86 (+ sm86 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm59 (+ sm59 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm88 (+ sm88 (index dataX ci2)))
+       (set! sm73 (+ sm73 (natpow (index dataX ci2) 2)))
+       (set! sm65 (+ sm65 (index dataX ci2)))
+       (set! sm66 (+ sm66 (natpow (index dataX ci2) 2)))
+       (set! sm92 (+ sm92 (natpow (index x6 ci2) 2)))
+       (set! sm76 (+ sm76 (index dataX ci2)))
+       (set! sm70 (+ sm70 (natpow (index dataX ci2) 2)))
+       (set! sm69 (+ sm69 (natpow (index dataX ci2) 2)))
+       (set! sm85 (+ sm85 (index x6 ci2)))
+       (set! sm79 (+ sm79 (index x6 ci2)))
+       (set! sm58 (+ sm58 (index x6 ci2)))
+       (set! sm80 (+ sm80 (natpow (index dataX ci2) 2)))
+       (set! sm82 (+ sm82 (natpow (index dataX ci2) 2)))
+       (set! sm87 (+ sm87 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm91 (+ sm91 (natpow (index dataX ci2) 2)))))
+     (elet-stmt
+      ((bi3
+        (gamma
+         (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+         (real2prob
+          (*
+           (recip
+            (+
+             (* (nat2real (size dataX)) sm70 sm71 10)
+             (* (nat2real (size dataX)) (natpow sm72 2) -10)
+             (* sm73 (natpow sm74 2) -10)
+             (* sm75 (natpow sm76 2) -10)
+             (* sm77 sm78 sm79 20)
+             (* (nat2real (size dataX)) sm80 95)
+             (* (nat2real (size dataX)) sm81 10)
+             (* sm82 sm83 3)
+             (* sm84 sm85 -30)
+             (* (natpow sm86 2) -3)
+             (* sm87 sm88 30)
+             (* (natpow sm89 2) -95)
+             (* (natpow sm90 2) -10)
+             (nat2real (* (size dataX) 95))
+             (* sm91 6)
+             (* sm92 3)
+             (* sm93 -30)
+             6))
+           (+
+            (* (nat2real (size dataX)) sm94 10)
+            (* (natpow sm95 2) -10)
+            (nat2real (* (size dataX) 10))
+            (* sm96 3)
+            3)
+           2)))))
+      (elet-stmt
+       ((bi4
+         (normal
+          (*
+           (+
+            (* (nat2real (size dataX)) sm59 10)
+            (* sm60 sm61 -10)
+            (* sm62 3)
+            (* sm63 -15))
+           (recip
+            (+
+             (* (nat2real (size dataX)) sm64 10)
+             (* (natpow sm65 2) -10)
+             (nat2real (* (size dataX) 10))
+             (* sm66 3)
+             3)))
+          (*
+           (recip (root bi3 2))
+           (root
+            (real2prob
+             (*
+              (recip
+               (+
+                (* (nat2real (size dataX)) sm67 10)
+                (* (natpow sm68 2) -10)
+                (nat2real (* (size dataX) 10))
+                (* sm69 3)
+                3))
+              (nat2real (+ (* (size dataX) 10) 3))))
+            2)))))
+       (elet-stmt
+        ((bi5
+          (normal
+           (*
+            (+ (* sm57 bi4 2) (* sm58 -2) -3)
+            (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+            -5)
+           (*
+            (root 10 2)
+            (recip (root bi3 2))
+            (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2)))))
+        (return (array-literal bi4 bi5 (prob2real bi3)))))))))))
+applying pass: cleanup
+((main
+  (function
+   (dataX x6)
+   (elet-stmt
+    ((sm57 0)
+     (sm83 0)
+     (sm75 0)
+     (sm67 0)
+     (sm90 0)
+     (sm95 0)
+     (sm60 0)
+     (sm84 0)
+     (sm62 0)
+     (sm61 0)
+     (sm78 0)
+     (sm77 0)
+     (sm71 0)
+     (sm72 0)
+     (sm94 0)
+     (sm63 0)
+     (sm68 0)
+     (sm96 0)
+     (sm81 0)
+     (sm64 0)
+     (sm89 0)
+     (sm93 0)
+     (sm74 0)
+     (sm86 0)
+     (sm59 0)
+     (sm88 0)
+     (sm73 0)
+     (sm65 0)
+     (sm66 0)
+     (sm92 0)
+     (sm76 0)
+     (sm70 0)
+     (sm69 0)
+     (sm85 0)
+     (sm79 0)
+     (sm58 0)
+     (sm80 0)
+     (sm82 0)
+     (sm87 0)
+     (sm91 0))
+    (block-stmt
+     (for-stmt
+      (ci2 0 (size dataX))
+      (block-stmt
+       (set! sm57 (+ sm57 (index dataX ci2)))
+       (set! sm83 (+ sm83 (natpow (index x6 ci2) 2)))
+       (set! sm75 (+ sm75 (natpow (index x6 ci2) 2)))
+       (set! sm67 (+ sm67 (natpow (index dataX ci2) 2)))
+       (set! sm90 (+ sm90 (index x6 ci2)))
+       (set! sm95 (+ sm95 (index dataX ci2)))
+       (set! sm60 (+ sm60 (index dataX ci2)))
+       (set! sm84 (+ sm84 (natpow (index dataX ci2) 2)))
+       (set! sm62 (+ sm62 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm61 (+ sm61 (index x6 ci2)))
+       (set! sm78 (+ sm78 (index dataX ci2)))
+       (set! sm77 (+ sm77 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm71 (+ sm71 (natpow (index x6 ci2) 2)))
+       (set! sm72 (+ sm72 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm94 (+ sm94 (natpow (index dataX ci2) 2)))
+       (set! sm63 (+ sm63 (index dataX ci2)))
+       (set! sm68 (+ sm68 (index dataX ci2)))
+       (set! sm96 (+ sm96 (natpow (index dataX ci2) 2)))
+       (set! sm81 (+ sm81 (natpow (index x6 ci2) 2)))
+       (set! sm64 (+ sm64 (natpow (index dataX ci2) 2)))
+       (set! sm89 (+ sm89 (index dataX ci2)))
+       (set! sm93 (+ sm93 (index x6 ci2)))
+       (set! sm74 (+ sm74 (index x6 ci2)))
+       (set! sm86 (+ sm86 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm59 (+ sm59 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm88 (+ sm88 (index dataX ci2)))
+       (set! sm73 (+ sm73 (natpow (index dataX ci2) 2)))
+       (set! sm65 (+ sm65 (index dataX ci2)))
+       (set! sm66 (+ sm66 (natpow (index dataX ci2) 2)))
+       (set! sm92 (+ sm92 (natpow (index x6 ci2) 2)))
+       (set! sm76 (+ sm76 (index dataX ci2)))
+       (set! sm70 (+ sm70 (natpow (index dataX ci2) 2)))
+       (set! sm69 (+ sm69 (natpow (index dataX ci2) 2)))
+       (set! sm85 (+ sm85 (index x6 ci2)))
+       (set! sm79 (+ sm79 (index x6 ci2)))
+       (set! sm58 (+ sm58 (index x6 ci2)))
+       (set! sm80 (+ sm80 (natpow (index dataX ci2) 2)))
+       (set! sm82 (+ sm82 (natpow (index dataX ci2) 2)))
+       (set! sm87 (+ sm87 (* (index x6 ci2) (index dataX ci2))))
+       (set! sm91 (+ sm91 (natpow (index dataX ci2) 2)))))
+     (elet-stmt
+      ((bi3
+        (gamma
+         (+ 1 (* (nat2prob (size dataX)) (/ 1 2)))
+         (real2prob
+          (*
+           (recip
+            (+
+             (* (nat2real (size dataX)) sm70 sm71 10)
+             (* (nat2real (size dataX)) (natpow sm72 2) -10)
+             (* sm73 (natpow sm74 2) -10)
+             (* sm75 (natpow sm76 2) -10)
+             (* sm77 sm78 sm79 20)
+             (* (nat2real (size dataX)) sm80 95)
+             (* (nat2real (size dataX)) sm81 10)
+             (* sm82 sm83 3)
+             (* sm84 sm85 -30)
+             (* (natpow sm86 2) -3)
+             (* sm87 sm88 30)
+             (* (natpow sm89 2) -95)
+             (* (natpow sm90 2) -10)
+             (nat2real (* (size dataX) 95))
+             (* sm91 6)
+             (* sm92 3)
+             (* sm93 -30)
+             6))
+           (+
+            (* (nat2real (size dataX)) sm94 10)
+            (* (natpow sm95 2) -10)
+            (nat2real (* (size dataX) 10))
+            (* sm96 3)
+            3)
+           2)))))
+      (elet-stmt
+       ((bi4
+         (normal
+          (*
+           (+
+            (* (nat2real (size dataX)) sm59 10)
+            (* sm60 sm61 -10)
+            (* sm62 3)
+            (* sm63 -15))
+           (recip
+            (+
+             (* (nat2real (size dataX)) sm64 10)
+             (* (natpow sm65 2) -10)
+             (nat2real (* (size dataX) 10))
+             (* sm66 3)
+             3)))
+          (*
+           (recip (root bi3 2))
+           (root
+            (real2prob
+             (*
+              (recip
+               (+
+                (* (nat2real (size dataX)) sm67 10)
+                (* (natpow sm68 2) -10)
+                (nat2real (* (size dataX) 10))
+                (* sm69 3)
+                3))
+              (nat2real (+ (* (size dataX) 10) 3))))
+            2)))))
+       (elet-stmt
+        ((bi5
+          (normal
+           (*
+            (+ (* sm57 bi4 2) (* sm58 -2) -3)
+            (prob2real (recip (nat2prob (+ (* (size dataX) 10) 3))))
+            -5)
+           (*
+            (root 10 2)
+            (recip (root bi3 2))
+            (root (recip (nat2prob (+ (* (size dataX) 10) 3))) 2)))))
+        (return (array-literal bi4 bi5 (prob2real bi3)))))))))))
+expanding function: prog
+building array literal for type: real
+(define-function
+ (passes)
+ (attrs AlwaysInline)
+ (prog (dataX : array<real>*) (x6 : array<real>*) : array<real>*)
+ (expr
+  (let ((sm57 : real (%float 0.0 real))
+        (sm83 : real (%float 0.0 real))
+        (sm75 : real (%float 0.0 real))
+        (sm67 : real (%float 0.0 real))
+        (sm90 : real (%float 0.0 real))
+        (sm95 : real (%float 0.0 real))
+        (sm60 : real (%float 0.0 real))
+        (sm84 : real (%float 0.0 real))
+        (sm62 : real (%float 0.0 real))
+        (sm61 : real (%float 0.0 real))
+        (sm78 : real (%float 0.0 real))
+        (sm77 : real (%float 0.0 real))
+        (sm71 : real (%float 0.0 real))
+        (sm72 : real (%float 0.0 real))
+        (sm94 : real (%float 0.0 real))
+        (sm63 : real (%float 0.0 real))
+        (sm68 : real (%float 0.0 real))
+        (sm96 : real (%float 0.0 real))
+        (sm81 : real (%float 0.0 real))
+        (sm64 : real (%float 0.0 real))
+        (sm89 : real (%float 0.0 real))
+        (sm93 : real (%float 0.0 real))
+        (sm74 : real (%float 0.0 real))
+        (sm86 : real (%float 0.0 real))
+        (sm59 : real (%float 0.0 real))
+        (sm88 : real (%float 0.0 real))
+        (sm73 : real (%float 0.0 real))
+        (sm65 : real (%float 0.0 real))
+        (sm66 : real (%float 0.0 real))
+        (sm92 : real (%float 0.0 real))
+        (sm76 : real (%float 0.0 real))
+        (sm70 : real (%float 0.0 real))
+        (sm69 : real (%float 0.0 real))
+        (sm85 : real (%float 0.0 real))
+        (sm79 : real (%float 0.0 real))
+        (sm58 : real (%float 0.0 real))
+        (sm80 : real (%float 0.0 real))
+        (sm82 : real (%float 0.0 real))
+        (sm87 : real (%float 0.0 real))
+        (sm91 : real (%float 0.0 real)))
+    (block
+     (expr
+      (let ((ci2 : nat (%uint 0 nat)))
+        (while
+         (icmp-ult ci2 (get-size:array<real>. dataX))
+         (block
+          (block
+           (set! sm57 (fadd sm57 (get-index:array<real>. dataX ci2)))
+           (set! sm83
+             (fadd
+              sm83
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. x6 ci2)
+               (%uint 2 nat))))
+           (set! sm75
+             (fadd
+              sm75
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. x6 ci2)
+               (%uint 2 nat))))
+           (set! sm67
+             (fadd
+              sm67
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm90 (fadd sm90 (get-index:array<real>. x6 ci2)))
+           (set! sm95 (fadd sm95 (get-index:array<real>. dataX ci2)))
+           (set! sm60 (fadd sm60 (get-index:array<real>. dataX ci2)))
+           (set! sm84
+             (fadd
+              sm84
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm62
+             (fadd
+              sm62
+              (fmul
+               (get-index:array<real>. x6 ci2)
+               (get-index:array<real>. dataX ci2))))
+           (set! sm61 (fadd sm61 (get-index:array<real>. x6 ci2)))
+           (set! sm78 (fadd sm78 (get-index:array<real>. dataX ci2)))
+           (set! sm77
+             (fadd
+              sm77
+              (fmul
+               (get-index:array<real>. x6 ci2)
+               (get-index:array<real>. dataX ci2))))
+           (set! sm71
+             (fadd
+              sm71
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. x6 ci2)
+               (%uint 2 nat))))
+           (set! sm72
+             (fadd
+              sm72
+              (fmul
+               (get-index:array<real>. x6 ci2)
+               (get-index:array<real>. dataX ci2))))
+           (set! sm94
+             (fadd
+              sm94
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm63 (fadd sm63 (get-index:array<real>. dataX ci2)))
+           (set! sm68 (fadd sm68 (get-index:array<real>. dataX ci2)))
+           (set! sm96
+             (fadd
+              sm96
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm81
+             (fadd
+              sm81
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. x6 ci2)
+               (%uint 2 nat))))
+           (set! sm64
+             (fadd
+              sm64
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm89 (fadd sm89 (get-index:array<real>. dataX ci2)))
+           (set! sm93 (fadd sm93 (get-index:array<real>. x6 ci2)))
+           (set! sm74 (fadd sm74 (get-index:array<real>. x6 ci2)))
+           (set! sm86
+             (fadd
+              sm86
+              (fmul
+               (get-index:array<real>. x6 ci2)
+               (get-index:array<real>. dataX ci2))))
+           (set! sm59
+             (fadd
+              sm59
+              (fmul
+               (get-index:array<real>. x6 ci2)
+               (get-index:array<real>. dataX ci2))))
+           (set! sm88 (fadd sm88 (get-index:array<real>. dataX ci2)))
+           (set! sm73
+             (fadd
+              sm73
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm65 (fadd sm65 (get-index:array<real>. dataX ci2)))
+           (set! sm66
+             (fadd
+              sm66
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm92
+             (fadd
+              sm92
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. x6 ci2)
+               (%uint 2 nat))))
+           (set! sm76 (fadd sm76 (get-index:array<real>. dataX ci2)))
+           (set! sm70
+             (fadd
+              sm70
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm69
+             (fadd
+              sm69
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm85 (fadd sm85 (get-index:array<real>. x6 ci2)))
+           (set! sm79 (fadd sm79 (get-index:array<real>. x6 ci2)))
+           (set! sm58 (fadd sm58 (get-index:array<real>. x6 ci2)))
+           (set! sm80
+             (fadd
+              sm80
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm82
+             (fadd
+              sm82
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat))))
+           (set! sm87
+             (fadd
+              sm87
+              (fmul
+               (get-index:array<real>. x6 ci2)
+               (get-index:array<real>. dataX ci2))))
+           (set! sm91
+             (fadd
+              sm91
+              ((intrinsic llvm.powi.f64 real)
+               (get-index:array<real>. dataX ci2)
+               (%uint 2 nat)))))
+          (set! ci2 (add-nuw ci2 (%uint 1 nat)))))
+        evoid))
+     (expr
+      (let ((bi3
+             :
+             prob
+             (gamma
+              (add-2-prob
+               (real2prob (%float 1.0 real))
+               (fadd
+                (nat2prob (get-size:array<real>. dataX))
+                (fadd
+                 (real2prob (nat2real (%uint 1 nat)))
+                 (recip-prob (real2prob (nat2real (%uint 2 nat)))))))
+              (real2prob
+               (fmul
+                (recip-real
+                 (fadd
+                  (fmul
+                   (nat2real (get-size:array<real>. dataX))
+                   sm70
+                   sm71
+                   (%float 10.0 real))
+                  (fmul
+                   (nat2real (get-size:array<real>. dataX))
+                   ((intrinsic llvm.powi.f64 real) sm72 (%uint 2 nat))
+                   (%float -10.0 real))
+                  (fmul
+                   sm73
+                   ((intrinsic llvm.powi.f64 real) sm74 (%uint 2 nat))
+                   (%float -10.0 real))
+                  (fmul
+                   sm75
+                   ((intrinsic llvm.powi.f64 real) sm76 (%uint 2 nat))
+                   (%float -10.0 real))
+                  (fmul sm77 sm78 sm79 (%float 20.0 real))
+                  (fmul
+                   (nat2real (get-size:array<real>. dataX))
+                   sm80
+                   (%float 95.0 real))
+                  (fmul
+                   (nat2real (get-size:array<real>. dataX))
+                   sm81
+                   (%float 10.0 real))
+                  (fmul sm82 sm83 (%float 3.0 real))
+                  (fmul sm84 sm85 (%float -30.0 real))
+                  (fmul
+                   ((intrinsic llvm.powi.f64 real) sm86 (%uint 2 nat))
+                   (%float -3.0 real))
+                  (fmul sm87 sm88 (%float 30.0 real))
+                  (fmul
+                   ((intrinsic llvm.powi.f64 real) sm89 (%uint 2 nat))
+                   (%float -95.0 real))
+                  (fmul
+                   ((intrinsic llvm.powi.f64 real) sm90 (%uint 2 nat))
+                   (%float -10.0 real))
+                  (nat2real
+                   (mul-nuw (get-size:array<real>. dataX) (%uint 95 nat)))
+                  (fmul sm91 (%float 6.0 real))
+                  (fmul sm92 (%float 3.0 real))
+                  (fmul sm93 (%float -30.0 real))
+                  (%float 6.0 real)))
+                (fadd
+                 (fmul
+                  (nat2real (get-size:array<real>. dataX))
+                  sm94
+                  (%float 10.0 real))
+                 (fmul
+                  ((intrinsic llvm.powi.f64 real) sm95 (%uint 2 nat))
+                  (%float -10.0 real))
+                 (nat2real
+                  (mul-nuw (get-size:array<real>. dataX) (%uint 10 nat)))
+                 (fmul sm96 (%float 3.0 real))
+                 (%float 3.0 real))
+                (%float 2.0 real))))))
+        (expr
+         (let ((bi4
+                :
+                real
+                (normal
+                 (fmul
+                  (fadd
+                   (fmul
+                    (nat2real (get-size:array<real>. dataX))
+                    sm59
+                    (%float 10.0 real))
+                   (fmul sm60 sm61 (%float -10.0 real))
+                   (fmul sm62 (%float 3.0 real))
+                   (fmul sm63 (%float -15.0 real)))
+                  (recip-real
+                   (fadd
+                    (fmul
+                     (nat2real (get-size:array<real>. dataX))
+                     sm64
+                     (%float 10.0 real))
+                    (fmul
+                     ((intrinsic llvm.powi.f64 real) sm65 (%uint 2 nat))
+                     (%float -10.0 real))
+                    (nat2real
+                     (mul-nuw (get-size:array<real>. dataX) (%uint 10 nat)))
+                    (fmul sm66 (%float 3.0 real))
+                    (%float 3.0 real))))
+                 (fadd
+                  (recip-prob (root-prob-nat bi3 (%uint 2 nat)))
+                  (root-prob-nat
+                   (real2prob
+                    (fmul
+                     (recip-real
+                      (fadd
+                       (fmul
+                        (nat2real (get-size:array<real>. dataX))
+                        sm67
+                        (%float 10.0 real))
+                       (fmul
+                        ((intrinsic llvm.powi.f64 real) sm68 (%uint 2 nat))
+                        (%float -10.0 real))
+                       (nat2real
+                        (mul-nuw (get-size:array<real>. dataX) (%uint 10 nat)))
+                       (fmul sm69 (%float 3.0 real))
+                       (%float 3.0 real)))
+                     (nat2real
+                      (add-nuw
+                       (mul-nuw (get-size:array<real>. dataX) (%uint 10 nat))
+                       (%uint 3 nat)))))
+                   (%uint 2 nat))))))
+           (expr
+            (let ((bi5
+                   :
+                   real
+                   (normal
+                    (fmul
+                     (fadd
+                      (fmul sm57 bi4 (%float 2.0 real))
+                      (fmul sm58 (%float -2.0 real))
+                      (%float -3.0 real))
+                     (prob2real
+                      (recip-prob
+                       (nat2prob
+                        (add-nuw
+                         (mul-nuw (get-size:array<real>. dataX) (%uint 10 nat))
+                         (%uint 3 nat)))))
+                     (%float -5.0 real))
+                    (fadd
+                     (root-prob-nat
+                      (real2prob (%float 10.0 real))
+                      (%uint 2 nat))
+                     (recip-prob (root-prob-nat bi3 (%uint 2 nat)))
+                     (root-prob-nat
+                      (recip-prob
+                       (nat2prob
+                        (add-nuw
+                         (mul-nuw (get-size:array<real>. dataX) (%uint 10 nat))
+                         (%uint 3 nat))))
+                      (%uint 2 nat))))))
+              (return (array-literal:3,array<real>. bi4 bi5 (prob2real bi3)))
+              evoid))
+           evoid))
+        evoid)))
+    evoid)))
+applying pass: expand-to-lc
+(module ((passes) (ffi-libs (libgslcblas libgslcblas #:global? #t) (libgsl libgsl))) (define-type
+                                                                                      nat
+                                                                                      i64)
+  (define-type real f64)
+  (define-type prob f64)
+  (define-type nat* (* nat))
+  (define-type real* (* real))
+  (define-type prob* (* prob))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (nat2prob (v : nat) : prob)
+   (return (real2prob (ui->fp v (%type real)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (nat2real (v : nat) : real)
+   (return (ui->fp v (%type real))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (prob2real (v : prob) : real)
+   (return ((intrinsic llvm.exp.f64 prob) v)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (real2prob (v : real) : prob)
+   (return ((intrinsic llvm.log.f64 prob) v)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (recip-nat (v : nat) : real)
+   (return (fdiv (%float 1.0 real) (ui->fp v (%type real)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (recip-real (v : real) : real)
+   (return (fdiv (%float 1.0 real) v)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (recip-prob (v : real) : real)
+   (return (fmul (%float -1.0 real) v)))
+  (define-type array<nat> (struct ((size : nat) (data : nat*))))
+  (define-type array<nat>* (* array<nat>))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (make:array<nat>. (size : nat) (data : nat*) : array<nat>*)
+   (expr
+    (let ((ap* : array<nat>* (malloc (%type array<nat>)))
+          (ap-size* : (* nat) (%gep ap* (%uint 0 i32) (%uint 0 i32)))
+          (ap-data* : (* nat*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (block
+       (expr (store! size ap-size*))
+       (expr (store! data ap-data*))
+       (return ap*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (new-sized:array<nat>. (size : nat) : array<nat>*)
+   (expr
+    (let ((apt
+           :
+           array<nat>*
+           (make:array<nat>. size (arr-malloc (%type nat) size))))
+      (block
+       svoid
+       (expr
+        ((intrinsic llvm.memset.i64 void)
+         (load (%gep apt (%uint 0 i32) (%uint 1 i32)))
+         (%uint 0 nat)
+         (mul-nuw (%sizeof nat) size)
+         (%uint 0 nat)
+         (%uint 1 nat)))
+       (return apt))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (empty:array<nat>. : array<nat>*)
+   (return (new-sized:array<nat>. (%uint 0 nat))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-size:array<nat>. (array-ptr : array<nat>*) : nat)
+   (return (load (%gep array-ptr (%uint 0 i32) (%uint 0 i32)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-data:array<nat>. (ap* : array<nat>*) : nat*)
+   (expr
+    (let ((adt* : (* nat*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (return (load adt*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-index:array<nat>. (array-ptr : array<nat>*) (index : nat) : nat)
+   (return
+    (load (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (set-index:array<nat>.
+    (array-ptr : array<nat>*)
+    (index : nat)
+    (v : nat)
+    :
+    void)
+   (block
+    (expr
+     (store!
+      v
+      (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index)))
+    (return evoid)))
+  (define-type array<real> (struct ((size : nat) (data : real*))))
+  (define-type array<real>* (* array<real>))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (make:array<real>. (size : nat) (data : real*) : array<real>*)
+   (expr
+    (let ((ap* : array<real>* (malloc (%type array<real>)))
+          (ap-size* : (* nat) (%gep ap* (%uint 0 i32) (%uint 0 i32)))
+          (ap-data* : (* real*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (block
+       (expr (store! size ap-size*))
+       (expr (store! data ap-data*))
+       (return ap*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (new-sized:array<real>. (size : nat) : array<real>*)
+   (expr
+    (let ((apt
+           :
+           array<real>*
+           (make:array<real>. size (arr-malloc (%type real) size))))
+      (block
+       svoid
+       (expr
+        ((intrinsic llvm.memset.i64 void)
+         (load (%gep apt (%uint 0 i32) (%uint 1 i32)))
+         (%uint 0 nat)
+         (mul-nuw (%sizeof nat) size)
+         (%uint 0 nat)
+         (%uint 1 nat)))
+       (return apt))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (empty:array<real>. : array<real>*)
+   (return (new-sized:array<real>. (%uint 0 nat))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-size:array<real>. (array-ptr : array<real>*) : nat)
+   (return (load (%gep array-ptr (%uint 0 i32) (%uint 0 i32)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-data:array<real>. (ap* : array<real>*) : real*)
+   (expr
+    (let ((adt* : (* real*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (return (load adt*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-index:array<real>. (array-ptr : array<real>*) (index : nat) : real)
+   (return
+    (load (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (set-index:array<real>.
+    (array-ptr : array<real>*)
+    (index : nat)
+    (v : real)
+    :
+    void)
+   (block
+    (expr
+     (store!
+      v
+      (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index)))
+    (return evoid)))
+  (define-type array<prob> (struct ((size : nat) (data : prob*))))
+  (define-type array<prob>* (* array<prob>))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (make:array<prob>. (size : nat) (data : prob*) : array<prob>*)
+   (expr
+    (let ((ap* : array<prob>* (malloc (%type array<prob>)))
+          (ap-size* : (* nat) (%gep ap* (%uint 0 i32) (%uint 0 i32)))
+          (ap-data* : (* prob*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (block
+       (expr (store! size ap-size*))
+       (expr (store! data ap-data*))
+       (return ap*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (new-sized:array<prob>. (size : nat) : array<prob>*)
+   (expr
+    (let ((apt
+           :
+           array<prob>*
+           (make:array<prob>. size (arr-malloc (%type prob) size))))
+      (block
+       svoid
+       (expr
+        ((intrinsic llvm.memset.i64 void)
+         (load (%gep apt (%uint 0 i32) (%uint 1 i32)))
+         (%uint 0 nat)
+         (mul-nuw (%sizeof nat) size)
+         (%uint 0 nat)
+         (%uint 1 nat)))
+       (return apt))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (empty:array<prob>. : array<prob>*)
+   (return (new-sized:array<prob>. (%uint 0 nat))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-size:array<prob>. (array-ptr : array<prob>*) : nat)
+   (return (load (%gep array-ptr (%uint 0 i32) (%uint 0 i32)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-data:array<prob>. (ap* : array<prob>*) : prob*)
+   (expr
+    (let ((adt* : (* prob*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (return (load adt*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-index:array<prob>. (array-ptr : array<prob>*) (index : nat) : prob)
+   (return
+    (load (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (set-index:array<prob>.
+    (array-ptr : array<prob>*)
+    (index : nat)
+    (v : prob)
+    :
+    void)
+   (block
+    (expr
+     (store!
+      v
+      (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index)))
+    (return evoid)))
+  (define-global gsl-rng void*)
+  (define-function
+   (passes)
+   (attrs)
+   (init-rng : void)
+   (block
+    (set! gsl-rng
+      ((external libgsl gsl_rng_alloc void*)
+       (%external libgsl gsl_rng_taus void*)))
+    (return evoid)))
+  (define-function
+   (passes)
+   (attrs)
+   (uniform (v1 : real) (v2 : real) : real)
+   (return ((external libgsl gsl_ran_flat real) gsl-rng v1 v2)))
+  (define-function
+   (passes)
+   (attrs)
+   (normal (mean : real) (sigma : prob) : real)
+   (return
+    (fadd
+     mean
+     ((external libgsl gsl_ran_gaussian real) gsl-rng (prob2real sigma)))))
+  (define-function
+   (passes)
+   (attrs)
+   (beta (a : prob) (b : prob) : prob)
+   (return
+    (real2prob
+     ((external libgsl gsl_ran_beta real)
+      gsl-rng
+      (prob2real a)
+      (prob2real b)))))
+  (define-function
+   (passes)
+   (attrs)
+   (gamma (a : prob) (b : prob) : prob)
+   (return
+    (real2prob
+     ((external libgsl gsl_ran_gamma real)
+      gsl-rng
+      (prob2real a)
+      (prob2real b)))))
+  (define-function
+   (passes)
+   (attrs)
+   (categorical (arr : array<prob>) : nat)
+   (return (%uint 0 nat)))
+  (define-function
+   (passes)
+   (attrs)
+   (add-2-prob (v0 : prob) (v1 : prob) : prob)
+   (return (real2prob (fadd (prob2real v0) (prob2real v1)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (root-prob-nat (v : prob) (v2 : nat) : prob)
+   (return (fmul v (recip-nat v2))))
+  (define-function
+   (passes)
+   (attrs)
+   (array-literal:3,array<real>.
+    (v0 : real)
+    (v1 : real)
+    (v2 : real)
+    :
+    array<real>*)
+   (expr
+    (let ((arl : array<real>* (new-sized:array<real>. (%uint 3 nat))))
+      (block
+       (expr (set-index:array<real>. arl v0))
+       (expr (set-index:array<real>. arl v1))
+       (expr (set-index:array<real>. arl v2))
+       (return arl))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (prog (dataX : array<real>*) (x6 : array<real>*) : array<real>*)
+   (expr
+    (let ((sm57 : real (%float 0.0 real))
+          (sm83 : real (%float 0.0 real))
+          (sm75 : real (%float 0.0 real))
+          (sm67 : real (%float 0.0 real))
+          (sm90 : real (%float 0.0 real))
+          (sm95 : real (%float 0.0 real))
+          (sm60 : real (%float 0.0 real))
+          (sm84 : real (%float 0.0 real))
+          (sm62 : real (%float 0.0 real))
+          (sm61 : real (%float 0.0 real))
+          (sm78 : real (%float 0.0 real))
+          (sm77 : real (%float 0.0 real))
+          (sm71 : real (%float 0.0 real))
+          (sm72 : real (%float 0.0 real))
+          (sm94 : real (%float 0.0 real))
+          (sm63 : real (%float 0.0 real))
+          (sm68 : real (%float 0.0 real))
+          (sm96 : real (%float 0.0 real))
+          (sm81 : real (%float 0.0 real))
+          (sm64 : real (%float 0.0 real))
+          (sm89 : real (%float 0.0 real))
+          (sm93 : real (%float 0.0 real))
+          (sm74 : real (%float 0.0 real))
+          (sm86 : real (%float 0.0 real))
+          (sm59 : real (%float 0.0 real))
+          (sm88 : real (%float 0.0 real))
+          (sm73 : real (%float 0.0 real))
+          (sm65 : real (%float 0.0 real))
+          (sm66 : real (%float 0.0 real))
+          (sm92 : real (%float 0.0 real))
+          (sm76 : real (%float 0.0 real))
+          (sm70 : real (%float 0.0 real))
+          (sm69 : real (%float 0.0 real))
+          (sm85 : real (%float 0.0 real))
+          (sm79 : real (%float 0.0 real))
+          (sm58 : real (%float 0.0 real))
+          (sm80 : real (%float 0.0 real))
+          (sm82 : real (%float 0.0 real))
+          (sm87 : real (%float 0.0 real))
+          (sm91 : real (%float 0.0 real)))
+      (block
+       (expr
+        (let ((ci2 : nat (%uint 0 nat)))
+          (while
+           (icmp-ult ci2 (get-size:array<real>. dataX))
+           (block
+            (block
+             (set! sm57 (fadd sm57 (get-index:array<real>. dataX ci2)))
+             (set! sm83
+               (fadd
+                sm83
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. x6 ci2)
+                 (%uint 2 nat))))
+             (set! sm75
+               (fadd
+                sm75
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. x6 ci2)
+                 (%uint 2 nat))))
+             (set! sm67
+               (fadd
+                sm67
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm90 (fadd sm90 (get-index:array<real>. x6 ci2)))
+             (set! sm95 (fadd sm95 (get-index:array<real>. dataX ci2)))
+             (set! sm60 (fadd sm60 (get-index:array<real>. dataX ci2)))
+             (set! sm84
+               (fadd
+                sm84
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm62
+               (fadd
+                sm62
+                (fmul
+                 (get-index:array<real>. x6 ci2)
+                 (get-index:array<real>. dataX ci2))))
+             (set! sm61 (fadd sm61 (get-index:array<real>. x6 ci2)))
+             (set! sm78 (fadd sm78 (get-index:array<real>. dataX ci2)))
+             (set! sm77
+               (fadd
+                sm77
+                (fmul
+                 (get-index:array<real>. x6 ci2)
+                 (get-index:array<real>. dataX ci2))))
+             (set! sm71
+               (fadd
+                sm71
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. x6 ci2)
+                 (%uint 2 nat))))
+             (set! sm72
+               (fadd
+                sm72
+                (fmul
+                 (get-index:array<real>. x6 ci2)
+                 (get-index:array<real>. dataX ci2))))
+             (set! sm94
+               (fadd
+                sm94
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm63 (fadd sm63 (get-index:array<real>. dataX ci2)))
+             (set! sm68 (fadd sm68 (get-index:array<real>. dataX ci2)))
+             (set! sm96
+               (fadd
+                sm96
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm81
+               (fadd
+                sm81
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. x6 ci2)
+                 (%uint 2 nat))))
+             (set! sm64
+               (fadd
+                sm64
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm89 (fadd sm89 (get-index:array<real>. dataX ci2)))
+             (set! sm93 (fadd sm93 (get-index:array<real>. x6 ci2)))
+             (set! sm74 (fadd sm74 (get-index:array<real>. x6 ci2)))
+             (set! sm86
+               (fadd
+                sm86
+                (fmul
+                 (get-index:array<real>. x6 ci2)
+                 (get-index:array<real>. dataX ci2))))
+             (set! sm59
+               (fadd
+                sm59
+                (fmul
+                 (get-index:array<real>. x6 ci2)
+                 (get-index:array<real>. dataX ci2))))
+             (set! sm88 (fadd sm88 (get-index:array<real>. dataX ci2)))
+             (set! sm73
+               (fadd
+                sm73
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm65 (fadd sm65 (get-index:array<real>. dataX ci2)))
+             (set! sm66
+               (fadd
+                sm66
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm92
+               (fadd
+                sm92
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. x6 ci2)
+                 (%uint 2 nat))))
+             (set! sm76 (fadd sm76 (get-index:array<real>. dataX ci2)))
+             (set! sm70
+               (fadd
+                sm70
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm69
+               (fadd
+                sm69
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm85 (fadd sm85 (get-index:array<real>. x6 ci2)))
+             (set! sm79 (fadd sm79 (get-index:array<real>. x6 ci2)))
+             (set! sm58 (fadd sm58 (get-index:array<real>. x6 ci2)))
+             (set! sm80
+               (fadd
+                sm80
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm82
+               (fadd
+                sm82
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat))))
+             (set! sm87
+               (fadd
+                sm87
+                (fmul
+                 (get-index:array<real>. x6 ci2)
+                 (get-index:array<real>. dataX ci2))))
+             (set! sm91
+               (fadd
+                sm91
+                ((intrinsic llvm.powi.f64 real)
+                 (get-index:array<real>. dataX ci2)
+                 (%uint 2 nat)))))
+            (set! ci2 (add-nuw ci2 (%uint 1 nat)))))
+          evoid))
+       (expr
+        (let ((bi3
+               :
+               prob
+               (gamma
+                (add-2-prob
+                 (real2prob (%float 1.0 real))
+                 (fadd
+                  (nat2prob (get-size:array<real>. dataX))
+                  (fadd
+                   (real2prob (nat2real (%uint 1 nat)))
+                   (recip-prob (real2prob (nat2real (%uint 2 nat)))))))
+                (real2prob
+                 (fmul
+                  (recip-real
+                   (fadd
+                    (fmul
+                     (nat2real (get-size:array<real>. dataX))
+                     sm70
+                     sm71
+                     (%float 10.0 real))
+                    (fmul
+                     (nat2real (get-size:array<real>. dataX))
+                     ((intrinsic llvm.powi.f64 real) sm72 (%uint 2 nat))
+                     (%float -10.0 real))
+                    (fmul
+                     sm73
+                     ((intrinsic llvm.powi.f64 real) sm74 (%uint 2 nat))
+                     (%float -10.0 real))
+                    (fmul
+                     sm75
+                     ((intrinsic llvm.powi.f64 real) sm76 (%uint 2 nat))
+                     (%float -10.0 real))
+                    (fmul sm77 sm78 sm79 (%float 20.0 real))
+                    (fmul
+                     (nat2real (get-size:array<real>. dataX))
+                     sm80
+                     (%float 95.0 real))
+                    (fmul
+                     (nat2real (get-size:array<real>. dataX))
+                     sm81
+                     (%float 10.0 real))
+                    (fmul sm82 sm83 (%float 3.0 real))
+                    (fmul sm84 sm85 (%float -30.0 real))
+                    (fmul
+                     ((intrinsic llvm.powi.f64 real) sm86 (%uint 2 nat))
+                     (%float -3.0 real))
+                    (fmul sm87 sm88 (%float 30.0 real))
+                    (fmul
+                     ((intrinsic llvm.powi.f64 real) sm89 (%uint 2 nat))
+                     (%float -95.0 real))
+                    (fmul
+                     ((intrinsic llvm.powi.f64 real) sm90 (%uint 2 nat))
+                     (%float -10.0 real))
+                    (nat2real
+                     (mul-nuw (get-size:array<real>. dataX) (%uint 95 nat)))
+                    (fmul sm91 (%float 6.0 real))
+                    (fmul sm92 (%float 3.0 real))
+                    (fmul sm93 (%float -30.0 real))
+                    (%float 6.0 real)))
+                  (fadd
+                   (fmul
+                    (nat2real (get-size:array<real>. dataX))
+                    sm94
+                    (%float 10.0 real))
+                   (fmul
+                    ((intrinsic llvm.powi.f64 real) sm95 (%uint 2 nat))
+                    (%float -10.0 real))
+                   (nat2real
+                    (mul-nuw (get-size:array<real>. dataX) (%uint 10 nat)))
+                   (fmul sm96 (%float 3.0 real))
+                   (%float 3.0 real))
+                  (%float 2.0 real))))))
+          (expr
+           (let ((bi4
+                  :
+                  real
+                  (normal
+                   (fmul
+                    (fadd
+                     (fmul
+                      (nat2real (get-size:array<real>. dataX))
+                      sm59
+                      (%float 10.0 real))
+                     (fmul sm60 sm61 (%float -10.0 real))
+                     (fmul sm62 (%float 3.0 real))
+                     (fmul sm63 (%float -15.0 real)))
+                    (recip-real
+                     (fadd
+                      (fmul
+                       (nat2real (get-size:array<real>. dataX))
+                       sm64
+                       (%float 10.0 real))
+                      (fmul
+                       ((intrinsic llvm.powi.f64 real) sm65 (%uint 2 nat))
+                       (%float -10.0 real))
+                      (nat2real
+                       (mul-nuw (get-size:array<real>. dataX) (%uint 10 nat)))
+                      (fmul sm66 (%float 3.0 real))
+                      (%float 3.0 real))))
+                   (fadd
+                    (recip-prob (root-prob-nat bi3 (%uint 2 nat)))
+                    (root-prob-nat
+                     (real2prob
+                      (fmul
+                       (recip-real
+                        (fadd
+                         (fmul
+                          (nat2real (get-size:array<real>. dataX))
+                          sm67
+                          (%float 10.0 real))
+                         (fmul
+                          ((intrinsic llvm.powi.f64 real) sm68 (%uint 2 nat))
+                          (%float -10.0 real))
+                         (nat2real
+                          (mul-nuw
+                           (get-size:array<real>. dataX)
+                           (%uint 10 nat)))
+                         (fmul sm69 (%float 3.0 real))
+                         (%float 3.0 real)))
+                       (nat2real
+                        (add-nuw
+                         (mul-nuw (get-size:array<real>. dataX) (%uint 10 nat))
+                         (%uint 3 nat)))))
+                     (%uint 2 nat))))))
+             (expr
+              (let ((bi5
+                     :
+                     real
+                     (normal
+                      (fmul
+                       (fadd
+                        (fmul sm57 bi4 (%float 2.0 real))
+                        (fmul sm58 (%float -2.0 real))
+                        (%float -3.0 real))
+                       (prob2real
+                        (recip-prob
+                         (nat2prob
+                          (add-nuw
+                           (mul-nuw
+                            (get-size:array<real>. dataX)
+                            (%uint 10 nat))
+                           (%uint 3 nat)))))
+                       (%float -5.0 real))
+                      (fadd
+                       (root-prob-nat
+                        (real2prob (%float 10.0 real))
+                        (%uint 2 nat))
+                       (recip-prob (root-prob-nat bi3 (%uint 2 nat)))
+                       (root-prob-nat
+                        (recip-prob
+                         (nat2prob
+                          (add-nuw
+                           (mul-nuw
+                            (get-size:array<real>. dataX)
+                            (%uint 10 nat))
+                           (%uint 3 nat))))
+                        (%uint 2 nat))))))
+                (return (array-literal:3,array<real>. bi4 bi5 (prob2real bi3)))
+                evoid))
+             evoid))
+          evoid)))
+      evoid))))
+compiling-function nat2prob
+compiling-function nat2real
+compiling-function prob2real
+compiling-function real2prob
+compiling-function recip-nat
+compiling-function recip-real
+compiling-function recip-prob
+compiling-function make:array<nat>.
+compiling-function new-sized:array<nat>.
+compiling-function empty:array<nat>.
+compiling-function get-size:array<nat>.
+compiling-function get-data:array<nat>.
+compiling-function get-index:array<nat>.
+compiling-function set-index:array<nat>.
+compiling-function make:array<real>.
+compiling-function new-sized:array<real>.
+compiling-function empty:array<real>.
+compiling-function get-size:array<real>.
+compiling-function get-data:array<real>.
+compiling-function get-index:array<real>.
+compiling-function set-index:array<real>.
+compiling-function make:array<prob>.
+compiling-function new-sized:array<prob>.
+compiling-function empty:array<prob>.
+compiling-function get-size:array<prob>.
+compiling-function get-data:array<prob>.
+compiling-function get-index:array<prob>.
+compiling-function set-index:array<prob>.
+compiling-function init-rng
+compiling-function uniform
+compiling-function normal
+compiling-function beta
+compiling-function gamma
+compiling-function categorical
+compiling-function add-2-prob
+compiling-function root-prob-nat
+compiling-function array-literal:3,array<real>.
+compiling-function prog

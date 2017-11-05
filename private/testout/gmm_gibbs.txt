@@ -1,0 +1,2856 @@
+applying pass: reduce-curry
+(fn
+ ((as (array prob)) (z (array nat)) (t (array real)) (docUpdate nat))
+ (measure nat)
+ ((match
+   ((and ((==
+           ((size (z : (array nat))) : nat)
+           ((size (t : (array real))) : nat))
+          :
+          bool)
+         ((< (docUpdate : nat) ((size (z : (array nat))) : nat)) : bool)
+         ((<
+           ((index (z : (array nat)) (docUpdate : nat)) : nat)
+           ((size (as : (array prob))) : nat))
+          :
+          bool))
+    :
+    bool)
+   ((pdatum true (pc_inl (ps_done)))
+    ((pose
+      ((*
+        ((realpow
+          (2 : prob)
+          ((+
+            ((*
+              ((nat2real ((size (t : (array real))) : nat)) : real)
+              ((/ -1 2) : real))
+             :
+             real)
+            ((*
+              ((nat2real ((size (as : (array prob))) : nat)) : real)
+              ((/ 1 2) : real))
+             :
+             real))
+           :
+           real))
+         :
+         prob)
+        ((exp
+          ((*
+            ((summate
+              (_a (0 : nat) ((size (t : (array real))) : nat))
+              ((natpow
+                ((index (t : (array real)) (_a : nat)) : real)
+                (2 : nat))
+               :
+               real))
+             :
+             real)
+            ((/ -1 2) : real))
+           :
+           real))
+         :
+         prob)
+        ((realpow
+          ((pi) : prob)
+          ((*
+            ((nat2real ((size (t : (array real))) : nat)) : real)
+            ((/ -1 2) : real))
+           :
+           real))
+         :
+         prob)
+        ((product
+          (_b (0 : nat) ((size (as : (array prob))) : nat))
+          ((product
+            (j
+             (0 : nat)
+             ((let (summary
+                    (array nat)
+                    ((bucket
+                      (0 : nat)
+                      ((size (t : (array real))) : nat)
+                      (r_index
+                       ((size (as : (array prob))) : nat)
+                       (bind _a ((index (z : (array nat)) (_a : nat)) : nat))
+                       (r_add (bind _a (bind _b (1 : nat))))))
+                     :
+                     (array nat)))
+                ((int2nat
+                  ((+
+                    ((*
+                      ((nat2int
+                        ((match
+                          ((==
+                            (_b : nat)
+                            ((index (z : (array nat)) (docUpdate : nat))
+                             :
+                             nat))
+                           :
+                           bool)
+                          ((pdatum true (pc_inl (ps_done))) (1 : nat))
+                          ((pdatum false (pc_inr (pc_inl (ps_done))))
+                           (0 : nat)))
+                         :
+                         nat))
+                       :
+                       int)
+                      (-1 : int))
+                     :
+                     int)
+                    ((nat2int
+                      ((index (summary : (array nat)) (_b : nat)) : nat))
+                     :
+                     int))
+                   :
+                   int))
+                 :
+                 nat))
+              :
+              nat))
+            ((+
+              ((nat2prob (j : nat)) : prob)
+              ((index (as : (array prob)) (_b : nat)) : prob))
+             :
+             prob))
+           :
+           prob))
+         :
+         prob)
+        ((recip
+          ((product
+            (_b
+             (0 : nat)
+             ((summate
+               (_a (0 : nat) ((size (t : (array real))) : nat))
+               ((match
+                 ((== (_a : nat) (docUpdate : nat)) : bool)
+                 ((pdatum true (pc_inl (ps_done))) (0 : nat))
+                 ((pdatum false (pc_inr (pc_inl (ps_done)))) (1 : nat)))
+                :
+                nat))
+              :
+              nat))
+            ((+
+              ((nat2prob (_b : nat)) : prob)
+              ((summate
+                (_a (0 : nat) ((size (as : (array prob))) : nat))
+                ((index (as : (array prob)) (_a : nat)) : prob))
+               :
+               prob))
+             :
+             prob))
+           :
+           prob))
+         :
+         prob)
+        ((recip
+          ((+
+            ((nat2prob
+              ((summate
+                (_a (0 : nat) ((size (t : (array real))) : nat))
+                ((match
+                  ((== (_a : nat) (docUpdate : nat)) : bool)
+                  ((pdatum true (pc_inl (ps_done))) (0 : nat))
+                  ((pdatum false (pc_inr (pc_inl (ps_done)))) (1 : nat)))
+                 :
+                 nat))
+               :
+               nat))
+             :
+             prob)
+            ((summate
+              (_a (0 : nat) ((size (as : (array prob))) : nat))
+              ((index (as : (array prob)) (_a : nat)) : prob))
+             :
+             prob))
+           :
+           prob))
+         :
+         prob))
+       :
+       prob)
+      ((categorical
+        ((array
+          (zNewb ((size (as : (array prob))) : nat))
+          ((real2prob
+            ((*
+              ((prob2real
+                ((exp
+                  ((*
+                    ((summate
+                      (_a (0 : nat) ((size (as : (array prob))) : nat))
+                      ((*
+                        ((natpow
+                          ((let (summary
+                                 (array real)
+                                 ((bucket
+                                   (0 : nat)
+                                   ((size (t : (array real))) : nat)
+                                   (r_index
+                                    ((size (as : (array prob))) : nat)
+                                    (bind
+                                     i
+                                     ((index (z : (array nat)) (i : nat))
+                                      :
+                                      nat))
+                                    (r_add
+                                     (bind
+                                      i
+                                      (bind
+                                       _a
+                                       ((index (t : (array real)) (i : nat))
+                                        :
+                                        real))))))
+                                  :
+                                  (array real)))
+                             ((+
+                               ((match
+                                 ((== (_a : nat) (zNewb : nat)) : bool)
+                                 ((pdatum true (pc_inl (ps_done)))
+                                  ((index (t : (array real)) (docUpdate : nat))
+                                   :
+                                   real))
+                                 ((pdatum false (pc_inr (pc_inl (ps_done))))
+                                  (0 : real)))
+                                :
+                                real)
+                               ((*
+                                 ((match
+                                   ((==
+                                     (_a : nat)
+                                     ((index
+                                       (z : (array nat))
+                                       (docUpdate : nat))
+                                      :
+                                      nat))
+                                    :
+                                    bool)
+                                   ((pdatum true (pc_inl (ps_done)))
+                                    ((index
+                                      (t : (array real))
+                                      (docUpdate : nat))
+                                     :
+                                     real))
+                                   ((pdatum false (pc_inr (pc_inl (ps_done))))
+                                    (0 : real)))
+                                  :
+                                  real)
+                                 (-1 : real))
+                                :
+                                real)
+                               ((index (summary : (array real)) (_a : nat))
+                                :
+                                real))
+                              :
+                              real))
+                           :
+                           real)
+                          (2 : nat))
+                         :
+                         real)
+                        ((recip
+                          ((int2real
+                            ((+
+                              (1 : int)
+                              ((let (summary
+                                     (array nat)
+                                     ((bucket
+                                       (0 : nat)
+                                       ((size (t : (array real))) : nat)
+                                       (r_index
+                                        ((size (as : (array prob))) : nat)
+                                        (bind
+                                         i
+                                         ((index (z : (array nat)) (i : nat))
+                                          :
+                                          nat))
+                                        (r_add (bind i (bind _a (1 : nat))))))
+                                      :
+                                      (array nat)))
+                                 ((+
+                                   ((nat2int
+                                     ((match
+                                       ((== (_a : nat) (zNewb : nat)) : bool)
+                                       ((pdatum true (pc_inl (ps_done)))
+                                        (1 : nat))
+                                       ((pdatum
+                                         false
+                                         (pc_inr (pc_inl (ps_done))))
+                                        (0 : nat)))
+                                      :
+                                      nat))
+                                    :
+                                    int)
+                                   ((*
+                                     ((nat2int
+                                       ((match
+                                         ((==
+                                           (_a : nat)
+                                           ((index
+                                             (z : (array nat))
+                                             (docUpdate : nat))
+                                            :
+                                            nat))
+                                          :
+                                          bool)
+                                         ((pdatum true (pc_inl (ps_done)))
+                                          (1 : nat))
+                                         ((pdatum
+                                           false
+                                           (pc_inr (pc_inl (ps_done))))
+                                          (0 : nat)))
+                                        :
+                                        nat))
+                                      :
+                                      int)
+                                     (-1 : int))
+                                    :
+                                    int)
+                                   ((nat2int
+                                     ((index
+                                       (summary : (array nat))
+                                       (_a : nat))
+                                      :
+                                      nat))
+                                    :
+                                    int))
+                                  :
+                                  int))
+                               :
+                               int))
+                             :
+                             int))
+                           :
+                           real))
+                         :
+                         real))
+                       :
+                       real))
+                     :
+                     real)
+                    ((/ 1 2) : real))
+                   :
+                   real))
+                 :
+                 prob))
+               :
+               real)
+              ((prob2real
+                ((recip
+                  ((root
+                    ((nat2prob
+                      ((int2nat
+                        ((product
+                          (_b (0 : nat) ((size (as : (array prob))) : nat))
+                          ((+
+                            (2 : int)
+                            ((*
+                              ((let (summary
+                                     (array nat)
+                                     ((bucket
+                                       (0 : nat)
+                                       ((size (t : (array real))) : nat)
+                                       (r_index
+                                        ((size (as : (array prob))) : nat)
+                                        (bind
+                                         _a
+                                         ((index (z : (array nat)) (_a : nat))
+                                          :
+                                          nat))
+                                        (r_add (bind _a (bind _b (1 : nat))))))
+                                      :
+                                      (array nat)))
+                                 ((+
+                                   ((nat2int
+                                     ((match
+                                       ((== (_b : nat) (zNewb : nat)) : bool)
+                                       ((pdatum true (pc_inl (ps_done)))
+                                        (1 : nat))
+                                       ((pdatum
+                                         false
+                                         (pc_inr (pc_inl (ps_done))))
+                                        (0 : nat)))
+                                      :
+                                      nat))
+                                    :
+                                    int)
+                                   ((*
+                                     ((nat2int
+                                       ((match
+                                         ((==
+                                           (_b : nat)
+                                           ((index
+                                             (z : (array nat))
+                                             (docUpdate : nat))
+                                            :
+                                            nat))
+                                          :
+                                          bool)
+                                         ((pdatum true (pc_inl (ps_done)))
+                                          (1 : nat))
+                                         ((pdatum
+                                           false
+                                           (pc_inr (pc_inl (ps_done))))
+                                          (0 : nat)))
+                                        :
+                                        nat))
+                                      :
+                                      int)
+                                     (-1 : int))
+                                    :
+                                    int)
+                                   ((nat2int
+                                     ((index
+                                       (summary : (array nat))
+                                       (_b : nat))
+                                      :
+                                      nat))
+                                    :
+                                    int))
+                                  :
+                                  int))
+                               :
+                               int)
+                              (2 : int))
+                             :
+                             int))
+                           :
+                           int))
+                         :
+                         int))
+                       :
+                       nat))
+                     :
+                     prob)
+                    (2 : nat))
+                   :
+                   prob))
+                 :
+                 prob))
+               :
+               real)
+              ((+
+                ((int2real
+                  ((let (summary
+                         (array nat)
+                         ((bucket
+                           (0 : nat)
+                           ((size (t : (array real))) : nat)
+                           (r_index
+                            ((size (as : (array prob))) : nat)
+                            (bind
+                             _a
+                             ((index (z : (array nat)) (_a : nat)) : nat))
+                            (r_add (bind _a (bind zNewb (1 : nat))))))
+                          :
+                          (array nat)))
+                     ((+
+                       ((*
+                         ((nat2int
+                           ((match
+                             ((==
+                               (zNewb : nat)
+                               ((index (z : (array nat)) (docUpdate : nat))
+                                :
+                                nat))
+                              :
+                              bool)
+                             ((pdatum true (pc_inl (ps_done))) (1 : nat))
+                             ((pdatum false (pc_inr (pc_inl (ps_done))))
+                              (0 : nat)))
+                            :
+                            nat))
+                          :
+                          int)
+                         (-1 : int))
+                        :
+                        int)
+                       ((nat2int
+                         ((index (summary : (array nat)) (zNewb : nat)) : nat))
+                        :
+                        int))
+                      :
+                      int))
+                   :
+                   int))
+                 :
+                 real)
+                ((prob2real ((index (as : (array prob)) (zNewb : nat)) : prob))
+                 :
+                 real))
+               :
+               real))
+             :
+             real))
+           :
+           prob))
+         :
+         (array prob)))
+       :
+       (measure nat)))
+     :
+     (measure nat)))
+   ((pdatum false (pc_inr (pc_inl (ps_done))))
+    ((match
+      ((not
+        ((==
+          ((size (z : (array nat))) : nat)
+          ((size (t : (array real))) : nat))
+         :
+         bool))
+       :
+       bool)
+      ((pdatum true (pc_inl (ps_done))) ((reject) : (measure nat)))
+      ((pdatum false (pc_inr (pc_inl (ps_done))))
+       ((match
+         ((not ((< (docUpdate : nat) ((size (z : (array nat))) : nat)) : bool))
+          :
+          bool)
+         ((pdatum true (pc_inl (ps_done))) ((reject) : (measure nat)))
+         ((pdatum false (pc_inr (pc_inl (ps_done))))
+          ((reject) : (measure nat))))
+        :
+        (measure nat))))
+     :
+     (measure nat))))
+  :
+  (measure nat)))
+applying pass: parse-sexp
+((main
+  (function
+   (as z t docUpdate)
+   (match
+    (and (== (size z) (size t))
+         (< docUpdate (size z))
+         (< (index z docUpdate) (size as)))
+    (true
+     (pose
+      (*
+       (realpow
+        2
+        (+ (* (nat2real (size t)) (/ -1 2)) (* (nat2real (size as)) (/ 1 2))))
+       (exp (* (summate (si1 0 (size t)) (natpow (index t si1) 2)) (/ -1 2)))
+       (realpow (pi) (* (nat2real (size t)) (/ -1 2)))
+       (product
+        (pi1 0 (size as))
+        (product
+         (pi2
+          0
+          (let (summary
+                (bucket
+                 0
+                 (size t)
+                 (index
+                  (size as)
+                  (/ bi1 -> (index z bi1))
+                  (add (/ bi2 -> (/ bi3 -> 1))))))
+            (int2nat
+             (+
+              (*
+               (nat2int
+                (match (== pi1 (index z docUpdate)) (true 1) (false 0)))
+               -1)
+              (nat2int (index summary pi1))))))
+         (+ (nat2prob pi2) (index as pi1))))
+       (recip
+        (product
+         (pi3
+          0
+          (summate
+           (si2 0 (size t))
+           (match (== si2 docUpdate) (true 0) (false 1))))
+         (+ (nat2prob pi3) (summate (si3 0 (size as)) (index as si3)))))
+       (recip
+        (+
+         (nat2prob
+          (summate
+           (si4 0 (size t))
+           (match (== si4 docUpdate) (true 0) (false 1))))
+         (summate (si5 0 (size as)) (index as si5)))))
+      (categorical
+       (array
+        ai1
+        (size as)
+        (real2prob
+         (*
+          (prob2real
+           (exp
+            (*
+             (summate
+              (si6 0 (size as))
+              (*
+               (natpow
+                (let (summary
+                      (bucket
+                       0
+                       (size t)
+                       (index
+                        (size as)
+                        (/ bi4 -> (index z bi4))
+                        (add (/ bi5 -> (/ bi6 -> (index t bi5)))))))
+                  (+
+                   (match (== si6 ai1) (true (index t docUpdate)) (false 0))
+                   (*
+                    (match
+                     (== si6 (index z docUpdate))
+                     (true (index t docUpdate))
+                     (false 0))
+                    -1)
+                   (index summary si6)))
+                2)
+               (recip
+                (int2real
+                 (+
+                  1
+                  (let (summary
+                        (bucket
+                         0
+                         (size t)
+                         (index
+                          (size as)
+                          (/ bi7 -> (index z bi7))
+                          (add (/ bi8 -> (/ bi9 -> 1))))))
+                    (+
+                     (nat2int (match (== si6 ai1) (true 1) (false 0)))
+                     (*
+                      (nat2int
+                       (match (== si6 (index z docUpdate)) (true 1) (false 0)))
+                      -1)
+                     (nat2int (index summary si6)))))))))
+             (/ 1 2))))
+          (prob2real
+           (recip
+            (root
+             (nat2prob
+              (int2nat
+               (product
+                (pi4 0 (size as))
+                (+
+                 2
+                 (*
+                  (let (summary
+                        (bucket
+                         0
+                         (size t)
+                         (index
+                          (size as)
+                          (/ bi10 -> (index z bi10))
+                          (add (/ bi11 -> (/ bi12 -> 1))))))
+                    (+
+                     (nat2int (match (== pi4 ai1) (true 1) (false 0)))
+                     (*
+                      (nat2int
+                       (match (== pi4 (index z docUpdate)) (true 1) (false 0)))
+                      -1)
+                     (nat2int (index summary pi4))))
+                  2)))))
+             2)))
+          (+
+           (int2real
+            (let (summary
+                  (bucket
+                   0
+                   (size t)
+                   (index
+                    (size as)
+                    (/ bi13 -> (index z bi13))
+                    (add (/ bi14 -> (/ bi15 -> 1))))))
+              (+
+               (*
+                (nat2int
+                 (match (== ai1 (index z docUpdate)) (true 1) (false 0)))
+                -1)
+               (nat2int (index summary ai1)))))
+           (prob2real (index as ai1)))))))))
+    (false
+     (match
+      (not (== (size z) (size t)))
+      (true (reject))
+      (false
+       (match
+        (not (< docUpdate (size z)))
+        (true (reject))
+        (false (reject))))))))))
+applying pass: macro-functions
+((main
+  (function
+   (as z t docUpdate)
+   (match
+    (and (== (size z) (size t))
+         (< docUpdate (size z))
+         (< (index z docUpdate) (size as)))
+    (true
+     (categorical
+      (array
+       ai1
+       (size as)
+       (real2prob
+        (*
+         (prob2real
+          (exp
+           (*
+            (summate
+             (si6 0 (size as))
+             (*
+              (natpow
+               (let (summary
+                     (bucket
+                      0
+                      (size t)
+                      (index
+                       (size as)
+                       (/ bi4 -> (index z bi4))
+                       (add (/ bi5 -> (/ bi6 -> (index t bi5)))))))
+                 (+
+                  (match (== si6 ai1) (true (index t docUpdate)) (false 0))
+                  (*
+                   (match
+                    (== si6 (index z docUpdate))
+                    (true (index t docUpdate))
+                    (false 0))
+                   -1)
+                  (index summary si6)))
+               2)
+              (recip
+               (int2real
+                (+
+                 1
+                 (let (summary
+                       (bucket
+                        0
+                        (size t)
+                        (index
+                         (size as)
+                         (/ bi7 -> (index z bi7))
+                         (add (/ bi8 -> (/ bi9 -> 1))))))
+                   (+
+                    (nat2int (match (== si6 ai1) (true 1) (false 0)))
+                    (*
+                     (nat2int
+                      (match (== si6 (index z docUpdate)) (true 1) (false 0)))
+                     -1)
+                    (nat2int (index summary si6)))))))))
+            (/ 1 2))))
+         (prob2real
+          (recip
+           (root
+            (nat2prob
+             (int2nat
+              (product
+               (pi4 0 (size as))
+               (+
+                2
+                (*
+                 (let (summary
+                       (bucket
+                        0
+                        (size t)
+                        (index
+                         (size as)
+                         (/ bi10 -> (index z bi10))
+                         (add (/ bi11 -> (/ bi12 -> 1))))))
+                   (+
+                    (nat2int (match (== pi4 ai1) (true 1) (false 0)))
+                    (*
+                     (nat2int
+                      (match (== pi4 (index z docUpdate)) (true 1) (false 0)))
+                     -1)
+                    (nat2int (index summary pi4))))
+                 2)))))
+            2)))
+         (+
+          (int2real
+           (let (summary
+                 (bucket
+                  0
+                  (size t)
+                  (index
+                   (size as)
+                   (/ bi13 -> (index z bi13))
+                   (add (/ bi14 -> (/ bi15 -> 1))))))
+             (+
+              (*
+               (nat2int
+                (match (== ai1 (index z docUpdate)) (true 1) (false 0)))
+               -1)
+              (nat2int (index summary ai1)))))
+          (prob2real (index as ai1))))))))
+    (false
+     (match
+      (not (== (size z) (size t)))
+      (true (reject))
+      (false
+       (match
+        (not (< docUpdate (size z)))
+        (true (reject))
+        (false (reject))))))))))
+applying pass: simplify-match
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (categorical
+      (array
+       ai1
+       (size as)
+       (real2prob
+        (*
+         (prob2real
+          (exp
+           (*
+            (summate
+             (si6 0 (size as))
+             (*
+              (natpow
+               (let (summary
+                     (bucket
+                      0
+                      (size t)
+                      (index
+                       (size as)
+                       (/ bi4 -> (index z bi4))
+                       (add (/ bi5 -> (/ bi6 -> (index t bi5)))))))
+                 (+
+                  (if (== si6 ai1) (index t docUpdate) 0)
+                  (*
+                   (if (== si6 (index z docUpdate)) (index t docUpdate) 0)
+                   -1)
+                  (index summary si6)))
+               2)
+              (recip
+               (int2real
+                (+
+                 1
+                 (let (summary
+                       (bucket
+                        0
+                        (size t)
+                        (index
+                         (size as)
+                         (/ bi7 -> (index z bi7))
+                         (add (/ bi8 -> (/ bi9 -> 1))))))
+                   (+
+                    (nat2int (if (== si6 ai1) 1 0))
+                    (* (nat2int (if (== si6 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index summary si6)))))))))
+            (/ 1 2))))
+         (prob2real
+          (recip
+           (root
+            (nat2prob
+             (int2nat
+              (product
+               (pi4 0 (size as))
+               (+
+                2
+                (*
+                 (let (summary
+                       (bucket
+                        0
+                        (size t)
+                        (index
+                         (size as)
+                         (/ bi10 -> (index z bi10))
+                         (add (/ bi11 -> (/ bi12 -> 1))))))
+                   (+
+                    (nat2int (if (== pi4 ai1) 1 0))
+                    (* (nat2int (if (== pi4 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index summary pi4))))
+                 2)))))
+            2)))
+         (+
+          (int2real
+           (let (summary
+                 (bucket
+                  0
+                  (size t)
+                  (index
+                   (size as)
+                   (/ bi13 -> (index z bi13))
+                   (add (/ bi14 -> (/ bi15 -> 1))))))
+             (+
+              (* (nat2int (if (== ai1 (index z docUpdate)) 1 0)) -1)
+              (nat2int (index summary ai1)))))
+          (prob2real (index as ai1)))))))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+applying pass: mbind->let
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (categorical
+      (array
+       ai1
+       (size as)
+       (real2prob
+        (*
+         (prob2real
+          (exp
+           (*
+            (summate
+             (si6 0 (size as))
+             (*
+              (natpow
+               (let (summary
+                     (bucket
+                      0
+                      (size t)
+                      (index
+                       (size as)
+                       (/ bi4 -> (index z bi4))
+                       (add (/ bi5 -> (/ bi6 -> (index t bi5)))))))
+                 (+
+                  (if (== si6 ai1) (index t docUpdate) 0)
+                  (*
+                   (if (== si6 (index z docUpdate)) (index t docUpdate) 0)
+                   -1)
+                  (index summary si6)))
+               2)
+              (recip
+               (int2real
+                (+
+                 1
+                 (let (summary
+                       (bucket
+                        0
+                        (size t)
+                        (index
+                         (size as)
+                         (/ bi7 -> (index z bi7))
+                         (add (/ bi8 -> (/ bi9 -> 1))))))
+                   (+
+                    (nat2int (if (== si6 ai1) 1 0))
+                    (* (nat2int (if (== si6 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index summary si6)))))))))
+            (/ 1 2))))
+         (prob2real
+          (recip
+           (root
+            (nat2prob
+             (int2nat
+              (product
+               (pi4 0 (size as))
+               (+
+                2
+                (*
+                 (let (summary
+                       (bucket
+                        0
+                        (size t)
+                        (index
+                         (size as)
+                         (/ bi10 -> (index z bi10))
+                         (add (/ bi11 -> (/ bi12 -> 1))))))
+                   (+
+                    (nat2int (if (== pi4 ai1) 1 0))
+                    (* (nat2int (if (== pi4 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index summary pi4))))
+                 2)))))
+            2)))
+         (+
+          (int2real
+           (let (summary
+                 (bucket
+                  0
+                  (size t)
+                  (index
+                   (size as)
+                   (/ bi13 -> (index z bi13))
+                   (add (/ bi14 -> (/ bi15 -> 1))))))
+             (+
+              (* (nat2int (if (== ai1 (index z docUpdate)) 1 0)) -1)
+              (nat2int (index summary ai1)))))
+          (prob2real (index as ai1)))))))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+applying pass: remove-array-literals
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (categorical
+      (array
+       ai1
+       (size as)
+       (real2prob
+        (*
+         (prob2real
+          (exp
+           (*
+            (summate
+             (si6 0 (size as))
+             (*
+              (natpow
+               (let (summary
+                     (bucket
+                      0
+                      (size t)
+                      (index
+                       (size as)
+                       (/ bi4 -> (index z bi4))
+                       (add (/ bi5 -> (/ bi6 -> (index t bi5)))))))
+                 (+
+                  (if (== si6 ai1) (index t docUpdate) 0)
+                  (*
+                   (if (== si6 (index z docUpdate)) (index t docUpdate) 0)
+                   -1)
+                  (index summary si6)))
+               2)
+              (recip
+               (int2real
+                (+
+                 1
+                 (let (summary
+                       (bucket
+                        0
+                        (size t)
+                        (index
+                         (size as)
+                         (/ bi7 -> (index z bi7))
+                         (add (/ bi8 -> (/ bi9 -> 1))))))
+                   (+
+                    (nat2int (if (== si6 ai1) 1 0))
+                    (* (nat2int (if (== si6 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index summary si6)))))))))
+            (/ 1 2))))
+         (prob2real
+          (recip
+           (root
+            (nat2prob
+             (int2nat
+              (product
+               (pi4 0 (size as))
+               (+
+                2
+                (*
+                 (let (summary
+                       (bucket
+                        0
+                        (size t)
+                        (index
+                         (size as)
+                         (/ bi10 -> (index z bi10))
+                         (add (/ bi11 -> (/ bi12 -> 1))))))
+                   (+
+                    (nat2int (if (== pi4 ai1) 1 0))
+                    (* (nat2int (if (== pi4 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index summary pi4))))
+                 2)))))
+            2)))
+         (+
+          (int2real
+           (let (summary
+                 (bucket
+                  0
+                  (size t)
+                  (index
+                   (size as)
+                   (/ bi13 -> (index z bi13))
+                   (add (/ bi14 -> (/ bi15 -> 1))))))
+             (+
+              (* (nat2int (if (== ai1 (index z docUpdate)) 1 0)) -1)
+              (nat2int (index summary ai1)))))
+          (prob2real (index as ai1)))))))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+applying pass: flatten-anf
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (lets
+      ((bk8
+        (bucket
+         0
+         (size t)
+         (index
+          (size as)
+          (/ bi13 -> (index z bi13))
+          (add (/ bi14 -> (/ bi15 -> 1))))))
+       (bk7
+        (bucket
+         0
+         (size t)
+         (index
+          (size as)
+          (/ bi10 -> (index z bi10))
+          (add (/ bi11 -> (/ bi12 -> 1))))))
+       (bk6
+        (bucket
+         0
+         (size t)
+         (index
+          (size as)
+          (/ bi7 -> (index z bi7))
+          (add (/ bi8 -> (/ bi9 -> 1))))))
+       (bk5
+        (bucket
+         0
+         (size t)
+         (index
+          (size as)
+          (/ bi4 -> (index z bi4))
+          (add (/ bi5 -> (/ bi6 -> (index t bi5))))))))
+      (lets
+       ((ar2
+         (array
+          ai1
+          (size as)
+          (lets
+           ((pr2
+             (product
+              (pi4 0 (size as))
+              (+
+               2
+               (*
+                (let (summary bk7)
+                  (+
+                   (nat2int (if (== pi4 ai1) 1 0))
+                   (* (nat2int (if (== pi4 (index z docUpdate)) 1 0)) -1)
+                   (nat2int (index summary pi4))))
+                2))))
+            (sm2
+             (summate
+              (si6 0 (size as))
+              (*
+               (natpow
+                (let (summary bk5)
+                  (+
+                   (if (== si6 ai1) (index t docUpdate) 0)
+                   (*
+                    (if (== si6 (index z docUpdate)) (index t docUpdate) 0)
+                    -1)
+                   (index summary si6)))
+                2)
+               (recip
+                (int2real
+                 (+
+                  1
+                  (let (summary bk6)
+                    (+
+                     (nat2int (if (== si6 ai1) 1 0))
+                     (* (nat2int (if (== si6 (index z docUpdate)) 1 0)) -1)
+                     (nat2int (index summary si6)))))))))))
+           (real2prob
+            (*
+             (prob2real (exp (* sm2 (/ 1 2))))
+             (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+             (+
+              (int2real
+               (let (summary bk8)
+                 (+
+                  (* (nat2int (if (== ai1 (index z docUpdate)) 1 0)) -1)
+                  (nat2int (index summary ai1)))))
+              (prob2real (index as ai1)))))))))
+       (categorical ar2)))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+loop-var-map: (pr2 sm2)
+loop-groups: ((pr2 sm2))
+loop-var-map: (ar2)
+loop-groups: ((ar2))
+loop-var-map: (bk8 bk7 bk6 bk5)
+loop-groups: ((bk8 bk7 bk6 bk5))
+get-init: result: bk8, t: (array nat)
+	 binds: 
+()
+
+	 reducer: 
+(index (size as) (/ bi13 -> (index z bi13)) (add (/ bi14 -> (/ bi15 -> 1))))
+
+reducer-index: type: (array nat)
+ 	result: bk8, binds: ()
+get-init: result: (index arri1 fi1), t: nat
+	 binds: 
+(fi1)
+
+	 reducer: 
+(add (/ bi14 -> (/ bi15 -> 1)))
+
+result from get-init: vars: (bk8), vals: ((empty (size as)))get-accum: reducer: (index (size as) (/ bi13 -> (index z bi13)) (add (/ bi14 -> (/ bi15 -> 1)))), result: bk8
+get-accum: reducer: (add (/ bi14 -> (/ bi15 -> 1))), result: (index bk8 indi1)
+get-init: result: bk7, t: (array nat)
+	 binds: 
+()
+
+	 reducer: 
+(index (size as) (/ bi10 -> (index z bi10)) (add (/ bi11 -> (/ bi12 -> 1))))
+
+reducer-index: type: (array nat)
+ 	result: bk7, binds: ()
+get-init: result: (index arri2 fi2), t: nat
+	 binds: 
+(fi2)
+
+	 reducer: 
+(add (/ bi11 -> (/ bi12 -> 1)))
+
+result from get-init: vars: (bk7), vals: ((empty (size as)))get-accum: reducer: (index (size as) (/ bi10 -> (index z bi10)) (add (/ bi11 -> (/ bi12 -> 1)))), result: bk7
+get-accum: reducer: (add (/ bi11 -> (/ bi12 -> 1))), result: (index bk7 indi2)
+get-init: result: bk6, t: (array nat)
+	 binds: 
+()
+
+	 reducer: 
+(index (size as) (/ bi7 -> (index z bi7)) (add (/ bi8 -> (/ bi9 -> 1))))
+
+reducer-index: type: (array nat)
+ 	result: bk6, binds: ()
+get-init: result: (index arri3 fi3), t: nat
+	 binds: 
+(fi3)
+
+	 reducer: 
+(add (/ bi8 -> (/ bi9 -> 1)))
+
+result from get-init: vars: (bk6), vals: ((empty (size as)))get-accum: reducer: (index (size as) (/ bi7 -> (index z bi7)) (add (/ bi8 -> (/ bi9 -> 1)))), result: bk6
+get-accum: reducer: (add (/ bi8 -> (/ bi9 -> 1))), result: (index bk6 indi3)
+get-init: result: bk5, t: (array real)
+	 binds: 
+()
+
+	 reducer: 
+(index
+ (size as)
+ (/ bi4 -> (index z bi4))
+ (add (/ bi5 -> (/ bi6 -> (index t bi5)))))
+
+reducer-index: type: (array real)
+ 	result: bk5, binds: ()
+get-init: result: (index arri4 fi4), t: real
+	 binds: 
+(fi4)
+
+	 reducer: 
+(add (/ bi5 -> (/ bi6 -> (index t bi5))))
+
+result from get-init: vars: (bk5), vals: ((empty (size as)))get-accum: reducer: (index (size as) (/ bi4 -> (index z bi4)) (add (/ bi5 -> (/ bi6 -> (index t bi5))))), result: bk5
+get-accum: reducer: (add (/ bi5 -> (/ bi6 -> (index t bi5)))), result: (index bk5 indi4)
+applying pass: combine-loops
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (lets
+      ()
+      (lets
+       ((bk5 (empty (size as)))
+        (bk6 (empty (size as)))
+        (bk7 (empty (size as)))
+        (bk8 (empty (size as))))
+       (expr-block
+        (for-stmt
+         (ci3 0 (size t))
+         (block-stmt
+          (elet-stmt
+           ((indi4 (let (bi4 ci3) (index z bi4))))
+           (set! (index bk5 indi4)
+             (+
+              (index bk5 indi4)
+              (let (bi5 ci3) (let (bi6 indi4) (index t bi5))))))
+          (elet-stmt
+           ((indi3 (let (bi7 ci3) (index z bi7))))
+           (set! (index bk6 indi3)
+             (+ (index bk6 indi3) (let (bi8 ci3) (let (bi9 indi3) 1)))))
+          (elet-stmt
+           ((indi2 (let (bi10 ci3) (index z bi10))))
+           (set! (index bk7 indi2)
+             (+ (index bk7 indi2) (let (bi11 ci3) (let (bi12 indi2) 1)))))
+          (elet-stmt
+           ((indi1 (let (bi13 ci3) (index z bi13))))
+           (set! (index bk8 indi1)
+             (+ (index bk8 indi1) (let (bi14 ci3) (let (bi15 indi1) 1)))))))
+        (lets
+         ()
+         (lets
+          ((ar2 (empty (size as))))
+          (expr-block
+           (for-stmt
+            (ci2 0 (size as))
+            (block-stmt
+             (elet-stmt
+              ((ai1 ci2))
+              (elet-stmt
+               ()
+               (elet-stmt
+                ((sm2 0) (pr2 1))
+                (block-stmt
+                 (for-stmt
+                  (ci1 0 (size as))
+                  (block-stmt
+                   (elet-stmt
+                    ((si6 ci1))
+                    (set! sm2
+                      (+
+                       sm2
+                       (*
+                        (natpow
+                         (let (summary bk5)
+                           (+
+                            (if (== si6 ai1) (index t docUpdate) 0)
+                            (*
+                             (if (== si6 (index z docUpdate))
+                               (index t docUpdate)
+                               0)
+                             -1)
+                            (index summary si6)))
+                         2)
+                        (recip
+                         (int2real
+                          (+
+                           1
+                           (let (summary bk6)
+                             (+
+                              (nat2int (if (== si6 ai1) 1 0))
+                              (*
+                               (nat2int (if (== si6 (index z docUpdate)) 1 0))
+                               -1)
+                              (nat2int (index summary si6)))))))))))
+                   (elet-stmt
+                    ((pi4 ci1))
+                    (set! pr2
+                      (*
+                       pr2
+                       (+
+                        2
+                        (*
+                         (let (summary bk7)
+                           (+
+                            (nat2int (if (== pi4 ai1) 1 0))
+                            (*
+                             (nat2int (if (== pi4 (index z docUpdate)) 1 0))
+                             -1)
+                            (nat2int (index summary pi4))))
+                         2)))))))
+                 (set! (index ar2 ci2)
+                   (real2prob
+                    (*
+                     (prob2real (exp (* sm2 (/ 1 2))))
+                     (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+                     (+
+                      (int2real
+                       (let (summary bk8)
+                         (+
+                          (*
+                           (nat2int (if (== ai1 (index z docUpdate)) 1 0))
+                           -1)
+                          (nat2int (index summary ai1)))))
+                      (prob2real (index as ai1))))))))))))
+           (categorical ar2)))))))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+applying pass: remove-unit-lets
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (lets
+      ()
+      (lets
+       ((bk5 (empty (size as)))
+        (bk6 (empty (size as)))
+        (bk7 (empty (size as)))
+        (bk8 (empty (size as))))
+       (expr-block
+        (for-stmt
+         (ci3 0 (size t))
+         (block-stmt
+          (elet-stmt
+           ((indi4 (let (bi4 ci3) (index z bi4))))
+           (set! (index bk5 indi4)
+             (+
+              (index bk5 indi4)
+              (let (bi5 ci3) (let (bi6 indi4) (index t bi5))))))
+          (elet-stmt
+           ((indi3 (let (bi7 ci3) (index z bi7))))
+           (set! (index bk6 indi3)
+             (+ (index bk6 indi3) (let (bi8 ci3) (let (bi9 indi3) 1)))))
+          (elet-stmt
+           ((indi2 (let (bi10 ci3) (index z bi10))))
+           (set! (index bk7 indi2)
+             (+ (index bk7 indi2) (let (bi11 ci3) (let (bi12 indi2) 1)))))
+          (elet-stmt
+           ((indi1 (let (bi13 ci3) (index z bi13))))
+           (set! (index bk8 indi1)
+             (+ (index bk8 indi1) (let (bi14 ci3) (let (bi15 indi1) 1)))))))
+        (lets
+         ()
+         (lets
+          ((ar2 (empty (size as))))
+          (expr-block
+           (for-stmt
+            (ci2 0 (size as))
+            (block-stmt
+             (elet-stmt
+              ((ai1 ci2))
+              (elet-stmt
+               ()
+               (elet-stmt
+                ((sm2 0) (pr2 1))
+                (block-stmt
+                 (for-stmt
+                  (ci1 0 (size as))
+                  (block-stmt
+                   (elet-stmt
+                    ((si6 ci1))
+                    (set! sm2
+                      (+
+                       sm2
+                       (*
+                        (natpow
+                         (let (summary bk5)
+                           (+
+                            (if (== si6 ai1) (index t docUpdate) 0)
+                            (*
+                             (if (== si6 (index z docUpdate))
+                               (index t docUpdate)
+                               0)
+                             -1)
+                            (index summary si6)))
+                         2)
+                        (recip
+                         (int2real
+                          (+
+                           1
+                           (let (summary bk6)
+                             (+
+                              (nat2int (if (== si6 ai1) 1 0))
+                              (*
+                               (nat2int (if (== si6 (index z docUpdate)) 1 0))
+                               -1)
+                              (nat2int (index summary si6)))))))))))
+                   (elet-stmt
+                    ((pi4 ci1))
+                    (set! pr2
+                      (*
+                       pr2
+                       (+
+                        2
+                        (*
+                         (let (summary bk7)
+                           (+
+                            (nat2int (if (== pi4 ai1) 1 0))
+                            (*
+                             (nat2int (if (== pi4 (index z docUpdate)) 1 0))
+                             -1)
+                            (nat2int (index summary pi4))))
+                         2)))))))
+                 (set! (index ar2 ci2)
+                   (real2prob
+                    (*
+                     (prob2real (exp (* sm2 (/ 1 2))))
+                     (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+                     (+
+                      (int2real
+                       (let (summary bk8)
+                         (+
+                          (*
+                           (nat2int (if (== ai1 (index z docUpdate)) 1 0))
+                           -1)
+                          (nat2int (index summary ai1)))))
+                      (prob2real (index as ai1))))))))))))
+           (categorical ar2)))))))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+replacing: bi4 with ci3
+	replaced: bi4 with ci3
+replacing: bi5 with ci3
+replacing: bi6 with indi4
+	replaced: bi5 with ci3
+replacing: bi7 with ci3
+	replaced: bi7 with ci3
+replacing: bi8 with ci3
+replacing: bi9 with indi3
+replacing: bi10 with ci3
+	replaced: bi10 with ci3
+replacing: bi11 with ci3
+replacing: bi12 with indi2
+replacing: bi13 with ci3
+	replaced: bi13 with ci3
+replacing: bi14 with ci3
+replacing: bi15 with indi1
+replacing: ai1 with ci2
+replacing: si6 with ci1
+replacing: summary with bk5
+	replaced: si6 with ci1
+	replaced: ai1 with ci2
+	replaced: si6 with ci1
+	replaced: summary with bk5
+	replaced: si6 with ci1
+replacing: summary with bk6
+	replaced: si6 with ci1
+	replaced: ai1 with ci2
+	replaced: si6 with ci1
+	replaced: summary with bk6
+	replaced: si6 with ci1
+replacing: pi4 with ci1
+replacing: summary with bk7
+	replaced: pi4 with ci1
+	replaced: ai1 with ci2
+	replaced: pi4 with ci1
+	replaced: summary with bk7
+	replaced: pi4 with ci1
+replacing: summary with bk8
+	replaced: ai1 with ci2
+	replaced: summary with bk8
+	replaced: ai1 with ci2
+	replaced: ai1 with ci2
+applying pass: simplify-lets
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (lets
+      ((bk8 (empty (size as)))
+       (bk7 (empty (size as)))
+       (bk6 (empty (size as)))
+       (bk5 (empty (size as))))
+      (expr-block
+       (for-stmt
+        (ci3 0 (size t))
+        (block-stmt
+         (elet-stmt
+          ((indi4 (index z ci3)))
+          (set! (index bk5 indi4) (+ (index bk5 indi4) (index t ci3))))
+         (elet-stmt
+          ((indi3 (index z ci3)))
+          (set! (index bk6 indi3) (+ (index bk6 indi3) 1)))
+         (elet-stmt
+          ((indi2 (index z ci3)))
+          (set! (index bk7 indi2) (+ (index bk7 indi2) 1)))
+         (elet-stmt
+          ((indi1 (index z ci3)))
+          (set! (index bk8 indi1) (+ (index bk8 indi1) 1)))))
+       (lets
+        ((ar2 (empty (size as))))
+        (expr-block
+         (for-stmt
+          (ci2 0 (size as))
+          (block-stmt
+           (elet-stmt
+            ((pr2 1) (sm2 0))
+            (block-stmt
+             (for-stmt
+              (ci1 0 (size as))
+              (block-stmt
+               (set! sm2
+                 (+
+                  sm2
+                  (*
+                   (natpow
+                    (+
+                     (if (== ci1 ci2) (index t docUpdate) 0)
+                     (*
+                      (if (== ci1 (index z docUpdate)) (index t docUpdate) 0)
+                      -1)
+                     (index bk5 ci1))
+                    2)
+                   (recip
+                    (int2real
+                     (+
+                      1
+                      (+
+                       (nat2int (if (== ci1 ci2) 1 0))
+                       (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                       (nat2int (index bk6 ci1)))))))))
+               (set! pr2
+                 (*
+                  pr2
+                  (+
+                   2
+                   (*
+                    (+
+                     (nat2int (if (== ci1 ci2) 1 0))
+                     (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                     (nat2int (index bk7 ci1)))
+                    2))))))
+             (set! (index ar2 ci2)
+               (real2prob
+                (*
+                 (prob2real (exp (* sm2 (/ 1 2))))
+                 (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+                 (+
+                  (int2real
+                   (+
+                    (* (nat2int (if (== ci2 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index bk8 ci2))))
+                  (prob2real (index as ci2))))))))))
+         (categorical ar2)))))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+applying pass: remove-empty-lets
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (lets
+      ((bk8 (empty (size as)))
+       (bk7 (empty (size as)))
+       (bk6 (empty (size as)))
+       (bk5 (empty (size as))))
+      (expr-block
+       (for-stmt
+        (ci3 0 (size t))
+        (block-stmt
+         (elet-stmt
+          ((indi4 (index z ci3)))
+          (set! (index bk5 indi4) (+ (index bk5 indi4) (index t ci3))))
+         (elet-stmt
+          ((indi3 (index z ci3)))
+          (set! (index bk6 indi3) (+ (index bk6 indi3) 1)))
+         (elet-stmt
+          ((indi2 (index z ci3)))
+          (set! (index bk7 indi2) (+ (index bk7 indi2) 1)))
+         (elet-stmt
+          ((indi1 (index z ci3)))
+          (set! (index bk8 indi1) (+ (index bk8 indi1) 1)))))
+       (lets
+        ((ar2 (empty (size as))))
+        (expr-block
+         (for-stmt
+          (ci2 0 (size as))
+          (block-stmt
+           (elet-stmt
+            ((pr2 1) (sm2 0))
+            (block-stmt
+             (for-stmt
+              (ci1 0 (size as))
+              (block-stmt
+               (set! sm2
+                 (+
+                  sm2
+                  (*
+                   (natpow
+                    (+
+                     (if (== ci1 ci2) (index t docUpdate) 0)
+                     (*
+                      (if (== ci1 (index z docUpdate)) (index t docUpdate) 0)
+                      -1)
+                     (index bk5 ci1))
+                    2)
+                   (recip
+                    (int2real
+                     (+
+                      1
+                      (+
+                       (nat2int (if (== ci1 ci2) 1 0))
+                       (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                       (nat2int (index bk6 ci1)))))))))
+               (set! pr2
+                 (*
+                  pr2
+                  (+
+                   2
+                   (*
+                    (+
+                     (nat2int (if (== ci1 ci2) 1 0))
+                     (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                     (nat2int (index bk7 ci1)))
+                    2))))))
+             (set! (index ar2 ci2)
+               (real2prob
+                (*
+                 (prob2real (exp (* sm2 (/ 1 2))))
+                 (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+                 (+
+                  (int2real
+                   (+
+                    (* (nat2int (if (== ci2 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index bk8 ci2))))
+                  (prob2real (index as ci2))))))))))
+         (categorical ar2)))))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+applying pass: remove-unused-lets
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (lets
+      ((bk8 (empty (size as)))
+       (bk7 (empty (size as)))
+       (bk6 (empty (size as)))
+       (bk5 (empty (size as))))
+      (expr-block
+       (for-stmt
+        (ci3 0 (size t))
+        (block-stmt
+         (elet-stmt
+          ((indi4 (index z ci3)))
+          (set! (index bk5 indi4) (+ (index bk5 indi4) (index t ci3))))
+         (elet-stmt
+          ((indi3 (index z ci3)))
+          (set! (index bk6 indi3) (+ (index bk6 indi3) 1)))
+         (elet-stmt
+          ((indi2 (index z ci3)))
+          (set! (index bk7 indi2) (+ (index bk7 indi2) 1)))
+         (elet-stmt
+          ((indi1 (index z ci3)))
+          (set! (index bk8 indi1) (+ (index bk8 indi1) 1)))))
+       (lets
+        ((ar2 (empty (size as))))
+        (expr-block
+         (for-stmt
+          (ci2 0 (size as))
+          (block-stmt
+           (elet-stmt
+            ((pr2 1) (sm2 0))
+            (block-stmt
+             (for-stmt
+              (ci1 0 (size as))
+              (block-stmt
+               (set! sm2
+                 (+
+                  sm2
+                  (*
+                   (natpow
+                    (+
+                     (if (== ci1 ci2) (index t docUpdate) 0)
+                     (*
+                      (if (== ci1 (index z docUpdate)) (index t docUpdate) 0)
+                      -1)
+                     (index bk5 ci1))
+                    2)
+                   (recip
+                    (int2real
+                     (+
+                      1
+                      (+
+                       (nat2int (if (== ci1 ci2) 1 0))
+                       (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                       (nat2int (index bk6 ci1)))))))))
+               (set! pr2
+                 (*
+                  pr2
+                  (+
+                   2
+                   (*
+                    (+
+                     (nat2int (if (== ci1 ci2) 1 0))
+                     (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                     (nat2int (index bk7 ci1)))
+                    2))))))
+             (set! (index ar2 ci2)
+               (real2prob
+                (*
+                 (prob2real (exp (* sm2 (/ 1 2))))
+                 (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+                 (+
+                  (int2real
+                   (+
+                    (* (nat2int (if (== ci2 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index bk8 ci2))))
+                  (prob2real (index as ci2))))))))))
+         (categorical ar2)))))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+applying pass: remove-pairs
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (lets
+      ((bk8 (empty (size as)))
+       (bk7 (empty (size as)))
+       (bk6 (empty (size as)))
+       (bk5 (empty (size as))))
+      (expr-block
+       (for-stmt
+        (ci3 0 (size t))
+        (block-stmt
+         (elet-stmt
+          ((indi4 (index z ci3)))
+          (set! (index bk5 indi4) (+ (index bk5 indi4) (index t ci3))))
+         (elet-stmt
+          ((indi3 (index z ci3)))
+          (set! (index bk6 indi3) (+ (index bk6 indi3) 1)))
+         (elet-stmt
+          ((indi2 (index z ci3)))
+          (set! (index bk7 indi2) (+ (index bk7 indi2) 1)))
+         (elet-stmt
+          ((indi1 (index z ci3)))
+          (set! (index bk8 indi1) (+ (index bk8 indi1) 1)))))
+       (lets
+        ((ar2 (empty (size as))))
+        (expr-block
+         (for-stmt
+          (ci2 0 (size as))
+          (block-stmt
+           (elet-stmt
+            ((pr2 1) (sm2 0))
+            (block-stmt
+             (for-stmt
+              (ci1 0 (size as))
+              (block-stmt
+               (set! sm2
+                 (+
+                  sm2
+                  (*
+                   (natpow
+                    (+
+                     (if (== ci1 ci2) (index t docUpdate) 0)
+                     (*
+                      (if (== ci1 (index z docUpdate)) (index t docUpdate) 0)
+                      -1)
+                     (index bk5 ci1))
+                    2)
+                   (recip
+                    (int2real
+                     (+
+                      1
+                      (+
+                       (nat2int (if (== ci1 ci2) 1 0))
+                       (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                       (nat2int (index bk6 ci1)))))))))
+               (set! pr2
+                 (*
+                  pr2
+                  (+
+                   2
+                   (*
+                    (+
+                     (nat2int (if (== ci1 ci2) 1 0))
+                     (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                     (nat2int (index bk7 ci1)))
+                    2))))))
+             (set! (index ar2 ci2)
+               (real2prob
+                (*
+                 (prob2real (exp (* sm2 (/ 1 2))))
+                 (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+                 (+
+                  (int2real
+                   (+
+                    (* (nat2int (if (== ci2 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index bk8 ci2))))
+                  (prob2real (index as ci2))))))))))
+         (categorical ar2)))))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+applying pass: simplify-lets
+((main
+  (function
+   (as z t docUpdate)
+   (if (and (== (size z) (size t))
+            (< docUpdate (size z))
+            (< (index z docUpdate) (size as)))
+     (lets
+      ((bk5 (empty (size as)))
+       (bk6 (empty (size as)))
+       (bk7 (empty (size as)))
+       (bk8 (empty (size as))))
+      (expr-block
+       (for-stmt
+        (ci3 0 (size t))
+        (block-stmt
+         (elet-stmt
+          ((indi4 (index z ci3)))
+          (set! (index bk5 indi4) (+ (index bk5 indi4) (index t ci3))))
+         (elet-stmt
+          ((indi3 (index z ci3)))
+          (set! (index bk6 indi3) (+ (index bk6 indi3) 1)))
+         (elet-stmt
+          ((indi2 (index z ci3)))
+          (set! (index bk7 indi2) (+ (index bk7 indi2) 1)))
+         (elet-stmt
+          ((indi1 (index z ci3)))
+          (set! (index bk8 indi1) (+ (index bk8 indi1) 1)))))
+       (lets
+        ((ar2 (empty (size as))))
+        (expr-block
+         (for-stmt
+          (ci2 0 (size as))
+          (block-stmt
+           (elet-stmt
+            ((sm2 0) (pr2 1))
+            (block-stmt
+             (for-stmt
+              (ci1 0 (size as))
+              (block-stmt
+               (set! sm2
+                 (+
+                  sm2
+                  (*
+                   (natpow
+                    (+
+                     (if (== ci1 ci2) (index t docUpdate) 0)
+                     (*
+                      (if (== ci1 (index z docUpdate)) (index t docUpdate) 0)
+                      -1)
+                     (index bk5 ci1))
+                    2)
+                   (recip
+                    (int2real
+                     (+
+                      1
+                      (+
+                       (nat2int (if (== ci1 ci2) 1 0))
+                       (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                       (nat2int (index bk6 ci1)))))))))
+               (set! pr2
+                 (*
+                  pr2
+                  (+
+                   2
+                   (*
+                    (+
+                     (nat2int (if (== ci1 ci2) 1 0))
+                     (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                     (nat2int (index bk7 ci1)))
+                    2))))))
+             (set! (index ar2 ci2)
+               (real2prob
+                (*
+                 (prob2real (exp (* sm2 (/ 1 2))))
+                 (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+                 (+
+                  (int2real
+                   (+
+                    (* (nat2int (if (== ci2 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index bk8 ci2))))
+                  (prob2real (index as ci2))))))))))
+         (categorical ar2)))))
+     (if (not (== (size z) (size t)))
+       (reject)
+       (if (not (< docUpdate (size z))) (reject) (reject)))))))
+applying pass: mod-stmt
+((main
+  (function
+   (as z t docUpdate)
+   (if-stmt
+    (and (== (size z) (size t))
+         (< docUpdate (size z))
+         (< (index z docUpdate) (size as)))
+    (elet-stmt
+     ((bk5 (empty (size as)))
+      (bk6 (empty (size as)))
+      (bk7 (empty (size as)))
+      (bk8 (empty (size as))))
+     (block-stmt
+      (for-stmt
+       (ci3 0 (size t))
+       (block-stmt
+        (elet-stmt
+         ((indi4 (index z ci3)))
+         (set! (index bk5 indi4) (+ (index bk5 indi4) (index t ci3))))
+        (elet-stmt
+         ((indi3 (index z ci3)))
+         (set! (index bk6 indi3) (+ (index bk6 indi3) 1)))
+        (elet-stmt
+         ((indi2 (index z ci3)))
+         (set! (index bk7 indi2) (+ (index bk7 indi2) 1)))
+        (elet-stmt
+         ((indi1 (index z ci3)))
+         (set! (index bk8 indi1) (+ (index bk8 indi1) 1)))))
+      (elet-stmt
+       ((ar2 (empty (size as))))
+       (block-stmt
+        (for-stmt
+         (ci2 0 (size as))
+         (block-stmt
+          (elet-stmt
+           ((sm2 0) (pr2 1))
+           (block-stmt
+            (for-stmt
+             (ci1 0 (size as))
+             (block-stmt
+              (set! sm2
+                (+
+                 sm2
+                 (*
+                  (natpow
+                   (+
+                    (if (== ci1 ci2) (index t docUpdate) 0)
+                    (*
+                     (if (== ci1 (index z docUpdate)) (index t docUpdate) 0)
+                     -1)
+                    (index bk5 ci1))
+                   2)
+                  (recip
+                   (int2real
+                    (+
+                     1
+                     (+
+                      (nat2int (if (== ci1 ci2) 1 0))
+                      (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                      (nat2int (index bk6 ci1)))))))))
+              (set! pr2
+                (*
+                 pr2
+                 (+
+                  2
+                  (*
+                   (+
+                    (nat2int (if (== ci1 ci2) 1 0))
+                    (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index bk7 ci1)))
+                   2))))))
+            (set! (index ar2 ci2)
+              (real2prob
+               (*
+                (prob2real (exp (* sm2 (/ 1 2))))
+                (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+                (+
+                 (int2real
+                  (+
+                   (* (nat2int (if (== ci2 (index z docUpdate)) 1 0)) -1)
+                   (nat2int (index bk8 ci2))))
+                 (prob2real (index as ci2))))))))))
+        (return (categorical ar2))))))
+    (if-stmt
+     (not (== (size z) (size t)))
+     (return (reject))
+     (if-stmt
+      (not (< docUpdate (size z)))
+      (return (reject))
+      (return (reject))))))))
+applying pass: simplify-set
+((main
+  (function
+   (as z t docUpdate)
+   (if-stmt
+    (and (== (size z) (size t))
+         (< docUpdate (size z))
+         (< (index z docUpdate) (size as)))
+    (elet-stmt
+     ((bk5 (empty (size as)))
+      (bk6 (empty (size as)))
+      (bk7 (empty (size as)))
+      (bk8 (empty (size as))))
+     (block-stmt
+      (for-stmt
+       (ci3 0 (size t))
+       (block-stmt
+        (elet-stmt
+         ((indi4 (index z ci3)))
+         (set! (index bk5 indi4) (+ (index bk5 indi4) (index t ci3))))
+        (elet-stmt
+         ((indi3 (index z ci3)))
+         (set! (index bk6 indi3) (+ (index bk6 indi3) 1)))
+        (elet-stmt
+         ((indi2 (index z ci3)))
+         (set! (index bk7 indi2) (+ (index bk7 indi2) 1)))
+        (elet-stmt
+         ((indi1 (index z ci3)))
+         (set! (index bk8 indi1) (+ (index bk8 indi1) 1)))))
+      (elet-stmt
+       ((ar2 (empty (size as))))
+       (block-stmt
+        (for-stmt
+         (ci2 0 (size as))
+         (block-stmt
+          (elet-stmt
+           ((sm2 0) (pr2 1))
+           (block-stmt
+            (for-stmt
+             (ci1 0 (size as))
+             (block-stmt
+              (set! sm2
+                (+
+                 sm2
+                 (*
+                  (natpow
+                   (+
+                    (if (== ci1 ci2) (index t docUpdate) 0)
+                    (*
+                     (if (== ci1 (index z docUpdate)) (index t docUpdate) 0)
+                     -1)
+                    (index bk5 ci1))
+                   2)
+                  (recip
+                   (int2real
+                    (+
+                     1
+                     (+
+                      (nat2int (if (== ci1 ci2) 1 0))
+                      (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                      (nat2int (index bk6 ci1)))))))))
+              (set! pr2
+                (*
+                 pr2
+                 (+
+                  2
+                  (*
+                   (+
+                    (nat2int (if (== ci1 ci2) 1 0))
+                    (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                    (nat2int (index bk7 ci1)))
+                   2))))))
+            (set! (index ar2 ci2)
+              (real2prob
+               (*
+                (prob2real (exp (* sm2 (/ 1 2))))
+                (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+                (+
+                 (int2real
+                  (+
+                   (* (nat2int (if (== ci2 (index z docUpdate)) 1 0)) -1)
+                   (nat2int (index bk8 ci2))))
+                 (prob2real (index as ci2))))))))))
+        (return (categorical ar2))))))
+    (if-stmt
+     (not (== (size z) (size t)))
+     (return (reject))
+     (if-stmt
+      (not (< docUpdate (size z)))
+      (return (reject))
+      (return (reject))))))))
+applying pass: cleanup
+((main
+  (function
+   (as z t docUpdate)
+   (if-stmt
+    (and (== (size z) (size t))
+         (< docUpdate (size z))
+         (< (index z docUpdate) (size as)))
+    (elet-stmt
+     ((bk5 (empty (size as)))
+      (bk6 (empty (size as)))
+      (bk7 (empty (size as)))
+      (bk8 (empty (size as))))
+     (block-stmt
+      (for-stmt
+       (ci3 0 (size t))
+       (block-stmt
+        (elet-stmt
+         ((indi4 (index z ci3)))
+         (set! (index bk5 indi4) (+ (index bk5 indi4) (index t ci3))))
+        (elet-stmt
+         ((indi3 (index z ci3)))
+         (set! (index bk6 indi3) (+ (index bk6 indi3) 1)))
+        (elet-stmt
+         ((indi2 (index z ci3)))
+         (set! (index bk7 indi2) (+ (index bk7 indi2) 1)))
+        (elet-stmt
+         ((indi1 (index z ci3)))
+         (set! (index bk8 indi1) (+ (index bk8 indi1) 1)))))
+      (elet-stmt
+       ((ar2 (empty (size as))))
+       (block-stmt
+        (for-stmt
+         (ci2 0 (size as))
+         (elet-stmt
+          ((sm2 0) (pr2 1))
+          (block-stmt
+           (for-stmt
+            (ci1 0 (size as))
+            (block-stmt
+             (set! sm2
+               (+
+                sm2
+                (*
+                 (natpow
+                  (+
+                   (if (== ci1 ci2) (index t docUpdate) 0)
+                   (*
+                    (if (== ci1 (index z docUpdate)) (index t docUpdate) 0)
+                    -1)
+                   (index bk5 ci1))
+                  2)
+                 (recip
+                  (int2real
+                   (+
+                    1
+                    (+
+                     (nat2int (if (== ci1 ci2) 1 0))
+                     (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                     (nat2int (index bk6 ci1)))))))))
+             (set! pr2
+               (*
+                pr2
+                (+
+                 2
+                 (*
+                  (+
+                   (nat2int (if (== ci1 ci2) 1 0))
+                   (* (nat2int (if (== ci1 (index z docUpdate)) 1 0)) -1)
+                   (nat2int (index bk7 ci1)))
+                  2))))))
+           (set! (index ar2 ci2)
+             (real2prob
+              (*
+               (prob2real (exp (* sm2 (/ 1 2))))
+               (prob2real (recip (root (nat2prob (int2nat pr2)) 2)))
+               (+
+                (int2real
+                 (+
+                  (* (nat2int (if (== ci2 (index z docUpdate)) 1 0)) -1)
+                  (nat2int (index bk8 ci2))))
+                (prob2real (index as ci2)))))))))
+        (return (categorical ar2))))))
+    (if-stmt
+     (not (== (size z) (size t)))
+     (return (reject))
+     (if-stmt
+      (not (< docUpdate (size z)))
+      (return (reject))
+      (return (reject))))))))
+expanding function: prog
+why is this rator not done?: and
+why is this rator not done?: int2real
+why is this math not figured out?: +, tresult: int, trands: (int int)
+why is this math not figured out?: +, tresult: int, trands: (int int int)
+why is this rator not done?: nat2int
+why is this math not figured out?: *, tresult: int, trands: (int int)
+why is this rator not done?: nat2int
+why is this rator not done?: nat2int
+why is this math not figured out?: *, tresult: int, trands: (int int)
+why is this math not figured out?: +, tresult: int, trands: (int int)
+why is this math not figured out?: *, tresult: int, trands: (int int)
+why is this math not figured out?: +, tresult: int, trands: (int int int)
+why is this rator not done?: nat2int
+why is this math not figured out?: *, tresult: int, trands: (int int)
+why is this rator not done?: nat2int
+why is this rator not done?: nat2int
+why is this rator not done?: exp
+why is this math not figured out?: /, tresult: real, trands: (nat nat)
+why is this rator not done?: int2nat
+why is this rator not done?: int2real
+why is this math not figured out?: +, tresult: int, trands: (int int)
+why is this math not figured out?: *, tresult: int, trands: (int int)
+why is this rator not done?: nat2int
+why is this rator not done?: nat2int
+why is this rator not done?: not
+why is this rator not done?: reject
+why is this rator not done?: not
+why is this rator not done?: reject
+why is this rator not done?: reject
+(define-function
+ (passes)
+ (attrs AlwaysInline)
+ (prog
+  (as : array<prob>*)
+  (z : array<nat>*)
+  (t : array<real>*)
+  (docUpdate : nat)
+  :
+  nat)
+ (if (?
+      (icmp-eq (get-size:array<nat>. z) (get-size:array<real>. t))
+      (icmp-ult docUpdate (get-size:array<nat>. z))
+      (icmp-ult
+       (get-index:array<nat>. z docUpdate)
+       (get-size:array<prob>. as)))
+   (expr
+    (let ((bk5 : array<real>* (array? (get-size:array<prob>. as)))
+          (bk6 : array<nat>* (array? (get-size:array<prob>. as)))
+          (bk7 : array<nat>* (array? (get-size:array<prob>. as)))
+          (bk8 : array<nat>* (array? (get-size:array<prob>. as))))
+      (block
+       (expr
+        (let ((ci3 : nat (%uint 0 nat)))
+          (while
+           (icmp-ult ci3 (get-size:array<real>. t))
+           (block
+            (block
+             (expr
+              (let ((indi4 : nat (get-index:array<nat>. z ci3)))
+                (set! (get-index:array<real>. bk5 indi4)
+                  (fadd
+                   (get-index:array<real>. bk5 indi4)
+                   (get-index:array<real>. t ci3)))
+                evoid))
+             (expr
+              (let ((indi3 : nat (get-index:array<nat>. z ci3)))
+                (set! (get-index:array<nat>. bk6 indi3)
+                  (add-nuw (get-index:array<nat>. bk6 indi3) (%uint 1 nat)))
+                evoid))
+             (expr
+              (let ((indi2 : nat (get-index:array<nat>. z ci3)))
+                (set! (get-index:array<nat>. bk7 indi2)
+                  (add-nuw (get-index:array<nat>. bk7 indi2) (%uint 1 nat)))
+                evoid))
+             (expr
+              (let ((indi1 : nat (get-index:array<nat>. z ci3)))
+                (set! (get-index:array<nat>. bk8 indi1)
+                  (add-nuw (get-index:array<nat>. bk8 indi1) (%uint 1 nat)))
+                evoid)))
+            (set! ci3 (add-nuw ci3 (%uint 1 nat)))))
+          evoid))
+       (expr
+        (let ((ar2 : array<prob>* (array? (get-size:array<prob>. as))))
+          (block
+           (expr
+            (let ((ci2 : nat (%uint 0 nat)))
+              (while
+               (icmp-ult ci2 (get-size:array<prob>. as))
+               (block
+                (expr
+                 (let ((sm2 : real (%float 0.0 real)) (pr2 : nat figuroutint))
+                   (block
+                    (expr
+                     (let ((ci1 : nat (%uint 0 nat)))
+                       (while
+                        (icmp-ult ci1 (get-size:array<prob>. as))
+                        (block
+                         (block
+                          (set! sm2
+                            (fadd
+                             sm2
+                             (fmul
+                              ((intrinsic llvm.powi.f64 real)
+                               (fadd
+                                evoid
+                                (fmul evoid (%float -1.0 real))
+                                (get-index:array<real>. bk5 ci1))
+                               (%uint 2 nat))
+                              (recip-real
+                               (?
+                                (?
+                                 figuroutint
+                                 (?
+                                  (? evoid)
+                                  (? (? evoid) figuroutint)
+                                  (? (get-index:array<nat>. bk6 ci1)))))))))
+                          (set! pr2
+                            (?
+                             pr2
+                             (?
+                              figuroutint
+                              (?
+                               (?
+                                (? evoid)
+                                (? (? evoid) figuroutint)
+                                (? (get-index:array<nat>. bk7 ci1)))
+                               figuroutint)))))
+                         (set! ci1 (add-nuw ci1 (%uint 1 nat)))))
+                       evoid))
+                    (set! (get-index:array<prob>. ar2 ci2)
+                      (real2prob
+                       (fmul
+                        (prob2real
+                         (? (fmul sm2 (? (%uint 1 nat) (%uint 2 nat)))))
+                        (prob2real
+                         (recip-prob
+                          (root-prob-nat (nat2prob (? pr2)) (%uint 2 nat))))
+                        (fadd
+                         (?
+                          (?
+                           (? (? evoid) figuroutint)
+                           (? (get-index:array<nat>. bk8 ci2))))
+                         (prob2real (get-index:array<prob>. as ci2)))))))
+                   evoid))
+                (set! ci2 (add-nuw ci2 (%uint 1 nat)))))
+              evoid))
+           (return (categorical ar2)))
+          evoid)))
+      evoid))
+   (if (? (icmp-eq (get-size:array<nat>. z) (get-size:array<real>. t)))
+     (return (?))
+     (if (? (icmp-ult docUpdate (get-size:array<nat>. z)))
+       (return (?))
+       (return (?))))))
+applying pass: expand-to-lc
+(module ((passes) (ffi-libs (libgslcblas libgslcblas #:global? #t) (libgsl libgsl))) (define-type
+                                                                                      nat
+                                                                                      i64)
+  (define-type real f64)
+  (define-type prob f64)
+  (define-type nat* (* nat))
+  (define-type real* (* real))
+  (define-type prob* (* prob))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (nat2prob (v : nat) : prob)
+   (return (real2prob (ui->fp v (%type real)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (nat2real (v : nat) : real)
+   (return (ui->fp v (%type real))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (prob2real (v : prob) : real)
+   (return ((intrinsic llvm.exp.f64 prob) v)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (real2prob (v : real) : prob)
+   (return ((intrinsic llvm.log.f64 prob) v)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (recip-nat (v : nat) : real)
+   (return (fdiv (%float 1.0 real) (ui->fp v (%type real)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (recip-real (v : real) : real)
+   (return (fdiv (%float 1.0 real) v)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (recip-prob (v : real) : real)
+   (return (fmul (%float -1.0 real) v)))
+  (define-type array<nat> (struct ((size : nat) (data : nat*))))
+  (define-type array<nat>* (* array<nat>))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (make:array<nat>. (size : nat) (data : nat*) : array<nat>*)
+   (expr
+    (let ((ap* : array<nat>* (malloc (%type array<nat>)))
+          (ap-size* : (* nat) (%gep ap* (%uint 0 i32) (%uint 0 i32)))
+          (ap-data* : (* nat*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (block
+       (expr (store! size ap-size*))
+       (expr (store! data ap-data*))
+       (return ap*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (new-sized:array<nat>. (size : nat) : array<nat>*)
+   (expr
+    (let ((apt
+           :
+           array<nat>*
+           (make:array<nat>. size (arr-malloc (%type nat) size))))
+      (block
+       svoid
+       (expr
+        ((intrinsic llvm.memset.i64 void)
+         (load (%gep apt (%uint 0 i32) (%uint 1 i32)))
+         (%uint 0 nat)
+         (mul-nuw (%sizeof nat) size)
+         (%uint 0 nat)
+         (%uint 1 nat)))
+       (return apt))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (empty:array<nat>. : array<nat>*)
+   (return (new-sized:array<nat>. (%uint 0 nat))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-size:array<nat>. (array-ptr : array<nat>*) : nat)
+   (return (load (%gep array-ptr (%uint 0 i32) (%uint 0 i32)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-data:array<nat>. (ap* : array<nat>*) : nat*)
+   (expr
+    (let ((adt* : (* nat*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (return (load adt*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-index:array<nat>. (array-ptr : array<nat>*) (index : nat) : nat)
+   (return
+    (load (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (set-index:array<nat>.
+    (array-ptr : array<nat>*)
+    (index : nat)
+    (v : nat)
+    :
+    void)
+   (block
+    (expr
+     (store!
+      v
+      (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index)))
+    (return evoid)))
+  (define-type array<real> (struct ((size : nat) (data : real*))))
+  (define-type array<real>* (* array<real>))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (make:array<real>. (size : nat) (data : real*) : array<real>*)
+   (expr
+    (let ((ap* : array<real>* (malloc (%type array<real>)))
+          (ap-size* : (* nat) (%gep ap* (%uint 0 i32) (%uint 0 i32)))
+          (ap-data* : (* real*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (block
+       (expr (store! size ap-size*))
+       (expr (store! data ap-data*))
+       (return ap*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (new-sized:array<real>. (size : nat) : array<real>*)
+   (expr
+    (let ((apt
+           :
+           array<real>*
+           (make:array<real>. size (arr-malloc (%type real) size))))
+      (block
+       svoid
+       (expr
+        ((intrinsic llvm.memset.i64 void)
+         (load (%gep apt (%uint 0 i32) (%uint 1 i32)))
+         (%uint 0 nat)
+         (mul-nuw (%sizeof nat) size)
+         (%uint 0 nat)
+         (%uint 1 nat)))
+       (return apt))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (empty:array<real>. : array<real>*)
+   (return (new-sized:array<real>. (%uint 0 nat))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-size:array<real>. (array-ptr : array<real>*) : nat)
+   (return (load (%gep array-ptr (%uint 0 i32) (%uint 0 i32)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-data:array<real>. (ap* : array<real>*) : real*)
+   (expr
+    (let ((adt* : (* real*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (return (load adt*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-index:array<real>. (array-ptr : array<real>*) (index : nat) : real)
+   (return
+    (load (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (set-index:array<real>.
+    (array-ptr : array<real>*)
+    (index : nat)
+    (v : real)
+    :
+    void)
+   (block
+    (expr
+     (store!
+      v
+      (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index)))
+    (return evoid)))
+  (define-type array<prob> (struct ((size : nat) (data : prob*))))
+  (define-type array<prob>* (* array<prob>))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (make:array<prob>. (size : nat) (data : prob*) : array<prob>*)
+   (expr
+    (let ((ap* : array<prob>* (malloc (%type array<prob>)))
+          (ap-size* : (* nat) (%gep ap* (%uint 0 i32) (%uint 0 i32)))
+          (ap-data* : (* prob*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (block
+       (expr (store! size ap-size*))
+       (expr (store! data ap-data*))
+       (return ap*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (new-sized:array<prob>. (size : nat) : array<prob>*)
+   (expr
+    (let ((apt
+           :
+           array<prob>*
+           (make:array<prob>. size (arr-malloc (%type prob) size))))
+      (block
+       svoid
+       (expr
+        ((intrinsic llvm.memset.i64 void)
+         (load (%gep apt (%uint 0 i32) (%uint 1 i32)))
+         (%uint 0 nat)
+         (mul-nuw (%sizeof nat) size)
+         (%uint 0 nat)
+         (%uint 1 nat)))
+       (return apt))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (empty:array<prob>. : array<prob>*)
+   (return (new-sized:array<prob>. (%uint 0 nat))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-size:array<prob>. (array-ptr : array<prob>*) : nat)
+   (return (load (%gep array-ptr (%uint 0 i32) (%uint 0 i32)))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-data:array<prob>. (ap* : array<prob>*) : prob*)
+   (expr
+    (let ((adt* : (* prob*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
+      (return (load adt*))
+      evoid)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (get-index:array<prob>. (array-ptr : array<prob>*) (index : nat) : prob)
+   (return
+    (load (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (set-index:array<prob>.
+    (array-ptr : array<prob>*)
+    (index : nat)
+    (v : prob)
+    :
+    void)
+   (block
+    (expr
+     (store!
+      v
+      (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index)))
+    (return evoid)))
+  (define-global gsl-rng void*)
+  (define-function
+   (passes)
+   (attrs)
+   (init-rng : void)
+   (block
+    (set! gsl-rng
+      ((external libgsl gsl_rng_alloc void*)
+       (%external libgsl gsl_rng_taus void*)))
+    (return evoid)))
+  (define-function
+   (passes)
+   (attrs)
+   (uniform (v1 : real) (v2 : real) : real)
+   (return ((external libgsl gsl_ran_flat real) gsl-rng v1 v2)))
+  (define-function
+   (passes)
+   (attrs)
+   (normal (mean : real) (sigma : prob) : real)
+   (return
+    (fadd
+     mean
+     ((external libgsl gsl_ran_gaussian real) gsl-rng (prob2real sigma)))))
+  (define-function
+   (passes)
+   (attrs)
+   (beta (a : prob) (b : prob) : prob)
+   (return
+    (real2prob
+     ((external libgsl gsl_ran_beta real)
+      gsl-rng
+      (prob2real a)
+      (prob2real b)))))
+  (define-function
+   (passes)
+   (attrs)
+   (gamma (a : prob) (b : prob) : prob)
+   (return
+    (real2prob
+     ((external libgsl gsl_ran_gamma real)
+      gsl-rng
+      (prob2real a)
+      (prob2real b)))))
+  (define-function
+   (passes)
+   (attrs)
+   (categorical (arr : array<prob>) : nat)
+   (return (%uint 0 nat)))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (root-prob-nat (v : prob) (v2 : nat) : prob)
+   (return (fmul v (recip-nat v2))))
+  (define-function
+   (passes)
+   (attrs AlwaysInline)
+   (prog
+    (as : array<prob>*)
+    (z : array<nat>*)
+    (t : array<real>*)
+    (docUpdate : nat)
+    :
+    nat)
+   (if (?
+        (icmp-eq (get-size:array<nat>. z) (get-size:array<real>. t))
+        (icmp-ult docUpdate (get-size:array<nat>. z))
+        (icmp-ult
+         (get-index:array<nat>. z docUpdate)
+         (get-size:array<prob>. as)))
+     (expr
+      (let ((bk5 : array<real>* (array? (get-size:array<prob>. as)))
+            (bk6 : array<nat>* (array? (get-size:array<prob>. as)))
+            (bk7 : array<nat>* (array? (get-size:array<prob>. as)))
+            (bk8 : array<nat>* (array? (get-size:array<prob>. as))))
+        (block
+         (expr
+          (let ((ci3 : nat (%uint 0 nat)))
+            (while
+             (icmp-ult ci3 (get-size:array<real>. t))
+             (block
+              (block
+               (expr
+                (let ((indi4 : nat (get-index:array<nat>. z ci3)))
+                  (set! (get-index:array<real>. bk5 indi4)
+                    (fadd
+                     (get-index:array<real>. bk5 indi4)
+                     (get-index:array<real>. t ci3)))
+                  evoid))
+               (expr
+                (let ((indi3 : nat (get-index:array<nat>. z ci3)))
+                  (set! (get-index:array<nat>. bk6 indi3)
+                    (add-nuw (get-index:array<nat>. bk6 indi3) (%uint 1 nat)))
+                  evoid))
+               (expr
+                (let ((indi2 : nat (get-index:array<nat>. z ci3)))
+                  (set! (get-index:array<nat>. bk7 indi2)
+                    (add-nuw (get-index:array<nat>. bk7 indi2) (%uint 1 nat)))
+                  evoid))
+               (expr
+                (let ((indi1 : nat (get-index:array<nat>. z ci3)))
+                  (set! (get-index:array<nat>. bk8 indi1)
+                    (add-nuw (get-index:array<nat>. bk8 indi1) (%uint 1 nat)))
+                  evoid)))
+              (set! ci3 (add-nuw ci3 (%uint 1 nat)))))
+            evoid))
+         (expr
+          (let ((ar2 : array<prob>* (array? (get-size:array<prob>. as))))
+            (block
+             (expr
+              (let ((ci2 : nat (%uint 0 nat)))
+                (while
+                 (icmp-ult ci2 (get-size:array<prob>. as))
+                 (block
+                  (expr
+                   (let ((sm2 : real (%float 0.0 real))
+                         (pr2 : nat figuroutint))
+                     (block
+                      (expr
+                       (let ((ci1 : nat (%uint 0 nat)))
+                         (while
+                          (icmp-ult ci1 (get-size:array<prob>. as))
+                          (block
+                           (block
+                            (set! sm2
+                              (fadd
+                               sm2
+                               (fmul
+                                ((intrinsic llvm.powi.f64 real)
+                                 (fadd
+                                  evoid
+                                  (fmul evoid (%float -1.0 real))
+                                  (get-index:array<real>. bk5 ci1))
+                                 (%uint 2 nat))
+                                (recip-real
+                                 (?
+                                  (?
+                                   figuroutint
+                                   (?
+                                    (? evoid)
+                                    (? (? evoid) figuroutint)
+                                    (? (get-index:array<nat>. bk6 ci1)))))))))
+                            (set! pr2
+                              (?
+                               pr2
+                               (?
+                                figuroutint
+                                (?
+                                 (?
+                                  (? evoid)
+                                  (? (? evoid) figuroutint)
+                                  (? (get-index:array<nat>. bk7 ci1)))
+                                 figuroutint)))))
+                           (set! ci1 (add-nuw ci1 (%uint 1 nat)))))
+                         evoid))
+                      (set! (get-index:array<prob>. ar2 ci2)
+                        (real2prob
+                         (fmul
+                          (prob2real
+                           (? (fmul sm2 (? (%uint 1 nat) (%uint 2 nat)))))
+                          (prob2real
+                           (recip-prob
+                            (root-prob-nat (nat2prob (? pr2)) (%uint 2 nat))))
+                          (fadd
+                           (?
+                            (?
+                             (? (? evoid) figuroutint)
+                             (? (get-index:array<nat>. bk8 ci2))))
+                           (prob2real (get-index:array<prob>. as ci2)))))))
+                     evoid))
+                  (set! ci2 (add-nuw ci2 (%uint 1 nat)))))
+                evoid))
+             (return (categorical ar2)))
+            evoid)))
+        evoid))
+     (if (? (icmp-eq (get-size:array<nat>. z) (get-size:array<real>. t)))
+       (return (?))
+       (if (? (icmp-ult docUpdate (get-size:array<nat>. z)))
+         (return (?))
+         (return (?)))))))
+compiling-function nat2prob
+compiling-function nat2real
+compiling-function prob2real
+compiling-function real2prob
+compiling-function recip-nat
+compiling-function recip-real
+compiling-function recip-prob
+compiling-function make:array<nat>.
+compiling-function new-sized:array<nat>.
+compiling-function empty:array<nat>.
+compiling-function get-size:array<nat>.
+compiling-function get-data:array<nat>.
+compiling-function get-index:array<nat>.
+compiling-function set-index:array<nat>.
+compiling-function make:array<real>.
+compiling-function new-sized:array<real>.
+compiling-function empty:array<real>.
+compiling-function get-size:array<real>.
+compiling-function get-data:array<real>.
+compiling-function get-index:array<real>.
+compiling-function set-index:array<real>.
+compiling-function make:array<prob>.
+compiling-function new-sized:array<prob>.
+compiling-function empty:array<prob>.
+compiling-function get-size:array<prob>.
+compiling-function get-data:array<prob>.
+compiling-function get-index:array<prob>.
+compiling-function set-index:array<prob>.
+compiling-function init-rng
+compiling-function uniform
+compiling-function normal
+compiling-function beta
+compiling-function gamma
+compiling-function categorical
+compiling-function root-prob-nat
+compiling-function prog
