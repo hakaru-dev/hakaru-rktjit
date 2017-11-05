@@ -72,9 +72,11 @@
        (define def (build-array-literal (car trands) (length trands)))
        (add-defs-prelude! prl (list def))
        (build-app (sham:rator:symbol (sham:def-id def)))]
+      [(equal? sym 'reject)
+       (get-value 0 (if-need-pointer t))]
       [else (printf "why is this rator not done?: ~a, type: ~a, trands: ~a\n"
                     sym t trands)
-            (build-app (sham:rator:symbol '?))]))
+            (build-app (sham:rator:symbol (symbol-append sym '?)))]))
 
   (define (ee expr)
     (match expr
