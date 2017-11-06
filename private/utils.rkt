@@ -20,6 +20,3 @@
 (define (symbol-append s1 s2)
   (string->symbol (string-append (symbol->string s1)
 				 (symbol->string s2))))
-
-(define (get-vi i)
-  (string->symbol (format "v~a" i)))
