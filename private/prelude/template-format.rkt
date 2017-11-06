@@ -1,18 +1,20 @@
 #lang racket
 
 (provide (all-defined-out))
+;;TODO at some point we want to move all this to a
+;; language one level above sham lc2 or lc1  and make the basic sham lang lc1 or lc0
 
 (define pointer-format "~a*")
 (define array-format "array<~a>")
 (define array-args '(size data))
 
-(define pair-format "pair<~a,~a>")
+(define pair-format "pair<~a.~a>")
 (define pair-car-sym 'a)
 (define pair-cdr-sym 'b)
 
-(define function-init-char ":")
-(define function-sep-char ",")
-(define function-end-char ".")
+(define function-init-char "$")
+(define function-sep-char "&")
+(define function-end-char "")
 (define (create-function-template name num-args)
   (string-append name
                  function-init-char
@@ -24,6 +26,8 @@
 (define make-pair-fun-format (cft "make" 1))
 (define pair-car-fun-format (cft "car" 1))
 (define pair-cdr-fun-format (cft "cdr" 1))
+(define pair-set-car-fun-format (cft "set-car!" 1))
+(define pair-set-cdr-fun-format (cft "set-cdr!" 1))
 
 ;;array-funs
 (define make-array-fun-format (cft "make" 1))
@@ -32,12 +36,12 @@
 (define get-array-size-fun-format (cft "get-size" 1))
 (define get-array-data-fun-format (cft "get-data" 1))
 (define get-index-fun-format (cft "get-index" 1))
-(define set-index-fun-format (cft "set-index" 1))
+(define set-index-fun-format (cft "set-index!" 1))
 (define array-literal-fun-format (cft "array-literal" 2))
 
-(define add-fun-format "add-~a-~a");;add-<num-args>-<type>
-(define mul-fun-format "mul-~a-~a");;mul-<num-args>-<type>
-(define recip-fun-format "recip-~a")
+(define add-fun-format (cft "add" 2));;add <num-args> <type>
+(define mul-fun-format (cft "mul" 2));;mul <num-args> <type>
+(define recip-fun-format (cft "recip" 1))
 
 (define (get-fun-symbol frmt . args)
   (string->symbol (apply format (cons frmt args))))
