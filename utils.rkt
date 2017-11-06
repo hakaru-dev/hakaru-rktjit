@@ -4,7 +4,8 @@
 
 (require ffi/unsafe)
 (require (for-syntax racket/syntax))
-(provide hakaru-defines)
+(provide (all-defined-out))
+
 (define-syntax (hakaru-defines stx)
   (syntax-case stx ()
     [(_ me)
