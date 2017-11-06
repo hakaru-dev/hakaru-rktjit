@@ -19,6 +19,10 @@
 (define (get-defs-prelude prelude)
   (unbox prelude))
 
+(define (add-basic&probability-defs prl)
+  (add-defs-prelude! prl (basic-defs))
+  (add-defs-prelude! prl (probability-defs)))
+
 (define (cleanup-defs defs)
   (define already-seen (mutable-set))
   (for/list ([def defs]
@@ -44,6 +48,9 @@
     ['void (list type-void-def)]
     [else (error "unknown type" type-ast)]))
 
+(define (get-type-ref type-def)
+  (get-sham-type-ref type-def))
+
 (define (get-rator sym tresult trands)
   ((match sym
      [basic-rator? get-basic-rator]
@@ -52,6 +59,15 @@
      [probability-rator? get-probability-rator]
      [else (error "why is this rator not done yet?" sym tresult trands)])
    sym tresult trands))
+
+(define (get-value v type)
+  (match type
+    ['nat (nat-value (truncate (inexact->exact v)))]
+    ['unit (nat-value (truncate (inexact->exact 0)))]
+    ['prob (sham:expr:app (sham:rator:symbol'real2prob)
+                          (list (real-value (exact->inexact v))))]
+    ['real (real-value (exact->inexact v))]
+    ['int (sham:expr:var 'figuroutint)]))
 
 (module+ test
   (map print-sham-def
