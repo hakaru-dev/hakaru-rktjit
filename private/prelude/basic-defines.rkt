@@ -6,7 +6,8 @@
 
 (require sham/jit
          sham/ast
-         "../utils.rkt"
+         (submod sham/ast utils)
+         "utils.rkt"
          "../ast.rkt"
          "type-defines.rkt"
          "template-format.rkt")
@@ -15,7 +16,6 @@
 
 (define (basic-defs)
   (define nat type-nat-ref)
-  (define nat* (sham:type:ref 'nat*))
   (define real type-real-ref)
   (define prob type-prob-ref)
 
@@ -24,148 +24,136 @@
    type-int-def
    type-real-def
    type-prob-def
-   (sham:def:type 'nat* (sham:type:pointer type-nat-ref))
-   (sham:def:type 'int* (sham:type:pointer type-int-ref))
-   (sham:def:type 'real* (sham:type:pointer type-real-ref))
-   (sham:def:type 'prob* (sham:type:pointer type-prob-ref))
+   (sham$def:type nat* (sham:type:pointer type-nat-ref))
+   (sham$def:type int* (sham:type:pointer type-int-ref))
+   (sham$def:type real* (sham:type:pointer type-real-ref))
+   (sham$def:type prob* (sham:type:pointer type-prob-ref))
 
    (sham$define
-    (nat2prob (v : nat) : prob)
-    (return
+    (nat2prob (v nat) prob)
+    (sham$return
      (sham$app real2prob
                (sham$app ui->fp
-                         (sham$var 'v) (sham:exp:type (sham:type:ref 'real))))))
+                         v (sham$etype real)))))
 
    (sham$define
-    (nat2real (v : nat) : real)
-    (return
-     (sham$app ui->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real)))))
+    (nat2real (v nat) real)
+    (sham$return
+     (sham$app ui->fp v (sham$etype real))))
 
    (sham$define
-    (nat2int (v : nat) : int)
+    (nat2int (v nat) int)
     ;;NOTE: I think going from signed to unsigned is easy because of 2's complement
     ;; and we are using 64 bit so if the nat is bigger than 2^32 then we have to worry
     ;; but for hakaru I think we don't need to worry as nat's and int's don't go that big
-    (return (sham$var 'v)))
+    (sham$return (sham$var v)))
 
    (sham$define
-    (int2real (v : int) : real)
-    (return
-     (sham$app si->fp (sham$var 'v) (sham:exp:type (sham:type:ref 'real)))))
+    (int2real (v int) real)
+    (sham$return
+     (sham$app si->fp v (sham$etype real))))
 
    (sham$define
-    (prob2real (v : prob) : real)
-    (return (sham$app-var (llvm.exp.f64 prob) v)))
+    (prob2real (v prob) real)
+    (sham$return (sham$app (llvm.exp.f64 prob) v)))
 
    (sham$define
-    (real2prob (v : real) : prob)
-    (return (sham$app-var (llvm.log.f64 prob) v)))
+    (real2prob (v real) prob)
+    (sham$return (sham$app (llvm.log.f64 prob) v)))
 
    (sham$define
-    (recip-nat (v : nat) : real)
-    (return (sham$app fdiv (real-value 1.0)
-                      (sham$app ui->fp (sham$var 'v)
-                                (sham:exp:type (sham:type:ref 'real))))))
+    (recip-nat (v nat) real)
+    (sham$return (sham$app fdiv (real-value 1.0)
+                      (sham$app ui->fp v
+                                (sham$etype real)))))
    (sham$define
-    (recip-real (v : real) : real)
-    (return (sham$app fdiv (real-value 1.0) (sham$var 'v))))
+    (recip-real (v real) real)
+    (sham$return (sham$app fdiv (real-value 1.0)  v)))
 
    (sham$define
-    (recip-prob (v : real) : real)
-    (return (sham$app fmul (real-value -1.0) (sham$var 'v))))))
+    (recip-prob (v real) real)
+    (sham$return (sham$app fmul (real-value -1.0)  v)))
 
-(define (simple-rator? sym)
-  (member sym
-          '(nat2prob nat2real prob2real real2prob
-                     int2real nat2int
-                     and not
-                     uniform normal beta gamma categorical)))
-                     ;recip-nat recip-real recip-prob)))
-(define math-rator?
-  (curryr member '(+ * < > / == - natpow recip root)))
+   (sham$define
+    (root-prob-nat (v prob) (v2 nat) prob)
+    (sham$return (sham$app fmul v (sham$app recip-nat v2))))))
+
+
+(define simple-rator?
+  (curryr
+   member
+   '(natpow root nat2prob nat2real prob2real real2prob int2real nat2int)))
+(define basic-rator?
+  (curryr
+   member
+   '(+ * < > / == -
+       and not natpow recip root
+       nat2prob nat2real prob2real real2prob
+       int2real nat2int)))
 
 (define (add-prob-sym len)
   (string->symbol (format add-fun-format len 'prob)))
+
 (define (build-add-prob len)
   (sham:def:function
    (add-prob-sym len) '() '()
    (build-list len get-vi)
    (build-list len (const type-prob-ref)) type-prob-ref
    (sham:stmt:return
-    (sham:exp:app
+    (sham:expr:app
      (sham:rator:symbol 'real2prob)
-     (list (sham:exp:app (sham:rator:symbol 'fadd)
+     (list (sham:expr:app (sham:rator:symbol 'fadd)
             (build-list len (λ (vi)
-                              (sham:exp:app (sham:rator:symbol 'prob2real)
+                              (sham:expr:app (sham:rator:symbol 'prob2real)
                                             (list (sham$var (get-vi vi))))))))))))
 
-
-
-(define (figure-out-math sym rands tresult trands)
+(define (get-basic-rator sym tresult trands)
   (match sym
     ['* #:when (and (andmap tprob? trands))
-        (values '() (sham:rator:symbol 'fadd) rands)]
+        (values (sham:rator:symbol 'fadd) (void))]
     ['* #:when (and (andmap treal? trands))
-        (values '() (sham:rator:symbol 'fmul) rands)]
+        (values (sham:rator:symbol 'fmul) (void))]
     ['* #:when (and (andmap tnat? trands))
-        (values '() (sham:rator:symbol 'mul-nuw) rands)]
+        (values (sham:rator:symbol 'mul-nuw) (void))]
     ['* #:when (and (andmap tint? trands))
-        (values '() (sham:rator:symbol 'mul-nsw) rands)]
+        (values  (sham:rator:symbol 'mul-nsw) (void))]
 
     ['+ #:when (and (andmap treal? trands))
-        (values '() (sham:rator:symbol 'fadd) rands)]
+        (values  (sham:rator:symbol 'fadd) (void))]
     ['+ #:when (and (andmap tnat? trands))
-        (values '() (sham:rator:symbol 'add-nuw) rands)]
+        (values  (sham:rator:symbol 'add-nuw) (void))]
     ['+ #:when (and (andmap tint? trands))
-        (values '() (sham:rator:symbol 'add-nsw) rands)]
+        (values  (sham:rator:symbol 'add-nsw) (void))]
     ['+ #:when (and (andmap tprob? trands) (tprob? tresult))
-        (values (list (build-add-prob (length trands)))
-                (sham:rator:symbol (add-prob-sym (length trands)))
-                rands)]
+        (values (sham:rator:symbol (add-prob-sym (length trands)))
+                (build-add-prob (length trands)))]
 
     ['< #:when (andmap tnat? trands)
-        (values '() (sham:rator:symbol 'icmp-ult) rands)]
+        (values (sham:rator:symbol 'icmp-ult) (void))]
     ['/ #:when (and (andmap tnat? trands) (tnat? tresult))
-        (values '() (sham:rator:symbol 'udiv) rands)]
-    ['/ #:when (and (andmap tnat? trands) (equal? (length trands) 2)
-                    (tprob? tresult))
-        (values '()
-                (sham:rator:symbol 'fadd)
-                (list (expr-app 'prob (expr-intrf 'real2prob)
-                                (list (expr-app 'real (expr-intrf 'nat2real)
-                                                (list (first rands)))))
-                      (expr-app 'prob (expr-intrf 'recip)
-                                (list
-                                 (expr-app 'prob (expr-intrf 'real2prob)
-                                           (list (expr-app 'real
-                                                           (expr-intrf 'nat2real)
-                                                           (list (second rands)))))))))]
+        (values (sham:rator:symbol 'udiv) (void))]
 
     ['== #:when (andmap tnat? trands)
-         (values '() (sham:rator:symbol 'icmp-eq) rands)]
+         (values (sham:rator:symbol 'icmp-eq) (void))]
     ['natpow
      #:when (and (treal? tresult) (treal? (first trands)) (tnat? (second trands)))
-     (values '() (sham:rator:intrinsic 'llvm.powi.f64 (sham:type:ref 'real)) rands)]
+     (values (sham:rator:intrinsic 'llvm.powi.f64 (sham:type:ref 'real)) (void))]
     ['root
      #:when (and (tprob? tresult)
                  (equal? (length trands) 2)
                  (tprob? (first trands))
                  (tnat? (second trands)))
-     (values (list (sham$define (root-prob-nat (v : prob) (v2 : nat) : prob)
-                                (return (sham$app fmul  (sham$var 'v)
-                                                  (sham$app-var recip-nat v2)))))
-             (sham:rator:symbol 'root-prob-nat)
-             rands)]
+     (values (sham:rator:symbol 'root-prob-nat) (void))]
     ['recip
      (define (get-recip type)
        (match type
          ['nat 'recip-nat]
          ['real 'recip-real]
          ['prob 'recip-prob]))
-     (values '() (sham:rator:symbol (get-recip tresult)) rands)]
-    [else (printf "why is this math not figured out?: ~a, tresult: ~a, trands: ~a\n"
-                  sym tresult trands)
-          (values '() (sham:rator:symbol (symbol-append sym '?)) rands)]))
+     (values (sham:rator:symbol (get-recip tresult)) (void))]
+
+    [else (error "why is this basic-rator not figured out?"
+                  sym tresult trands)]))
 
 
 (define (basic-mod-info)

@@ -1,14 +1,29 @@
 #lang racket
 
-(require sham/ast)
+(require sham/ast
+         (submod sham/ast utils))
 (require "template-format.rkt"
          "type-defines.rkt"
          "array-defines.rkt"
-         "basic-defines.rkt"
-         "utils.rkt"
-         "prelude.rkt")
+         "utils.rkt")
+
 (provide probability-defs
-         build-superpose-categorical)
+         get-probability-rator)
+
+(define (get-probability-rator sym tresult trands)
+  (if (equal? sym 'superpose-categorical)
+      (build-superpose-categorical (length trands))
+      (values
+       (sham:rator:symbol
+        (string->symbol
+         (call-with-values
+          (λ ()
+            (match sym
+              ['car (values pair-car-fun-format (get-type-string (car trands)))]
+              ['cdr (values pair-cdr-fun-format (get-type-string (car trands)))]
+              ['cons (values make-pair-fun-format (get-type-string tresult))]))
+          format)))
+       (void))))
 
 (define (probability-defs)
   (define adefs (append
@@ -23,66 +38,61 @@
   (append
    adefs
    (list
-    (sham:def:global 'gsl-rng tvoid*)
+    (sham:def:global (void) 'gsl-rng tvoid*)
 
-    (sham:def:function
-     'init-rng '() '() '() '() tvoid
+    (sham$define
+     (init-rng (prelude-function-info) tvoid)
      (sham:stmt:block
       (list
        (sham:stmt:set!
-        (sham:exp:var 'gsl-rng)
-        (sham:exp:app (sham:rator:external 'libgsl 'gsl_rng_alloc tvoid*)
-                      (list (sham:exp:external 'libgsl 'gsl_rng_taus tvoid*))))
-       (sham:stmt:return (sham:exp:void)))))
+        (sham:expr:var 'gsl-rng)
+        (sham:expr:app (sham:rator:external 'libgsl 'gsl_rng_alloc tvoid*)
+                      (list (sham:expr:external 'libgsl 'gsl_rng_taus tvoid*))))
+       (sham:stmt:return (sham:expr:void)))))
 
-    (sham:def:function
-     'uniform '() '()
-     '(v1 v2) (list treal treal) treal
+    (sham$define
+     (uniform (prelude-function-info) (v1 treal) (v2 treal) treal)
      (sham:stmt:return
-      (sham:exp:app (sham:rator:external 'libgsl 'gsl_ran_flat treal)
-                    (list (sham:exp:var 'gsl-rng)
+      (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_flat treal)
+                    (list (sham:expr:var 'gsl-rng)
                           (sham$var 'v1) (sham$var 'v2)))))
 
-    (sham:def:function
-     'normal '() '()
-     '(mean sigma) (list treal tprob) treal
+    (sham$define
+     (normal (prelude-function-info) (mean treal) (sigma tprob) treal)
      (sham:stmt:return
-      (sham:exp:app (sham:rator:symbol 'fadd)
+      (sham:expr:app (sham:rator:symbol 'fadd)
                     (list
                      (sham$var 'mean)
-                     (sham:exp:app
+                     (sham:expr:app
                       (sham:rator:external 'libgsl 'gsl_ran_gaussian treal)
                       (list (sham$var 'gsl-rng)
-                            (sham:exp:app (sham:rator:symbol 'prob2real)
+                            (sham:expr:app (sham:rator:symbol 'prob2real)
                                           (list (sham$var 'sigma)))))))))
-    (sham:def:function
-     'beta '() '()
-     '(a b) (list tprob tprob) tprob
+    (sham$define
+     (beta (prelude-function-info) (a tprob) (b tprob) tprob)
      (sham:stmt:return
-      (sham:exp:app (sham:rator:symbol 'real2prob)
+      (sham:expr:app (sham:rator:symbol 'real2prob)
                     (list
-                     (sham:exp:app (sham:rator:external 'libgsl 'gsl_ran_beta treal)
-                                   (list (sham:exp:var 'gsl-rng)
-                                         (sham:exp:app (sham:rator:symbol 'prob2real)
+                     (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_beta treal)
+                                   (list (sham:expr:var 'gsl-rng)
+                                         (sham:expr:app (sham:rator:symbol 'prob2real)
                                                        (list (sham$var 'a)))
-                                         (sham:exp:app (sham:rator:symbol 'prob2real)
+                                         (sham:expr:app (sham:rator:symbol 'prob2real)
                                                        (list (sham$var 'b)))))))))
-    (sham:def:function
-     'gamma '() '()
-     '(a b) (list tprob tprob) tprob
+    (sham$define
+     (gamma (prelude-function-info) (a tprob) (b tprob) tprob)
      (sham:stmt:return
-      (sham:exp:app (sham:rator:symbol 'real2prob)
+      (sham:expr:app (sham:rator:symbol 'real2prob)
                     (list
-                     (sham:exp:app (sham:rator:external 'libgsl 'gsl_ran_gamma treal)
-                                   (list (sham:exp:var 'gsl-rng)
-                                         (sham:exp:app (sham:rator:symbol 'prob2real)
+                     (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_gamma treal)
+                                   (list (sham:expr:var 'gsl-rng)
+                                         (sham:expr:app (sham:rator:symbol 'prob2real)
                                                        (list (sham$var 'a)))
-                                         (sham:exp:app (sham:rator:symbol 'prob2real)
+                                         (sham:expr:app (sham:rator:symbol 'prob2real)
                                                        (list (sham$var 'b)))))))))
 
-    (sham:def:function ;;TODO implement categorical using gsl_ran_discrete
-     'categorical '() '()
-     '(arr) (list (sham:type:ref 'array<prob>)) tnat
+    (sham$define ;;TODO implement categorical using gsl_ran_discrete
+     (categorical (prelude-function-info) (arr (sham:type:ref 'array<prob>)) tnat)
      (sham:stmt:return (nat-value 0))))))
 
 (define (build-superpose-categorical len) ;;TODO we can probably optimize len two with binomial
@@ -93,9 +103,9 @@
      (build-list len get-vi)
      (build-list len (const (sham:type:ref 'prob))) (sham:type:ref 'nat)
      (sham:stmt:expr
-      (sham:exp:let (list 'arr)
+      (sham:expr:let (list 'arr)
                     (list (sham:type:ref 'array<prob>))
-                    (list (sham:exp:app
+                    (list (sham:expr:app
                            (sham:rator:symbol
                             (string->symbol (format new-size-array-fun-format
                                                     'array<prob>)))
@@ -104,24 +114,26 @@
                      (append
                       (for/list [(i (in-range len))]
                         (sham:stmt:expr
-                         (sham:exp:app (sham:rator:symbol
+                         (sham:expr:app (sham:rator:symbol)
                                         (string->symbol (format set-index-fun-format
-                                                                'array<prob>)))
+                                                                'array<prob>))
                                        (list (sham$var 'arr)
                                              (nat-value i)
                                              (sham$var (get-vi i))))))
                       (list
                        (sham:stmt:return
-                        (sham:exp:app (sham:rator:symbol 'categorical)
+                        (sham:expr:app (sham:rator:symbol 'categorical)
                                       (list (sham$var 'arr)))))))
-                    (sham:exp:void))))) ;;TODO free arr :P
-  (values (cons func (array-defs '(array prob))) (sham:rator:symbol fun-name)))
+                    (sham:expr:void))))) ;;TODO free arr :P
+  (values (sham:rator:symbol fun-name func)))
+;  (values (cons func (array-defs '(array prob))) (sham:rator:symbol fun-name)))
 
 (module+ test
   (require rackunit
            sham/jit
            ffi/unsafe
-           "utils.rkt")
+           "basic-defines.rkt")
+
 
   (define defs (append (basic-defs)
                        (probability-defs)))

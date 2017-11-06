@@ -1,10 +1,10 @@
 #lang racket
 
-(require sham/ast)
+(require sham/ast
+         (submod sham/ast utils))
 (require "template-format.rkt"
          "type-defines.rkt"
-         "utils.rkt"
-         "prelude.rkt")
+         "utils.rkt")
 
 (provide array-defs
          array-rator?
@@ -12,21 +12,24 @@
          build-array-literal)
 
 (define (array-rator? sym) (member sym '(empty index size)))
+
 (define (get-array-rator sym tresult trands)
-  (sham:rator:symbol
-   (string->symbol
-    (call-with-values
-     (λ ()
-       (match sym
-         ['index (values get-index-fun-format (get-type-string (car trands)))]
-         ['size (values get-array-size-fun-format (get-type-string (car trands)))]
-         ['empty (values new-size-array-fun-format (get-type-string tresult))]
-         [else (values "array?")]))
-     format))))
+  (values
+   (sham:rator:symbol
+    (string->symbol
+     (call-with-values
+      (λ ()
+        (match sym
+          ['index (values get-index-fun-format (get-type-string (car trands)))]
+          ['size (values get-array-size-fun-format (get-type-string (car trands)))]
+          ['empty (values new-size-array-fun-format (get-type-string tresult))]
+          [else (values "array?")]))
+      format)))
+   (void)))
 
 (define (get-array-data-type type)
   (match type
-    [(sham:type:struct _ (list _ t)) t]))
+    [(sham:type:struct _ _ (list _ t)) t]))
 
 ;;tast be expanded
 (define (array-defs tast)
@@ -45,43 +48,43 @@
 
   (define (make-array)
     (sham:def:function ;make-array
+     (prelude-function-info)
      (get-fun-name make-array-fun-format)
-     '() '(AlwaysInline)
      array-args (list nat adtref) aptref
      (sham:stmt:let
       '(ap* ap-size* ap-data*)
       (list aptref nat* adpt)
-      (list (sham$app malloc (sham:exp:type atref))
+      (list (sham$app malloc (sham:expr:type atref))
             (get-size-ptr 'ap*)
             (get-data-ptr 'ap*))
       (sham$block
-       (sham:stmt:expr (sham$app-var store! size ap-size*))
-       (sham:stmt:expr (sham$app-var store! data ap-data*))
+       (sham:stmt:expr (sham$app store! size ap-size*))
+       (sham:stmt:expr (sham$app store! data ap-data*))
        (sham:stmt:return (sham$var 'ap*))))))
 
   (define (new-size-array)
     (sham:def:function ;new-size-array
+     (prelude-function-info)
      (get-fun-name new-size-array-fun-format)
-     '() '(AlwaysInline)
      '(size) (list nat) aptref
      (sham:stmt:let
       '(apt)
       (list aptref)
-      (list (sham:exp:app
+      (list (sham:expr:app
              (sham:rator:symbol (get-fun-name make-array-fun-format))
              (list (sham$var 'size)
                    (sham$app arr-malloc
-                             (sham:exp:type adnptref) (sham$var 'size)))))
+                             (sham:expr:type adnptref) (sham$var 'size)))))
       (sham:stmt:block
        (list
         (sham:stmt:void)
         (sham:stmt:expr
-         (sham:exp:app
+         (sham:expr:app
           (sham:rator:intrinsic 'llvm.memset.i64 (sham:type:ref 'void))
           (list (sham$app load (get-data-ptr 'apt))
                 (nat-value 0)
-                (sham:exp:app (sham:rator:symbol 'mul-nuw)
-                              (list (sham:exp:sizeof nat)
+                (sham:expr:app (sham:rator:symbol 'mul-nuw)
+                              (list (sham:expr:sizeof nat)
                                     (sham$var 'size)))
                 (nat-value 0)
                 (nat-value 1))))
@@ -89,8 +92,8 @@
 
   (define (get-array-data)
     (sham:def:function ;get-array-data
+     (prelude-function-info)
      (get-fun-name get-array-data-fun-format)
-     '() '(AlwaysInline)
      '(ap*) (list aptref) adtref
      (sham:stmt:let
       '(adt*)
@@ -100,41 +103,40 @@
 
   (define (get-array-size)
     (sham:def:function ;get-array-size
+     (prelude-function-info)
      (get-fun-name get-array-size-fun-format)
-     '() '(AlwaysInline)
      '(array-ptr) (list aptref) nat
      (sham:stmt:return (sham$app load (get-size-ptr 'array-ptr)))))
 
   (define (get-index)
     (sham:def:function ;get-index
+     (prelude-function-info)
      (get-fun-name get-index-fun-format)
-     '() '(AlwaysInline)
      '(array-ptr index)
      (list aptref nat ) adnptref
      (sham:stmt:return
       (sham$app load
-                (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
+                (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
                               (list (sham$var 'index)))))))
   (define (set-index)
     (sham:def:function ;set-index
+     (prelude-function-info)
      (get-fun-name set-index-fun-format)
-     '() '(AlwaysInline)
      '(array-ptr index v)
      (list aptref nat adnptref) (sham:type:ref 'void)
      (sham$block
       (sham:stmt:expr
        (sham$app store! (sham$var 'v)
-                (sham:exp:gep (sham$app load (get-data-ptr 'array-ptr))
+                (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
                               (list (sham$var 'index)))))
-      (sham:stmt:return (sham:exp:void)))))
+      (sham:stmt:return (sham:expr:void)))))
   (define (empty-array)
     (sham:def:function ;empty-array
+     (prelude-function-info)
      (get-fun-name empty-array-fun-format)
-     '() '(AlwaysInline)
-     '()
-     (list ) aptref
+     '() '() aptref
      (sham:stmt:return
-      (sham:exp:app (sham:rator:symbol (get-fun-name new-size-array-fun-format))
+      (sham:expr:app (sham:rator:symbol (get-fun-name new-size-array-fun-format))
                     (list (nat-value 0))))))
   (append
    (reverse atdefs)
@@ -158,13 +160,13 @@
   (define arrayp-ref (sham:type:ref arrayp-sym))
 
   (sham:def:function
+   (prelude-function-info)
    (string->symbol (format array-literal-fun-format len array-sym))
-   '() '()
    (build-list len get-vi)
    (build-list len (const type-ref)) arrayp-ref
    (sham:stmt:let
     '(arl) (list arrayp-ref)
-    (list (sham:exp:app
+    (list (sham:expr:app
            (sham:rator:symbol (string->symbol (format new-size-array-fun-format
                                                       array-sym)))
            (list (nat-value len))))
@@ -172,9 +174,9 @@
      (append (build-list len
                          (λ (i)
                            (sham:stmt:expr
-                            (sham:exp:app (sham:rator:symbol
+                            (sham:expr:app (sham:rator:symbol)
                                            (string->symbol
-                                            (format set-index-fun-format array-sym)))
+                                            (format set-index-fun-format array-sym))
                                           (list (sham$var 'arl) (sham$var (get-vi i)))))))
              (list (sham:stmt:return (sham$var 'arl))))))))
 
@@ -182,7 +184,7 @@
   (require rackunit
            sham/jit
            ffi/unsafe
-           "utils.rkt")
+           "../../utils.rkt")
 
   (define defs
     (apply append
@@ -191,7 +193,7 @@
                   (array real)
                   (array prob)
                   (array (array nat))))))
-  (pretty-print (map sham-def->sexp defs))
+;  (pretty-print (map sham-def->sexp defs))
   (define mod
     (sham:module
      '((passes . ())
