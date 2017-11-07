@@ -15,12 +15,10 @@
     (match e
       [(expr-if typ tst thn els)
        (stmt-if tst (ers thn) (ers els))]
-      [(expr-let t var val body)
-       (stmt-elets (list var) (list val) (ers body))]
-      [(expr-lets t vars vals body)
-       (stmt-elets vars vals (ers body))]
-      [(expr-block t stmt body)
-       (stmt-block (list stmt (ers body)))]
+      ;; [(expr-let t var val body)
+      ;;  (stmt-elets (list var) (list val) (ers body))]
+      [(expr-lets types vars vals s body)
+       (stmt-expr (stmt-void) (expr-lets types vars vals s (ers body)))]
       [else (assign-to e)]))
   (ers e))
 

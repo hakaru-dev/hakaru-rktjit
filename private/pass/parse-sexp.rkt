@@ -1,6 +1,5 @@
 #lang racket
 
-
 (require "ast.rkt")
 (require "utils.rkt")
 
@@ -23,7 +22,7 @@
     [`((let (,var ,type ,val) ,body) : ,t)
      (define ve (expr-var type var var))
      (define vale (sa val env))
-     (expr-let t ve vale (sa body (hash-set env var ve)))]
+     (expr-lets t (list ve) (list vale) (stmt-void) (sa body (hash-set env var ve)))]
     [`((summate (,index ,start ,end) ,body) : ,type)
      (define ie (expr-var 'nat (gensym^ 'si) index))
      (expr-sum type ie (sa start env) (sa end env)
