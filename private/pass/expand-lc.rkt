@@ -1,6 +1,7 @@
 #lang racket
 
-(require sham/ast)
+(require sham/ast
+         sham/jit)
 
 (require "../ast.rkt"
          "prelude.rkt"
@@ -14,9 +15,9 @@
   (add-basic&probability-defs prl)
 
   (define (get&add-type type-ast)
-    (define defs (get-all-defs-type type-ast))
+    (define-values (ref defs) (get-defs&ref-type type-ast))
     (add-defs-prelude! prl defs)
-    (get-type-ref (first defs)))
+    ref)
 
   (define (ea tresult rator rands)
     (define trands (map typeof rands))
@@ -77,9 +78,10 @@
   (define (mod-info)
     (void))
   (define (expand-fun p)
-    (dprintf #t "expanding function: ~a\n" (car p))
+
     (match (cdr p)
       [(expr-fun args ret-type b)
+       (dprintf #t "expanding function: ~a, arg-types: ~a, ret-type: ~a\n" (car p)(map expr-var-type args) ret-type)
        (sham:def:function
         (mod-fun-info) (car p)
         (map expr-var-sym args) (map (compose get&add-type expr-var-type) args)
@@ -88,7 +90,9 @@
   (define prog (expand-fun (cons 'prog (expr-mod-main mod))))
 
   (sham:module
-   (mod-info)
+   (build-info (void)
+               '((ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
+                              (libgsl . ("libgsl"))))))
    (append (cleanup-defs (get-defs-prelude prl))
            (cons prog
                  (map expand-fun (expr-mod-fns mod))))))

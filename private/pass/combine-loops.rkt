@@ -12,9 +12,9 @@
 ;;disabling removing cons as a part of bucket
 ; until we can fix the later simplifications to do the same
 (define (get-init binds result t reducer)
-  (printf "get-init: result: ~a, t: ~a\n" (pe result) t)
-  (printf "\t binds: \n")(pretty-display (map pe binds))(newline)
-  (printf "\t reducer: \n")(pretty-display (pr reducer))(newline)
+  (dtprintf "get-init: result: ~a, t: ~a\n" (pe result) t)
+  ;; (printf "\t binds: \n")(pretty-display (map pe binds))(newline)
+  ;; (printf "\t reducer: \n")(pretty-display (pr reducer))(newline)
   (match* (t reducer)
     [('nat (reducer-add _))
      (values (list 'nat) (list result) (list (expr-val 'nat 0)))]
@@ -51,8 +51,8 @@
     ;;    (get-init binds (expr-sym-append result 'b tb) tb rb))
     ;;  (values (append tra trb) (append vra vrb) (append vla vlb))]
     [(`(array ,tar) (reducer-index n _ ra))
-     (dprintf #t "reducer-index: type: ~a\n \tresult: ~a, binds: ~a\n"
-              `(array ,tar) (pe result) (map pe binds))
+     ;; (dprintf #t "reducer-index: type: ~a\n \tresult: ~a, binds: ~a\n"
+     ;;          `(array ,tar) (pe result) (map pe binds))
      (define arr-size (assign-binds binds n))
      (define arr-init (expr-app t (expr-intrf 'empty) (list arr-size)))
      (define arrn (expr-var t (gensym^ 'arri) '_))
@@ -202,7 +202,6 @@
   (or (expr-bucket? expr) (expr-sum? expr) (expr-prd? expr) (expr-arr? expr)))
 
 (define (wrap-body-for-normals nvm body)
-  (printf "wrap-body-for-normals: ~a\n" nvm)
   (wrap-expr (map third nvm) (map first nvm) (map second nvm) (stmt-void) body))
 
 (define (combine-loops e)
