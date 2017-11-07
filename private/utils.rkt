@@ -18,8 +18,8 @@
 
 (define csym '$)
 (define msym 'm)
-(define (set-mutable-var v) (printf "mut\n")(change-orig-var v msym) v)
-(define (set-constant-var v) (printf "const\n") (change-orig-var v csym) v)
+(define (set-mutable-var v) (change-orig-var v msym) v)
+(define (set-constant-var v) (change-orig-var v csym) v)
 
 (define (is-mutable-var? v) (equal? (expr-var-orig v) msym))
 (define (is-constant-var? v) (equal? (expr-var-orig v) csym))
