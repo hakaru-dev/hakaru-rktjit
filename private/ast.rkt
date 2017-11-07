@@ -440,7 +440,8 @@
     [(expr-branch _ b) (is-complex? b)]
     [(expr-bind _ b) (is-complex? b)]
     [(expr-if _ tst thn els) #t]
-     ;(or (is-complex? tst) (is-complex? thn) (is-complex? els))]
+    ;(or (is-complex? tst) (is-complex? thn) (is-complex? els))]
+    [(expr-app _ (expr-intrf 'index) rds) #t]
     [(expr-app _ rt rds)
      (ormap is-complex? rds)]
     [(stmt-void) #f]

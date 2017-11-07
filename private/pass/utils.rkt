@@ -18,7 +18,7 @@
       ;; [(expr-let t var val body)
       ;;  (stmt-elets (list var) (list val) (ers body))]
       [(expr-lets types vars vals s body)
-       (stmt-expr (stmt-void) (expr-lets types vars vals s (ers body)))]
+       (stmt-expr (stmt-void) (expr-lets types vars vals (stmt-block (list s (ers body))) (expr-val 'nat 0)))]
       [else (assign-to e)]))
   (ers e))
 

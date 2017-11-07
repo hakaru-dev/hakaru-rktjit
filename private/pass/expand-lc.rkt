@@ -4,6 +4,7 @@
 
 (require "../ast.rkt"
          "prelude.rkt"
+         "utils.rkt"
          "../utils.rkt")
 
 (provide expand-to-lc)
@@ -19,32 +20,31 @@
 
   (define (ea tresult rator rands)
     (define trands (map typeof rands))
-    (define-values (rator def) (get-rator (expr-intrf-sym rator) tresult trands))
-    (when def
-      (add-defs-prelude! (list def)))
-    (sham:expr:app rator (map ee rands)))
+    (define-values (rtr def) (get-rator (expr-intrf-sym rator) tresult trands))
+    (unless (void? def)
+      (add-defs-prelude! prl (list def)))
+    (sham:expr:app rtr (map ee rands)))
 
   (define (ee expr)
     (match expr
       [(expr-app t rator rands) (ea t rator rands)]
       [(expr-var t sym _) (sham:expr:var sym)]
       [(expr-val t v) (get-value v t)]
-      [(expr-let t var val body)
-       (sham:expr:let (list (expr-var-sym var))
-                      (list (get&add-type (typeof var)))
-                      (list (ee val))
-                      (sham:stmt:void)
-                      (ee body))]
-      [(expr-lets types vars vals body)
+      [(expr-lets types vars vals stmt body)
        (sham:expr:let (map expr-var-sym vars)
                       (map (compose get&add-type typeof) vars)
                       (map ee vals)
-                      (sham:stmt:void)
+                      (es stmt)
                       (ee body))]
-      [(expr-block t stmt body)
-       (sham:expr:let '() '() '() (es stmt) (ee body))]
-      [(expr-if t tst thn els) (sham:expr:void)]
-      [else (error (format "not expanding for expr: ~a\n" expr))]))
+      [(expr-if t tst thn els)
+       (define v (gensym^ 'if))
+       (define ev (expr-var t v '_))
+       (sham:expr:let (list v) (list (get&add-type t)) (list (sham:expr:void))
+                      (es (stmt-if tst
+                                   (stmt-assign ev thn)
+                                   (stmt-assign ev els)))
+                      (ee ev))]
+      [else (error (format "not expanding for expr: ~a\n" (pe expr)))]))
 
   (define (for->while index start end body)
     (sham:stmt:expr
@@ -61,16 +61,16 @@
   (define (es stmt)
     (match stmt
       [(stmt-if tst thn els) (sham:stmt:if (ee tst) (es thn) (es els))]
-      [(stmt-elets vars vals stmt)
-       (sham:stmt:expr
-        (sham:expr:let
-         (map expr-var-sym vars) (map (compose get&add-type typeof) vars) (map ee vals)
-         (es stmt) (sham:expr:void)))]
+      [(stmt-expr (stmt-void) e)
+       (sham:stmt:expr (ee e))]
+      [(stmt-expr s e)
+       (sham:stmt:block (list (es s) (sham:stmt:expr (ee e))))]
       [(stmt-for i start end body) (for->while i start end body)]
       [(stmt-block stmts) (sham:stmt:block (map es stmts))]
       [(stmt-assign var val) (sham:stmt:set! (ee var) (ee val))]
       [(stmt-return v) (sham:stmt:return (ee v))]
-      [(stmt-void) (sham:stmt:void)]))
+      [(stmt-void) (sham:stmt:void)]
+      [else (error (format "not expanding stmt: ~a\n" (ps stmt)))]))
 
   (define (mod-fun-info)
     (void))
