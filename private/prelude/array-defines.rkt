@@ -197,7 +197,9 @@
 ;  (pretty-print (map sham-def->sexp defs))
   (define mod
     (sham:module
-
+     (build-info (basic-module-info)
+                 '((ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
+                                (libgsl . ("libgsl"))))))
 
      defs))
 

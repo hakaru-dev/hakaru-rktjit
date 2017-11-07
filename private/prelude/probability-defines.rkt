@@ -119,7 +119,7 @@
                          (sham:expr:app (sham:rator:symbol 'categorical)
                                         (list (sham$var 'arr)))))))
                      (sham:expr:void))))) ;;TODO free arr :P
-  (values (sham:rator:symbol fun-name func)))
+  (values (sham:rator:symbol fun-name) func))
 ;  (values (cons func (array-defs '(array prob))) (sham:rator:symbol fun-name)))
 
 (module+ test

@@ -120,7 +120,7 @@
   (hash-ref! sham-type-ref-hash (sham:def-id sham-type-def)
              (λ () (sham:type:ref (sham:def-id sham-type-def)))))
 (define (get-sham-type-ref-ast type-ast)
-  (get-sham-type-ref (get-sham-type-define type-ast)))
+  (get-sham-type-ref (car (get-sham-type-define type-ast))))
 
 (define (type-remove-pointer t)
   (match t

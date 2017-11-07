@@ -30,24 +30,33 @@
     (set-add! already-seen (sham:def-id def))
     def))
 
-;;returns a list of all defines needed for the type
-(define (get-all-defs-type type-ast)
-  (match type-ast
-    [`(array ,arr-t)
-     (append (array-defs type-ast) (get-all-defs-type arr-t))]
-    [`(pair ,ta ,tb)
-     (append (pair-defs type-ast)
-             (get-all-defs-type ta)
-             (get-all-defs-type tb))]
-    [`(measure ,t) (get-all-defs-type t)]
-    ['nat (list type-nat-def)]
-    ['int (list type-nat-def)]
-    ['prob (list type-prob-def)]
-    ['bool  (list type-bool-def)]
-    ['real (list type-real-def)]
-    ['unit (list type-nat-def)]
-    ['void (list type-void-def)]
-    [else (error "unknown type" type-ast)]))
+;;returns (values type-ref (list type-defs ...))
+(define (get-defs&ref-type type-ast)
+  (define tast (if-need-pointer type-ast))
+  (values
+   (get-sham-type-ref-ast tast)
+   (append
+    (match type-ast
+      [`(array ,arr-t)
+       (define-values (_ odefs) (get-defs&ref-type arr-t))
+       (append (array-defs type-ast) odefs)]
+      [`(pair ,ta ,tb)
+       (define-values (taref tadefs) (get-defs&ref-type ta))
+       (define-values (tbref tbdefs) (get-defs&ref-type tb))
+       (append (pair-defs type-ast)
+               tadefs
+               tbdefs)]
+      [`(measure ,t) (define-values (_ defs) (get-defs&ref-type t)) defs]
+      ['nat (list type-nat-def)]
+      ['int (list type-nat-def)]
+      ['prob (list type-prob-def)]
+      ['bool  (list type-bool-def)]
+      ['real (list type-real-def)]
+      ['unit (list type-nat-def)]
+      ['void (list type-void-def)]
+      [else (error "unknown type" type-ast)])
+    (list (car (get-sham-type-define tast))))))
+
 
 (define (get-type-ref type-def)
   (get-sham-type-ref type-def))
@@ -71,6 +80,9 @@
     ['int (sham:expr:si-value v type-int-ref)]))
 
 (module+ test
-  (map print-sham-def
-     (get-all-defs-type
-      '(array (pair (array prob) (pair real prob))))))
+  (define-values
+    (ref defs)
+    (get-defs&ref-type
+     '(array (pair (array prob) (pair real prob)))))
+  (printf "defs: \n~a\n" (map print-sham-def defs))
+  (printf "ref: ~a\n"(print-sham-type ref)))

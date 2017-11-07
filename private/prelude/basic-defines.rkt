@@ -107,6 +107,15 @@
                               (sham:expr:app (sham:rator:symbol 'prob2real)
                                             (list (sham$var (get-vi vi))))))))))))
 
+(define (build-recip-nat->prob)
+  (sham:def:function
+   (prelude-function-info)
+   'recip-nat->prob
+   (build-list 2 get-vi)
+   (build-list 2 (const type-nat-ref)) type-prob-ref
+   (sham:stmt:return
+    (sham$app nat2prob (sham$app udiv v0 v1)))))
+
 (define (get-basic-rator sym tresult trands)
   (match sym
     [(? simple-rator?) (values (sham:rator:symbol sym) (void))]
@@ -135,6 +144,9 @@
         (values (sham:rator:symbol 'icmp-slt) (void))]
     ['/ #:when (and (andmap tnat? trands) (tnat? tresult))
         (values (sham:rator:symbol 'udiv) (void))]
+    ['/ #:when (and (andmap tnat? trands) (tprob? tresult))
+        (define def (build-recip-nat->prob))
+        (values (sham:rator:symbol (sham:def-id def)) def)]
 
     ['== #:when (andmap tnat? trands)
          (values (sham:rator:symbol 'icmp-eq) (void))]
