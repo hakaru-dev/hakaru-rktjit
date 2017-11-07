@@ -39,6 +39,7 @@
      (append (pair-defs type-ast)
              (get-all-defs-type ta)
              (get-all-defs-type tb))]
+    [`(measure ,t) (get-all-defs-type t)]
     ['nat (list type-nat-def)]
     ['int (list type-nat-def)]
     ['prob (list type-prob-def)]
@@ -53,10 +54,10 @@
 
 (define (get-rator sym tresult trands)
   ((match sym
-     [basic-rator? get-basic-rator]
-     [pair-rator? get-pair-rator]
-     [array-rator? get-array-rator]
-     [probability-rator? get-probability-rator]
+     [(? basic-rator?) get-basic-rator]
+     [(? pair-rator?) get-pair-rator]
+     [(? array-rator?) get-array-rator]
+     [(? probability-rator?) get-probability-rator]
      [else (error "why is this rator not done yet?" sym tresult trands)])
    sym tresult trands))
 
@@ -67,7 +68,7 @@
     ['prob (sham:expr:app (sham:rator:symbol'real2prob)
                           (list (real-value (exact->inexact v))))]
     ['real (real-value (exact->inexact v))]
-    ['int (sham:expr:var 'figuroutint)]))
+    ['int (sham:expr:si-value v type-int-ref)]))
 
 (module+ test
   (map print-sham-def

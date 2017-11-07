@@ -10,7 +10,8 @@
          pair-rator?
          get-pair-rator)
 
-(define (pair-rator? sym) (member sym '(car cdr cons)))
+(define (pair-rator? sym)
+  (member sym '(car cdr cons set-car! set-cdr!)))
 
 (define (get-pair-rator sym tresult trands)
   (values
@@ -21,7 +22,10 @@
         (match sym
           ['car (values pair-car-fun-format (get-type-string (car trands)))]
           ['cdr (values pair-cdr-fun-format (get-type-string (car trands)))]
+          ['set-car! (values pair-set-car-fun-format (get-type-string (car trands)))]
+          ['set-cdr! (values pair-set-cdr-fun-format (get-type-string (car trands)))]
           ['cons (values make-pair-fun-format (get-type-string tresult))]))
+
       format)))
    (void)))
 

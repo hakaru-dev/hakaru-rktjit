@@ -11,7 +11,8 @@
          get-array-rator
          build-array-literal)
 
-(define (array-rator? sym) (member sym '(empty index size)))
+(define (array-rator? sym)
+  (member sym '(empty index size set-index! array-literal)))
 
 (define (get-array-rator sym tresult trands)
   (values
@@ -21,6 +22,7 @@
       (λ ()
         (match sym
           ['index (values get-index-fun-format (get-type-string (car trands)))]
+          ['set-index! (values set-index-fun-format (get-type-string (car trands)))]
           ['size (values get-array-size-fun-format (get-type-string (car trands)))]
           ['empty (values new-size-array-fun-format (get-type-string tresult))]
           [else (values "array?")]))

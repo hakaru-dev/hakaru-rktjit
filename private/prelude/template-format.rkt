@@ -22,6 +22,8 @@
                  function-end-char))
 (define cft create-function-template)
 
+(define reject-fun-format (cft "reject" 1))
+
 ;;pair-funs
 (define make-pair-fun-format (cft "make" 1))
 (define pair-car-fun-format (cft "car" 1))

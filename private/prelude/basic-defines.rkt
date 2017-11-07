@@ -88,15 +88,15 @@
    member
    '(+ * < > / == -
        and not natpow recip root
-       nat2prob nat2real prob2real real2prob
+       nat2prob nat2real prob2real real2prob reject
        int2real nat2int)))
 
 (define (add-prob-sym len)
   (string->symbol (format add-fun-format len 'prob)))
 
 (define (build-add-prob len)
-  (sham:def:function
-   (add-prob-sym len) '() '()
+  (sham:def:function (prelude-function-info)
+   (add-prob-sym len)
    (build-list len get-vi)
    (build-list len (const type-prob-ref)) type-prob-ref
    (sham:stmt:return
@@ -109,6 +109,7 @@
 
 (define (get-basic-rator sym tresult trands)
   (match sym
+    [(? simple-rator?) (values (sham:rator:symbol sym) (void))]
     ['* #:when (and (andmap tprob? trands))
         (values (sham:rator:symbol 'fadd) (void))]
     ['* #:when (and (andmap treal? trands))
@@ -135,6 +136,10 @@
 
     ['== #:when (andmap tnat? trands)
          (values (sham:rator:symbol 'icmp-eq) (void))]
+    ['and #:when (andmap tbool? trands)
+          (values (sham:rator:symbol 'and) (void))]
+    ['not #:when (andmap tbool? trands)
+          (values (sham:rator:symbol 'not) (void))]
     ['natpow
      #:when (and (treal? tresult) (treal? (first trands)) (tnat? (second trands)))
      (values (sham:rator:intrinsic 'llvm.powi.f64 (sham:type:ref 'real)) (void))]
@@ -151,6 +156,12 @@
          ['real 'recip-real]
          ['prob 'recip-prob]))
      (values (sham:rator:symbol (get-recip tresult)) (void))]
+    ['reject
+     (define tr (if-need-pointer tresult))
+     (values (sham:rator:symbol (get-fun-symbol reject-fun-format tr))
+             (sham:def:function (prelude-function-info)
+              (get-fun-symbol reject-fun-format tr) '() '() type-void-ref
+              (sham$return (sham$uiv 0 (sham$tref tr)))))]
 
     [else (error "why is this basic-rator not figured out?"
                   sym tresult trands)]))

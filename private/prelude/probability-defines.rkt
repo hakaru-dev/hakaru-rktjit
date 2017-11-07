@@ -8,22 +8,16 @@
          "utils.rkt")
 
 (provide probability-defs
+         probability-rator?
          get-probability-rator)
+
+(define (probability-rator? sym)
+  (member sym '(uniform normal beta gamma categorical superpose-categorical)))
 
 (define (get-probability-rator sym tresult trands)
   (if (equal? sym 'superpose-categorical)
       (build-superpose-categorical (length trands))
-      (values
-       (sham:rator:symbol
-        (string->symbol
-         (call-with-values
-          (λ ()
-            (match sym
-              ['car (values pair-car-fun-format (get-type-string (car trands)))]
-              ['cdr (values pair-cdr-fun-format (get-type-string (car trands)))]
-              ['cons (values make-pair-fun-format (get-type-string tresult))]))
-          format)))
-       (void))))
+      (values (sham:rator:symbol sym) (void))))
 
 (define (probability-defs)
   (define adefs (append
