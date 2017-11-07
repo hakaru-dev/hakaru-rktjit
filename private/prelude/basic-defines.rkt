@@ -131,6 +131,8 @@
 
     ['< #:when (andmap tnat? trands)
         (values (sham:rator:symbol 'icmp-ult) (void))]
+    ['< #:when (andmap tint? trands)
+        (values (sham:rator:symbol 'icmp-slt) (void))]
     ['/ #:when (and (andmap tnat? trands) (tnat? tresult))
         (values (sham:rator:symbol 'udiv) (void))]
 

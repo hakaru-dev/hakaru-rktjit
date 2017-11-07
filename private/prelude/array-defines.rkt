@@ -82,14 +82,13 @@
         (sham:stmt:void)
         (sham:stmt:expr
          (sham:expr:app
-          (sham:rator:intrinsic 'llvm.memset.i64 (sham:type:ref 'void))
-          (list (sham$app load (get-data-ptr 'apt))
-                (nat-value 0)
-                (sham:expr:app (sham:rator:symbol 'mul-nuw)
-                              (list (sham:expr:sizeof nat)
-                                    (sham$var 'size)))
-                (nat-value 0)
-                (nat-value 1))))
+          (sham:rator:intrinsic 'llvm.memset.p0i8.i64 (sham:type:ref 'void))
+          (list (sham$app ptrcast (sham$app load (get-data-ptr 'apt)) (sham:expr:type (sham:type:pointer
+                                                                                       (sham:type:ref 'i8))))
+                (sham$app intcast (nat-value 0) (sham:expr:type (sham:type:ref 'i8)))
+                (sham$app mul-nuw (sham$app intcast (sham:expr:sizeof nat) (sham$etype i64)) (sham$var 'size))
+                (sham$app intcast (nat-value 0) (sham$etype i32))
+                (sham$app intcast (nat-value 0) (sham$etype i1)))))
         (sham:stmt:return (sham$var 'apt)))))))
 
   (define (get-array-data)
@@ -198,16 +197,16 @@
 ;  (pretty-print (map sham-def->sexp defs))
   (define mod
     (sham:module
-     '((passes . ())
-       (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
-                    (libgsl . ("libgsl")))))
+
+
      defs))
 
   (define cmod (compile-module mod))
-  (jit-dump-module cmod)
-  (jit-optimize-module cmod #:opt-level 3)
-  (printf "verify after optimize: ~a\n" (jit-verify-module cmod))
   ;(jit-dump-module cmod)
+  (jit-optimize-module cmod #:opt-level 3)
+;  (jit-dump-module cmod)
+  (printf "verify after optimize: ~a\n" (jit-verify-module cmod))
+
   (define cjmod (initialize-jit cmod))
   ;(pretty-print cmod)
   (define (get-t t) (jit-get-racket-type (env-lookup t cmod)))

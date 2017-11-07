@@ -93,32 +93,32 @@
   (define fun-name (string->symbol (format "categorical-~a" len)))
   (define func
     (sham:def:function
-     fun-name '() '()
-     (build-list len get-vi)
-     (build-list len (const (sham:type:ref 'prob))) (sham:type:ref 'nat)
+     (prelude-function-info) fun-name
+     (build-list len get-vi) (build-list len (const (sham:type:ref 'prob)))
+     (sham:type:ref 'nat)
      (sham:stmt:expr
       (sham:expr:let (list 'arr)
-                    (list (sham:type:ref 'array<prob>))
-                    (list (sham:expr:app
-                           (sham:rator:symbol
-                            (string->symbol (format new-size-array-fun-format
-                                                    'array<prob>)))
-                           (list (nat-value len))))
-                    (sham:stmt:block
-                     (append
-                      (for/list [(i (in-range len))]
-                        (sham:stmt:expr
-                         (sham:expr:app (sham:rator:symbol)
-                                        (string->symbol (format set-index-fun-format
-                                                                'array<prob>))
-                                       (list (sham$var 'arr)
-                                             (nat-value i)
-                                             (sham$var (get-vi i))))))
-                      (list
-                       (sham:stmt:return
-                        (sham:expr:app (sham:rator:symbol 'categorical)
-                                      (list (sham$var 'arr)))))))
-                    (sham:expr:void))))) ;;TODO free arr :P
+                     (list (sham:type:ref 'array<prob>))
+                     (list (sham:expr:app
+                            (sham:rator:symbol
+                             (string->symbol (format new-size-array-fun-format
+                                                     'array<prob>)))
+                            (list (nat-value len))))
+                     (sham:stmt:block
+                      (append
+                       (for/list [(i (in-range len))]
+                         (sham:stmt:expr
+                          (sham:expr:app (sham:rator:symbol
+                                          (string->symbol (format set-index-fun-format
+                                                                  'array<prob>)))
+                                         (list (sham$var 'arr)
+                                               (nat-value i)
+                                               (sham$var (get-vi i))))))
+                       (list
+                        (sham:stmt:return
+                         (sham:expr:app (sham:rator:symbol 'categorical)
+                                        (list (sham$var 'arr)))))))
+                     (sham:expr:void))))) ;;TODO free arr :P
   (values (sham:rator:symbol fun-name func)))
 ;  (values (cons func (array-defs '(array prob))) (sham:rator:symbol fun-name)))
 
@@ -135,14 +135,16 @@
   ;(pretty-print (map sham-def->sexp defs))
   (define mod
     (sham:module
-     '((passes . ())
-       (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
-                    (libgsl . ("libgsl")))))
+     (build-info (basic-module-info)
+                 '((ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
+                                (libgsl . ("libgsl"))))))
+
      defs))
   (define cmod (compile-module mod))
 
   (jit-optimize-module cmod #:opt-level 3)
   ;(jit-dump-module cmod)
+  (jit-verify-module cmod)
   (define cjmod (initialize-jit cmod))
   ;(pretty-print cmod)
   (define (get-t t) (jit-get-racket-type (env-lookup t cmod)))
