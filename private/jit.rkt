@@ -1,18 +1,10 @@
 #lang racket
 
 (require sham/jit
-         sham/ast)
-
-(require "reduce-curry.rkt"
-         "parse-sexp.rkt"
-         "flatten.rkt"
-         "expand-lc.rkt"
+         sham/ast
          "ast.rkt"
-         "utils.rkt"
-         "simplifications.rkt"
-         "to-stmt.rkt"
-         "removals.rkt"
-         "do-bucket.rkt")
+         "pass.rkt"
+         "utils.rkt")
 
 (provide (all-defined-out))
 
@@ -21,34 +13,23 @@
 
 (define pp-expr (compose pretty-display print-expr))
 (define stop (cons (λ (e) (error 'stop)) pp-expr))
-;(define pp-sham (compose pretty-display sham-ast->sexp))
-(define pp-sham (const #f))
+(define pp-sham (compose pretty-display print-sham-module))
+;(define pp-sham (const #f))
 (define passes
   (list (cons reduce-curry       pretty-display)
-        ;stop
         (cons parse-sexp         pp-expr)
 
-        (cons macro-functions    pp-expr)
-        (cons simplify-match     pp-expr)
+        (cons initial-simplifications   pp-expr)
 
-        (cons mbind->let         pp-expr)
-        (cons remove-array-literals pp-expr)
         (cons flatten-anf        pp-expr)
-
         (cons combine-loops      pp-expr)
-        (cons remove-unit-lets   pp-expr)
-        (cons simplify-lets      pp-expr)
 
-        (cons remove-empty-lets  pp-expr)
-        (cons remove-unused-lets pp-expr)
-        (cons remove-pairs       pp-expr)
-        (cons simplify-lets      pp-expr)
+        (cons later-simplifications     pp-expr)
+        ;stop
         (cons to-stmt            pp-expr)
+        ;(cons cleanup-blocks     pp-expr)
 
-        (cons simplify-set       pp-expr)
-        (cons cleanup            pp-expr)
         (cons expand-to-lc       pp-sham)))
-        ;stop))
 
 (define to-print? (make-parameter (const #t)))
 (define to-not-print? (make-parameter (const #f)))
@@ -83,9 +64,9 @@
   (compile-src src))
 
 (define (debug-src src)
-  (parameterize ([debug-pass #t]
-                 [to-print? (curryr member '(cleanup))]
-                 [to-not-print? (const #t)])
+  (parameterize ([debug-pass #t])
+                 ;[to-print? (curryr member '(cleanup))]
+                 ;[to-not-print? (const #t)])
     (compile-src src)))
 
 (define debug-file  (compose debug-src read-file))
