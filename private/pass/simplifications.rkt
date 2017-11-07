@@ -43,6 +43,7 @@
                (list car-var cdr-var)
                (list (expr-app car-type (expr-intrf 'car) (list tst))
                      (expr-app cdr-type (expr-intrf 'cdr) (list tst)))
+               (stmt-void)
                body))
 
   (define (filter-index pred? lst)
@@ -66,15 +67,15 @@
            (define get-odds (curry filter-index odd?))
            (define get-evens (curry filter-index even?))
            (define var (expr-var 'nat (gensym^ 's) '_))
-           (expr-let t
-                     var
-                     (expr-app 'nat (expr-intrf 'superpose-categorical)
-                               (get-evens args))
-                     (make-switch t (get-odds args) var))]
+           (wrap-expr t var
+                      (expr-app 'nat (expr-intrf 'superpose-categorical)
+                                (get-evens args))
+                      (stmt-void)
+                      (make-switch t (get-odds args) var))]
           [(expr-app t (expr-intrf 'mbind)
                      (list val (expr-bind (expr-var vt var org-sym) body)))
            (dprintf #t "mbind ~a: ~a\n" var (typeof val))
-           (expr-let t (expr-var (typeof val) var org-sym) val body)]
+           (wrap-expr t (expr-var (typeof val) var org-sym) val (stmt-void) body)]
           [(expr-app ta (expr-intrf 'index)
                      (list (expr-app t (expr-intrf 'array-literal) aargs) iarg))
            (define (check-if-remove arr-vals indexer orig-b)
@@ -94,91 +95,112 @@
     (stmt)
     (pat)) e))
 
+(define (clean-expr-lets e)
+  (match e
+    [(expr-lets '() '() '() (stmt-void) e)
+     (clean-expr-lets e)]
+    [(expr-lets (list t) (list var) (list val) (stmt-void) e)
+     #:when (and (expr-var? e) (equal? var e))
+     (printf "cleaned up var as same as body: ~a\n" (pe var))
+     val]
+    [else e]))
 ;;stuff that come up after flatten and combining loops that we can remove or simplify
 ;; this has an env which stores the bindings uptil that expression or statements
 ;; so all the stuff which depends on environment should come here,
 (define (later-simplifications e)
   (define (sl e env)
     (match e
-      [(expr-let t var val body)
-       #:when (equal? (typeof val) 'unit)
-       (dtprintf "removing: ~a as unit\n" (pe var))
-       (sl body env)]
-      [(expr-let t var val body)
-       #:when (and (equal? var body) (not (is-complex? val)))
-       (dtprintf "replacing ~a with ~a\n" (pe var) (pe val))
-       (sl val e)]
-      [(expr-let t v val body)
-       #:when (expr-var? val)
-       (dprintf #t "replacing: ~a with ~a\n" (print-expr v) (print-expr val))
-       (sl body (hash-set env v val))]
-      [(expr-let t var val body)
-       (sl (expr-lets (list t) (list var) (list val) body) env)]
+      [(expr-lets ts vars vals stmt body)
 
-      [(expr-lets ts vars vals body)
-       (define bffv (find-free-variables body))
+       (define bffv (set-union (find-free-variables body) (find-free-variables stmt)))
        (define-values (nts nvars nvals ne)
          (for/fold ([nts '()] [nvars '()] [nvals '()] [e env])
                    ([t ts] [var vars] [val vals])
-           (if (or (expr-var? val) (set-member? bffv var))
-               (begin
-                 (dprintf #t "replacing: ~a with ~a\n"
-                          (print-expr var) (print-expr val))
-                 (values nts nvars nvals (hash-set e var val)))
-               (values (cons t nts) (cons var nvars) (cons (sl val e) nvals) e))))
-       (expr-lets nts nvars nvals (sl body ne))]
+           (define nv (sl val e))
+           (cond
+             [(not (set-member? bffv var))
+              (dtprintf "removing var not in free variables: ~a\n~a\n" (pe var) (map pe (set->list bffv)))
+              (values nts nvars nvals e)]
+             [(and (expr-var? nv) (not (is-mutable-var? var)))
+              (dtprintf "var is expr and not mutable so replacing: ~a <- ~a\n" (pe var) (pe val))
+              (values nts nvars nvals (hash-set e var nv))]
+             [else (dtprintf "not doing anything for var: ~a, sm: ~a, ev?: ~a, mv?: ~a\n"
+                           (pe var) (set-member? bffv var) (expr-var? nv) (is-mutable-var? var))
+                   (values (cons t nts) (cons var nvars) (cons nv nvals) e)])))
+       (clean-expr-lets
+        (expr-lets nts nvars nvals (sl stmt ne) (sl body ne)))]
+      [(expr-if t tst thn els)
+       (expr-if t (sl tst env)
+                (sl thn env)
+                (sl els env))]
+      [(expr-app t rator rands)
+       (expr-app t rator (map (curryr sl env) rands))]
 
+
+      [(stmt-for i start end b)
+       (stmt-for i (sl start env)
+                 (sl end env)
+                 (sl b env))]
+      [(stmt-expr s e)
+       (stmt-expr (sl s env) (sl e env))]
+      [(stmt-block stmts)
+       (stmt-block (map (curryr sl env) stmts))]
+      [(stmt-void) (stmt-void)]
+      [(stmt-if tst thn els)
+       (stmt-if (sl tst env)
+                (sl thn env)
+                (sl els env))]
+      [(stmt-assign lhs rhs)
+       #:when (expr-app? lhs)
+       (sl
+        (stmt-expr
+         (stmt-void)
+         (match lhs
+           [(expr-app t (expr-intrf 'car) args)
+            (expr-app 'void (expr-intrf 'set-car!) (append args (list rhs)))]
+           [(expr-app t (expr-intrf 'cdr) args)
+            (expr-app 'void (expr-intrf 'set-cdr!) (append args (list rhs)))]
+           [(expr-app t (expr-intrf 'index) args)
+            (expr-app 'void (expr-intrf 'set-index!) (append args (list rhs)))]))
+        env)]
       [v #:when (hash-has-key? env v)
          (dprintf #t "\treplaced: ~a with ~a\n"
                   (print-expr v) (print-expr (hash-ref env v)))
          (hash-ref env v)]
+      [v #:when (or (expr-var? v) (expr-val? v)) v]
 
-      [(stmt-elets vars vals bstmt)
-       (define-values (nvars nvals ne)
-         (for/fold ([nvars '()] [nvals '()] [e env])
-                   ([var vars] [val vals])
-           (dprintf (expr-var? val)
-                    "replacing: ~a with ~a\n" (print-expr var) (print-expr val))
-           (if (expr-var? val)
-               (values nvars nvals (hash-set e var val))
-               (values (cons var nvars) (cons (sl val e) nvals) e))))
-       (if (empty? nvars)
-           (sl bstmt ne)
-           (stmt-elets nvars nvals (sl bstmt ne)))];;TODO make sure we are not inlining mutable vars
+      ;; [(expr-app t (expr-intrf s) rands)
+      ;;  #:when (and (member s '(car cdr))
+      ;;              (expr-var? (first rands)))
+      ;;  ;;removing cars and cdrs if we have already
+      ;;  ;; removed them while doing bucket
+      ;;  (define var-to-check
+      ;;    (expr-var t
+      ;;              (symbol-append (expr-var-sym (first rands))
+      ;;                             (if (equal? s 'car) 'a 'b))
+      ;;              '_))
+      ;;  (if (hash-has-key? env var-to-check) var-to-check e)]
 
-      [(expr-app t (expr-intrf s) rands)
-       #:when (and (member s '(car cdr))
-                   (expr-var? (first rands)))
-       ;;removing cars and cdrs if we have already
-       ;; removed them while doing bucket
-       (define var-to-check
-         (expr-var t
-                   (symbol-append (expr-var-sym (first rands))
-                                  (if (equal? s 'car) 'a 'b))
-                   '_))
-       (if (hash-has-key? env var-to-check) var-to-check e)]
+
       [(stmt-assign lhs rhs)
-       #:when (expr-app? lhs)
-       (stmt-elets
-        (list (expr-var 'void '_ '_))
-        (list (match lhs
-                [(expr-app t (expr-intrf 'car) args)
-                 (expr-app 'void (expr-intrf 'set-car!) (append args (list rhs)))]
-                [(expr-app t (expr-intrf 'cdr) args)
-                 (expr-app 'void (expr-intrf 'set-cdr!) (append args (list rhs)))]
-                [(expr-app t (expr-intrf 'index) args)
-                 (expr-app 'void (expr-intrf 'set-index!) (append args (list rhs)))]))
-        (stmt-void))]
-      [(stmt-assign lhs rhs)
-       #:when (expr-var? lhs)
-       (expr->stmt rhs (curry stmt-assign lhs))]
-      [(? expr?)
-       (define fsl (curryr sl env))
-       (map-expr fsl identity fsl identity e)]
-      [(? stmt?)
-       (define fsl (curryr sl env))
-       (map-stmt fsl identity fsl identity e)]))
-  (sl e (make-immutable-hash)))
+       (stmt-assign lhs (sl rhs env))]
+      ;; #:when (expr-var? lhs)
+      ;; (sl (expr->stmt rhs (curry stmt-assign lhs)) env)]
+      [(? stmt?) (error "stmt not done: ~a\n" (ps e))]
+      [(? expr?) (error "expr not done: ~a\n" (pe e))]
+      [else (error 'notdone)]))
+
+  ;      [(stmt-expr s e)]))
+  ;; [(? expr?)
+  ;;  (define fsl (curryr sl env))
+  ;;  (map-expr fsl identity fsl identity e)]
+  ;; [(? stmt?)
+  ;;  (define fsl (curryr sl env))
+  ;;  (map-stmt fsl identity fsl identity e)]
+  (match e
+    [(expr-mod (expr-fun args ret-type body) '())
+     (expr-mod (expr-fun args ret-type (sl body (make-immutable-hash))) '())]))
+
 
 ;; Converts body of functions to statements, if expressions
 (define (to-stmt m)
@@ -211,15 +233,12 @@
            (car ns)
            (stmt-block ns))]
       [else s]))
-  (define pass
-    (create-rpass
-     (expr
-      [(expr-lets _ '() _ b) b]
-      [(expr-block t (stmt-void) e) e]
-      [(expr-block t (stmt-block '()) e) e])
-     (reducer)
-     (stmt
-      [(stmt-block '()) (stmt-void)]
-      [(stmt-block stmts) (merge-stmt-block (stmt-block stmts))])
-     (pat)))
-  (pass e))
+  ((create-rpass
+    (expr
+     [(expr-lets _ '() _ (stmt-void) b) b])
+    (reducer)
+    (stmt
+     [(stmt-block '()) (stmt-void)]
+     [(stmt-block stmts) (merge-stmt-block (stmt-block stmts))])
+
+    (pat)) e))

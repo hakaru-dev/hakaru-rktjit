@@ -151,6 +151,7 @@
             (expr-lets (map (λ (ef) (typeof (efv-expr ef))) efvs)
                        (map (λ (ef) (efv-var ef)) efvs)
                        (map (λ (ef) (efv-expr ef)) efvs)
+                       (stmt-void)
                        e))))))
 
 (define (combine-ufb u)
@@ -172,11 +173,8 @@
   ;expr -> ufb
   (define (uf body)
     (match body
-      [(expr-let type var val b)
-       (define nb (get-ufb-without (uf b) var))
-       (define-values (nval nefvp) (check-and-add val (ufb-efvp nb)))
-       (ufb (expr-let type var nval (ufb-expr nb)) nefvp)]
-      [(expr-lets type vars vals b)
+      [(expr-lets type vars vals (stmt-void) b)
+       ;;most of the lets at this point should only have void stmts
        (define nb (apply (curry get-ufb-without (uf b)) vars))
        (define-values (nvals nefvp)
          (for/fold ([nvals '()]
@@ -184,7 +182,7 @@
                    ([v vals])
            (define-values (nv nefv) (check-and-add v efv))
            (values (cons nv nvals) (append nefv efv))))
-       (ufb (expr-lets type vars nvals (ufb-expr nb)) nefvp)]
+       (ufb (expr-lets type vars nvals (stmt-void) (ufb-expr nb)) nefvp)]
       [(expr-sum t i start end b)
        (define es (new-var t (gensym^ 'sm)))
        (define nb (get-ufb-without (uf b) i))

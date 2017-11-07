@@ -443,6 +443,7 @@
      ;(or (is-complex? tst) (is-complex? thn) (is-complex? els))]
     [(expr-app _ rt rds)
      (ormap is-complex? rds)]
+    [(stmt-void) #f]
     [(expr-var _ _ _)
      #f]
     [(expr-val _ _)
@@ -451,9 +452,11 @@
 (define (find-free-variables expr)
   (define ffv^ find-free-variables)
   (match expr
-;    [(expr-let t s val b) (set-union (ffv^ val) (set-remove (ffv^ b) s))]
     [(expr-lets ts vars vals s b)
-     (set-subtract (apply set-union (append (list (ffv^ s) (ffv^ b)) (map ffv^ vals)))
+     (define total-free-vars
+       (set-union (ffv^ s) (ffv^ b)
+                  (if (empty? vals) (set) (apply set-union (map ffv^ vals)))))
+     (set-subtract total-free-vars
                    (apply set vars))]
     [(expr-sum t i start end b)
      (set-union (ffv^ start) (ffv^ end) (set-remove (ffv^ b) i))]
@@ -469,9 +472,7 @@
     [(expr-if t tst thn els) (set-union (ffv^ tst) (ffv^ thn) (ffv^ els))]
     [(expr-app t rator rands)
      (apply set-union (cons (ffv^ rator) (map ffv^ rands)))]
-    ;; [(expr-block t st bd) (set-union (ffv^ st) (ffv^ bd))]
     [(expr-val t v) (set)]
-    ;; [(expr-intr sym) (set)]
     [(expr-intrf sym) (set)]
     [(expr-var t s o) (set expr)]
     [(expr-bind s e) (set-remove (ffv^ e) s)]
@@ -485,10 +486,6 @@
     [(stmt-if tst thn els) (set-union (ffv^ tst) (ffv^ thn) (ffv^ els))]
     [(stmt-for i start end body)
      (set-union (ffv^ start) (ffv^ end) (set-remove (ffv^ body) i))]
-    ;; [(stmt-lets vars bstmt)
-    ;;  (set-subtract (ffv^ bstmt) (apply set vars))]
-    ;; [(stmt-elets vars vals stmt)
-    ;;  (set-subtract (ffv^ stmt) (apply set vars))]
     [(stmt-block stmts)
      (if (empty? stmts)
          (set)
@@ -496,4 +493,5 @@
     [(stmt-expr s e)
      (set-union (ffv^ s) (ffv^ e))]
     [(stmt-void) (set)]
-    [(stmt-assign to val) (set-union (ffv^ to) (ffv^ val))]))
+    [(stmt-assign to val)
+     (set-union (ffv^ to) (ffv^ val))]))
