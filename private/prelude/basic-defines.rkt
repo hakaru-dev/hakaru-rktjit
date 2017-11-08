@@ -49,6 +49,12 @@
     (sham$return (sham$var v)))
 
    (sham$define
+    ;; as in logfloatprelude of haskell this is implemented as id and is unsafe
+    ;; the same is done here assuming the int is never going to be negative.
+    (int2nat (v int) nat)
+    (sham$return (sham$var v)))
+
+   (sham$define
     (int2real (v int) real)
     (sham$return
      (sham$app si->fp v (sham$etype real))))
@@ -64,8 +70,8 @@
    (sham$define
     (recip-nat (v nat) real)
     (sham$return (sham$app fdiv (real-value 1.0)
-                      (sham$app ui->fp v
-                                (sham$etype real)))))
+                           (sham$app ui->fp v
+                                     (sham$etype real)))))
    (sham$define
     (recip-real (v real) real)
     (sham$return (sham$app fdiv (real-value 1.0)  v)))
@@ -76,20 +82,31 @@
 
    (sham$define
     (root-prob-nat (v prob) (v2 nat) prob)
-    (sham$return (sham$app fmul v (sham$app recip-nat v2))))))
+    (sham$return (sham$app fmul v (sham$app recip-nat v2))))
+
+   (sham$define
+    (exp-real2prob (v real) prob)
+    (sham$return (sham$var v)))
+
+   (sham$define
+    (fdiv-nat (v1 nat) (v2 nat) real)
+    (sham$return (sham$app fdiv
+                           (sham$app ui->fp v1 (sham$etype real))
+                           (sham$app ui->fp v2 (sham$etype real)))))
+
+   (sham$define
+    (natpow (v real) (p nat) real)
+    (sham$return (sham$app (llvm.powi.f64 real) v (sham$app intcast p (sham$etype i32)))))))
 
 
-(define simple-rator?
-  (curryr
-   member
-   '(natpow root nat2prob nat2real prob2real real2prob int2real nat2int)))
-(define basic-rator?
-  (curryr
-   member
-   '(+ * < > / == -
-       and not natpow recip root
-       nat2prob nat2real prob2real real2prob reject
-       int2real nat2int)))
+(define simple-rators '(natpow nat2prob nat2real prob2real real2prob int2real nat2int int2nat))
+(define simple-rator? (curryr member simple-rators))
+
+(define basic-rators
+  (append simple-rators
+          '(+ * < > / == - exp and not recip root reject)))
+
+(define basic-rator? (curryr member basic-rators))
 
 (define (add-prob-sym len)
   (string->symbol (format add-fun-format len 'prob)))
@@ -116,7 +133,9 @@
    (sham:stmt:return
     (sham$app nat2prob (sham$app udiv v0 v1)))))
 
-(define (get-basic-rator sym tresult trands)
+(define (get-basic-rator sym trslt trnds)
+  (define tresult (if-need-pointer trslt))
+  (define trands (map if-need-pointer trnds))
   (match sym
     [(? simple-rator?) (values (sham:rator:symbol sym) (void))]
     ['* #:when (and (andmap tprob? trands))
@@ -144,11 +163,13 @@
         (values (sham:rator:symbol 'icmp-slt) (void))]
     ['/ #:when (and (andmap tnat? trands) (tnat? tresult))
         (values (sham:rator:symbol 'udiv) (void))]
+    ['/ #:when (and (andmap tnat? trands) (treal? tresult))
+        (values (sham:rator:symbol 'fdiv-nat) (void))]
     ['/ #:when (and (andmap tnat? trands) (tprob? tresult))
         (define def (build-recip-nat->prob))
         (values (sham:rator:symbol (sham:def-id def)) def)]
 
-    ['== #:when (andmap tnat? trands)
+    ['== #:when (tbool? tresult)
          (values (sham:rator:symbol 'icmp-eq) (void))]
     ['and #:when (andmap tbool? trands)
           (values (sham:rator:symbol 'and) (void))]
@@ -163,6 +184,11 @@
                  (tprob? (first trands))
                  (tnat? (second trands)))
      (values (sham:rator:symbol 'root-prob-nat) (void))]
+    ['exp
+     #:when (and (tprob? tresult)
+                 (equal? (length trands) 1)
+                 (treal? (first trands)))
+     (values (sham:rator:symbol 'exp-real2prob) (void))]
     ['recip
      (define (get-recip type)
        (match type
@@ -174,11 +200,11 @@
      (define tr (if-need-pointer tresult))
      (values (sham:rator:symbol (get-fun-symbol reject-fun-format tr))
              (sham:def:function (prelude-function-info)
-              (get-fun-symbol reject-fun-format tr) '() '() type-void-ref
+              (get-fun-symbol reject-fun-format tr) '() '() (sham:type:ref tresult)
               (sham$return (sham$uiv 0 (sham$tref tr)))))]
 
     [else (error "why is this basic-rator not figured out?"
-                  sym tresult trands)]))
+                  sym tresult trands trslt trnds)]))
 
 
 (define (basic-mod-info)
@@ -188,17 +214,17 @@
 (module+ test
   (require rackunit)
   (require "../../utils.rkt")
-  (define mod (sham:module
-               '((passes . ())
-                 (ffi-libs . ()))
-               (basic-defs)))
+  (define mod
+    (sham:module
+     (void)
+     (basic-defs)))
   ;(pretty-print (sham-ast->sexp mod))
   (define bmod (compile-module mod))
 
   (jit-optimize-module bmod #:opt-level 3)
   (define benv (initialize-jit bmod))
   (jit-dump-module benv)
-
+  (jit-verify-module benv)
   (define (get-t t) (jit-get-racket-type (env-lookup t benv)))
   (define (get-f f) (jit-get-function f benv))
 

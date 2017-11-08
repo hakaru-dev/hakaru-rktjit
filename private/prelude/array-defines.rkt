@@ -15,19 +15,24 @@
   (member sym '(empty index size set-index! array-literal)))
 
 (define (get-array-rator sym tresult trands)
-  (values
-   (sham:rator:symbol
-    (string->symbol
-     (call-with-values
-      (λ ()
-        (match sym
-          ['index (values get-index-fun-format (get-type-string (car trands)))]
-          ['set-index! (values set-index-fun-format (get-type-string (car trands)))]
-          ['size (values get-array-size-fun-format (get-type-string (car trands)))]
-          ['empty (values new-size-array-fun-format (get-type-string tresult))]
-          [else (values "array?")]))
-      format)))
-   (void)))
+  (if (equal? sym 'array-literal)
+      (values (sham:rator:symbol (get-fun-symbol array-literal-fun-format (length trands) (get-type-string tresult)))
+              (build-array-literal (car trands) (length trands)))
+      (values
+       (sham:rator:symbol
+        (string->symbol
+         (call-with-values
+          (λ ()
+            (match sym
+              ['index (values get-index-fun-format (get-type-string (car trands)))]
+              ['set-index! (values set-index-fun-format (get-type-string (car trands)))]
+              ['size (values get-array-size-fun-format (get-type-string (car trands)))]
+              ['empty (values new-size-array-fun-format (get-type-string tresult))]
+              [else
+               (error "why is this array rator not done yet?" sym tresult trands)
+               (values "array?")]))
+          format)))
+       (void))))
 
 (define (get-array-data-type type)
   (match type
@@ -152,8 +157,7 @@
     (set-index))))
 
 (define (build-array-literal type len)
-  (printf "building array literal for type: ~a\n" type)
-  (define type-sym (get-type-sym type))
+   (define type-sym (get-type-sym type))
   (define type-ref (sham:type:ref type-sym))
   (define array-sym (get-type-sym `(array ,type)))
   (define array-ref (sham:type:ref array-sym))
@@ -175,10 +179,8 @@
      (append (build-list len
                          (λ (i)
                            (sham:stmt:expr
-                            (sham:expr:app (sham:rator:symbol)
-                                           (string->symbol
-                                            (format set-index-fun-format array-sym))
-                                          (list (sham$var 'arl) (sham$var (get-vi i)))))))
+                            (sham:expr:app (sham:rator:symbol (get-fun-symbol set-index-fun-format array-sym))
+                                           (list (sham$var 'arl) (nat-value i) (sham$var (get-vi i)))))))
              (list (sham:stmt:return (sham$var 'arl))))))))
 
 (module+ test

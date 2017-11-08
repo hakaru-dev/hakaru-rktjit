@@ -86,7 +86,7 @@
                                                        (list (sham$var 'b)))))))))
 
     (sham$define ;;TODO implement categorical using gsl_ran_discrete
-     (categorical (prelude-function-info) (arr (sham:type:ref 'array<prob>)) tnat)
+     (categorical (prelude-function-info) (arr (sham:type:ref 'array<prob>*)) tnat)
      (sham:stmt:return (nat-value 0))))))
 
 (define (build-superpose-categorical len) ;;TODO we can probably optimize len two with binomial
@@ -98,7 +98,7 @@
      (sham:type:ref 'nat)
      (sham:stmt:expr
       (sham:expr:let (list 'arr)
-                     (list (sham:type:ref 'array<prob>))
+                     (list (sham:type:ref 'array<prob>*))
                      (list (sham:expr:app
                             (sham:rator:symbol
                              (string->symbol (format new-size-array-fun-format
