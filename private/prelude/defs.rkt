@@ -77,7 +77,9 @@
     ['prob (sham:expr:app (sham:rator:symbol'real2prob)
                           (list (real-value (exact->inexact v))))]
     ['real (real-value (exact->inexact v))]
-    ['int (sham:expr:si-value v type-int-ref)]))
+    ['int (sham:expr:si-value v type-int-ref)]
+    ['bool (sham:expr:ui-value v type-bool-ref)]
+    [`(measure ,t) (get-value v t)]))
 
 (module+ test
   (define-values
