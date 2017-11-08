@@ -54,9 +54,9 @@
       (sham:stmt:while
        (ee (expr-app 'i1 (expr-intrf '<) (list index end)))
        (sham:stmt:block
-        (list(es body)
-             (es (stmt-assign index (expr-app (typeof index) (expr-intrf '+)
-                                              (list index (expr-val (typeof index) 1))))))))
+        (list (es body)
+              (es (stmt-assign index (expr-app (typeof index) (expr-intrf '+)
+                                               (list index (expr-val (typeof index) 1))))))))
       (sham:expr:void))))
 
   (define (es stmt)
@@ -73,26 +73,26 @@
       [(stmt-void) (sham:stmt:void)]
       [else (error (format "not expanding stmt: ~a\n" (ps stmt)))]))
 
-  (define (mod-fun-info)
-    (void))
-  (define (mod-info)
-    (void))
-  (define (expand-fun p)
+  (define (mod-fun-info) (void)) ;;TODO
+  (define (mod-info) (void))
 
-    (match (cdr p)
+  (define (expand-fun fp)
+    (define fname (car fp))
+    (match (cdr fp)
       [(expr-fun args ret-type b)
-       (dprintf #t "expanding function: ~a, arg-types: ~a, ret-type: ~a\n" (car p)(map expr-var-type args) ret-type)
+       (dtprintf "expanding-function: ~a\n\targ-types: ~a, ret-type: ~a\n"
+                 fname (map expr-var-type args) ret-type)
        (sham:def:function
-        (mod-fun-info) (car p)
+        (mod-fun-info) fname
         (map expr-var-sym args) (map (compose get&add-type expr-var-type) args)
         (get&add-type ret-type)
         (es b))]))
+
   (define prog (expand-fun (cons 'prog (expr-mod-main mod))))
 
   (sham:module
-   (build-info (void)
+   (build-info (void) ;;TODO move this info to defs somewhere
                '((ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
                               (libgsl . ("libgsl"))))))
    (append (cleanup-defs (get-defs-prelude prl))
-           (cons prog
-                 (map expand-fun (expr-mod-fns mod))))))
+           (cons prog (map expand-fun (expr-mod-fns mod))))))
