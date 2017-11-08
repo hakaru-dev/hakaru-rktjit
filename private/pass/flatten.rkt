@@ -179,7 +179,7 @@
        (define-values (nvals nefvp)
          (for/fold ([nvals '()]
                     [efv (ufb-efvp nb)])
-                   ([v vals])
+                   ([v (reverse vals)])
            (define-values (nv nefv) (check-and-add v efv))
            (values (cons nv nvals) (append nefv efv))))
        (ufb (expr-lets type vars nvals (stmt-void) (ufb-expr nb)) nefvp)]
