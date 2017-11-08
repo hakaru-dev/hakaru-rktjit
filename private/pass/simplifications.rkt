@@ -5,7 +5,6 @@
 
 (provide initial-simplifications
          later-simplifications
-
          to-stmt
          cleanup-blocks)
 
@@ -24,45 +23,57 @@
                  (pat-var? (pat-pair-a (expr-branch-pat (car brs))))
                  (pat-var? (pat-pair-b (expr-branch-pat (car brs)))))
       (error "matching over pair with multiple branches or complex pattern." brs))
-    ;;TODO cleanup this shit
-    (define car-type (cadr (typeof tst)))
-    (define cdr-type (caddr (typeof tst)))
-    (define car-bind (expr-branch-body (car brs)))
-    (define cdr-bind (expr-bind-body car-bind))
-    (define body (expr-bind-body cdr-bind))
-    (define car-var (expr-bind-var car-bind))
-    (define cdr-var (expr-bind-var cdr-bind))
-    (dprintf #t "setting type of ~a to ~a\n" (print-expr car-var) car-type)
+    (printf "\n\nextract-pair: t: ~a, tst: ~a : ~a, \nbrs: ~a\n" t (pe tst) (typeof tst) (map pe brs))
+    (define-values (car-type cdr-type)
+      (match (typeof tst)
+        [`(pair ,ta ,tb) (values ta tb)]))
+    (define-values (car-var cdr-var body)
+      (match (car brs)
+        [(expr-branch _ (expr-bind av (expr-bind bv b)))
+         (values av bv b)]))
+
     (set-expr-var-type! car-var car-type)
-    (dprintf #t "setting type of ~a to ~a\n" (print-expr cdr-var) cdr-type)
     (set-expr-var-type! cdr-var cdr-type)
 
-    (dprintf #t "match-pair: at: ~a, bt: ~a\n"
-             car-type cdr-type)
-    (expr-lets (list car-type cdr-type)
-               (list car-var cdr-var)
-               (list (expr-app car-type (expr-intrf 'car) (list tst))
-                     (expr-app cdr-type (expr-intrf 'cdr) (list tst)))
-               (stmt-void)
-               body))
+    (dtprintf "\t ~a\t: ~a\n" (print-expr car-var) car-type)
+    (dtprintf "\t ~a\t: ~a\n" (print-expr cdr-var) cdr-type)
+    (dtprintf "\t body\t: ~a\n" (pe body))
+
+    (if (expr-var? body)
+        (match body
+          [(expr-var t sym o)
+           #:when (equal? sym (expr-var-sym car-var))
+           (expr-app car-type (expr-intrf 'car) (list tst))]
+          [(expr-var t sym o)
+           #:when (equal? sym (expr-var-sym cdr-var))
+           (expr-app cdr-type (expr-intrf 'cdr) (list tst))])
+        (let ([car-val (expr-app car-type (expr-intrf 'car) (list tst))]
+              [cdr-val (expr-app cdr-type (expr-intrf 'cdr) (list tst))])
+          (dtprintf "types: car: ~a, cdr: ~a\n" (typeof car-val) (typeof cdr-val))
+          (expr-lets
+           (list car-type cdr-type)
+           (list car-var cdr-var)
+           (list car-val cdr-val)
+           (stmt-void)
+           body))))
 
   (define (filter-index pred? lst)
     (for/list ([i (in-range (length lst))]
                [v lst]
                #:when (pred? i))
       v))
-  (define (make-switch t lst v)
-    (for/fold ([b (expr-val 'nat 0)])
+  (define (make-switch t lst v) ;;TODO actual switch maybe? :P
+    (for/fold ([b (expr-val t 0)])
               ([e lst]
                [i (in-range (length lst))])
-      (expr-if t (expr-app 'nat (expr-intrf '==) (list v (expr-val 'nat i))) e b)))
+      (expr-if t (expr-app 'bool (expr-intrf '==) (list v (expr-val t i))) e b)))
   ((create-rpass
     (expr [(expr-app t (expr-intrf 'empty) '())
            (expr-app t (expr-intrf 'empty) (list (expr-val 'nat 0)))]
-          [(expr-app t (expr-intrf 'dirac) (list val))
-           val]
-          [(expr-app t (expr-intrf 'pose) (list arg1 arg2))
-           arg2]
+
+          [(expr-app t (expr-intrf 'dirac) (list val)) val]
+          [(expr-app t (expr-intrf 'pose) (list arg1 arg2)) arg2]
+
           [(expr-app t (expr-intrf 'superpose) args)
            (define get-odds (curry filter-index odd?))
            (define get-evens (curry filter-index even?))
@@ -72,10 +83,12 @@
                                 (get-evens args))
                       (stmt-void)
                       (make-switch t (get-odds args) var))]
+
           [(expr-app t (expr-intrf 'mbind)
                      (list val (expr-bind (expr-var vt var org-sym) body)))
-           (dprintf #t "mbind ~a: ~a\n" var (typeof val))
+           (dprintf #t "mbind: ~a : ~a\n" var (typeof val))
            (wrap-expr t (expr-var (typeof val) var org-sym) val (stmt-void) body)]
+
           [(expr-app ta (expr-intrf 'index)
                      (list (expr-app t (expr-intrf 'array-literal) aargs) iarg))
            (define (check-if-remove arr-vals indexer orig-b)
@@ -89,46 +102,55 @@
              (expr-app ta (expr-intrf 'index)
                        (list (expr-app t (expr-intrf 'array-literal) aargs) iarg)))
            (if (< (length aargs) 5) (check-if-remove aargs iarg ab) ab)]
+
           [(expr-match t tst brs)
            (if (eq? (typeof tst) 'bool) (toif t tst brs) (extract-pair t tst brs))])
+
     (reducer)
     (stmt)
     (pat)) e))
 
-(define (clean-expr-lets e)
-  (match e
-    [(expr-lets '() '() '() (stmt-void) e)
-     (clean-expr-lets e)]
-    [(expr-lets (list t) (list var) (list val) (stmt-void) e)
-     #:when (and (expr-var? e) (equal? var e))
-     (printf "cleaned up var as same as body: ~a\n" (pe var))
-     val]
-    [else e]))
 ;;stuff that come up after flatten and combining loops that we can remove or simplify
 ;; this has an env which stores the bindings uptil that expression or statements
 ;; so all the stuff which depends on environment should come here,
 (define (later-simplifications e)
+  (define (clean-expr-lets e)
+    (match e
+      [(expr-lets '() '() '() (stmt-void) e)
+       (clean-expr-lets e)]
+      [(expr-lets (list t) (list var) (list val) (stmt-void) e)
+       #:when (and (expr-var? e) (equal? var e))
+       (dprintf (not (equal? (typeof val) (typeof e)))
+                "was cleaning up var but got weird types: \n\tvar ~a:~a, \n\tval ~a:~a, \n\tbody ~a:~a\n\n"
+                (pe var) (typeof var) (pe val) (typeof val) (pe e) (typeof e))
+       val]
+      [else e]))
+
   (define (sl e env)
     (match e
       [(expr-lets ts vars vals stmt body)
 
        (define bffv (set-union (find-free-variables body) (find-free-variables stmt)))
+       (dprintf (and  (not (empty? vars))
+                      (ormap (λ (var val) (not (equal? (typeof var) (typeof val)))) vars vals))
+                "simplifying-expr-lets: (types incorrect): ~a\n"
+                (pretty-format (map list (map pe vars) ts (map typeof vars) (map typeof vals))))
+
        (define-values (nts nvars nvals ne)
          (for/fold ([nts '()] [nvars '()] [nvals '()] [e env])
                    ([t ts] [var vars] [val vals])
            (define nv (sl val e))
            (cond
              [(not (set-member? bffv var))
-              (dtprintf "removing var not in free variables: ~a\n~a\n" (pe var) (map pe (set->list bffv)))
+              (dtprintf "removing: ~a as fvars~a\n" (pe var) (map pe (set->list bffv)))
               (values nts nvars nvals e)]
              [(and (expr-var? nv) (not (is-mutable-var? var)))
-              (dtprintf "var is expr and not mutable so replacing: ~a <- ~a\n" (pe var) (pe val))
+              (dtprintf "replacing-immutable: ~a <- ~a\n" (pe var) (pe val))
               (values nts nvars nvals (hash-set e var nv))]
-             [else (dtprintf "not doing anything for var: ~a, sm: ~a, ev?: ~a, mv?: ~a\n"
-                           (pe var) (set-member? bffv var) (expr-var? nv) (is-mutable-var? var))
-                   (values (cons t nts) (cons var nvars) (cons nv nvals) e)])))
+             [else (values (cons t nts) (cons var nvars) (cons nv nvals) e)])))
        (clean-expr-lets
         (expr-lets nts nvars nvals (sl stmt ne) (sl body ne)))]
+
       [(expr-if t tst thn els)
        (expr-if t (sl tst env)
                 (sl thn env)
@@ -164,8 +186,9 @@
             (expr-app 'void (expr-intrf 'set-index!) (append args (list rhs)))]))
         env)]
       [v #:when (hash-has-key? env v)
-         (dprintf #t "\treplaced: ~a with ~a\n"
-                  (print-expr v) (print-expr (hash-ref env v)))
+         (dprintf (not (equal? (typeof v) (typeof (hash-ref env v))))
+                  "\treplaced: ~a:~a with ~a:~a\n"
+                  (print-expr v) (typeof v) (print-expr (hash-ref env v)) (typeof (hash-ref env v)))
          (hash-ref env v)]
       [v #:when (or (expr-var? v) (expr-val? v)) v]
 
@@ -190,13 +213,6 @@
       [(? expr?) (error "expr not done: ~a\n" (pe e))]
       [else (error 'notdone)]))
 
-  ;      [(stmt-expr s e)]))
-  ;; [(? expr?)
-  ;;  (define fsl (curryr sl env))
-  ;;  (map-expr fsl identity fsl identity e)]
-  ;; [(? stmt?)
-  ;;  (define fsl (curryr sl env))
-  ;;  (map-stmt fsl identity fsl identity e)]
   (match e
     [(expr-mod (expr-fun args ret-type body) '())
      (expr-mod (expr-fun args ret-type (sl body (make-immutable-hash))) '())]))
