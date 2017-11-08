@@ -12,7 +12,7 @@
 ;;disabling removing cons as a part of bucket
 ; until we can fix the later simplifications to do the same
 (define (get-init binds result t reducer)
-  (dtprintf "get-init: result: ~a, t: ~a\n" (pe result) t)
+  ;(dtprintf "get-init: result: ~a, t: ~a\n" (pe result) t)
   ;; (printf "\t binds: \n")(pretty-display (map pe binds))(newline)
   ;; (printf "\t reducer: \n")(pretty-display (pr reducer))(newline)
   (match* (t reducer)
@@ -178,6 +178,7 @@
 
         (match body
           [(expr-bucket t start end reducer)
+           (dtprintf "bucket: ~a : ~a\n" (pe var) t)
            (define-values (nt v l) (get-init '() var t reducer))
            (values (append nt ntypes)
                    (append (map set-mutable-var v) nvars)
@@ -202,13 +203,21 @@
   (or (expr-bucket? expr) (expr-sum? expr) (expr-prd? expr) (expr-arr? expr)))
 
 (define (wrap-body-for-normals nvm body)
-  (wrap-expr (map third nvm) (map first nvm) (map second nvm) (stmt-void) body))
+  (define-values (types vars vals)
+    (values (map third nvm) (map first nvm) (map second nvm)))
+  (dprintf (not (empty? nvm))
+           "wrapping-normals: ~a\n"
+           (map list (map pe vars) (map pe vals) types (map typeof vars) (map typeof vals)))
+  (wrap-expr types vars vals (stmt-void) body))
 
 (define (combine-loops e)
   (define pass
     (create-rpass
      (expr
       [(expr-lets types vars vals (stmt-void) body)
+       ;; (dprintf (not (empty? vars))
+       ;;          "combine-loop got: \n~a\n"
+       ;;          (map list (map pe vars) types (map typeof vars) (map typeof vals)))
        (define-values (loop-var-map normal-var-map)
          (partition (λ (p) (is-loop? (second p))) (map list vars vals types)))
        (define loop-groups (group-same-size loop-var-map))
@@ -222,8 +231,8 @@
            "normal-var-map: ~a\n"
            (map (compose print-expr car) normal-var-map))
   (dprintf (not (empty? loop-var-map))
-           "loop-var-map: ~a\n"
+           "loop-var: ~a "
            (map (compose print-expr car) loop-var-map))
   (dprintf (not (empty? loop-groups))
-           "loop-groups: ~a\n"
+           "groups: ~a\n"
            (map (curry map (compose print-expr car)) loop-groups)))
