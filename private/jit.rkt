@@ -1,14 +1,11 @@
 #lang racket
 
-(require sham/jit
-         sham/ast
+(require sham
          "ast.rkt"
          "pass.rkt"
          "utils.rkt")
 
-(provide (all-defined-out))
-
-
+(provide compile-file)
 
 (define pp-expr (compose pretty-display print-expr))
 (define pp-sham (compose pretty-display print-sham-module))
@@ -58,10 +55,10 @@
      new-p))
 
   (define module-env (compile-module prog-module))
-  ;; (jit-optimize-module module-env #:opt-level 3)
-  ;; (jit-optimize-function module-env #:opt-level 3)
-  ;; (jit-dump-module module-env)
-  ;; (jit-dump-function module-env 'prog)
+  (jit-optimize-module module-env #:opt-level 3)
+  (jit-optimize-function module-env #:opt-level 3)
+  ;(jit-dump-module module-env)
+  (jit-dump-function module-env 'prog)
 
   (jit-verify-module module-env)
   (initialize-jit module-env #:opt-level 3))
@@ -74,14 +71,14 @@
        [to-print?
         (curryr
          member
-         '())];reduce-curry
+         '(;reduce-curry
            ;parse-sexp
            ;; initial-simplifications
            ;; flatten-anf
            ;; combine-loops
            ;; later-simplifications
-           ;; to-stmt
-           ;; expand-to-lc))]
+            to-stmt
+            expand-to-lc))]
        [to-not-print? (const #t)])
     (compile-src src)))
 
@@ -95,14 +92,39 @@
     #:exists 'truncate/replace))
 
 (module+ test
-  (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr")
-  (debug-file "../../testcode/hkrkt/linearRegression_simp.hkr")
-  (debug-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr")
-  (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr")
-  (debug-file "../../testcode/hkrkt/lda_gibbs_simp.hkr"))
+  (require ffi/unsafe)
+  (define module-env (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr"))
+  (require disassemble)
+  (jit-dump-module module-env)
+  (jit-verify-module module-env)
+  (define (get-f sym)
+    (jit-get-function sym module-env))
+  (define prog (jit-get-function 'prog module-env))
+  (define init-rng (jit-get-function 'init-rng module-env))
+  (define tbool (jit-get-racket-type 'bool module-env))
+  (define make-boolarr-pair (jit-get-function 'make$pair<array<bool>*.array<bool>*> module-env))
+  (define make-bool-array (jit-get-function 'make$array<bool> module-env))
+  (define carb (get-f 'car$pair<array<bool>*.array<bool>*>))
+  (define cdrb (get-f 'cdr$pair<array<bool>*.array<bool>*>))
+  (define gib  (get-f 'get-index$array<bool>))
+  (define sib (get-f 'set-index!$array<bool>))
+  (define gsb (get-f 'get-size$array<bool>))
+  (define (make-carray f t l)
+    (f (length l) (list->cblock l t)))
+  (define n 10)
+  (define a (make-carray make-bool-array tbool '(1 0 1 1 1 1 1 1 1 0)))
+  (define b (make-carray make-bool-array tbool '(0 1 1 0 1 1 1 1 0 1)))
+  (define p (make-boolarr-pair a b))
+  (disassemble-ffi-function (jit-get-function-ptr 'prog module-env) #:size 600))
+  ;;(prog n p))
+  ;; (debug-file "../../testcode/hkrkt/linearRegression_simp.hkr")
+  ;; (debug-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr")
+  ;; (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr")
+  ;; (debug-file "../../testcode/hkrkt/lda_gibbs_simp.hkr"))
 
   ;; (debug-store-file "../../testcode/hkrkt/clinicalTrial_simp.hkr"
   ;;                   ".testout/clinicalTrial.txt")
+
   ;; (debug-store-file "../../testcode/hkrkt/linearRegression_simp.hkr"
   ;;                   ".testout/linearregression.txt")
   ;; (debug-store-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr"

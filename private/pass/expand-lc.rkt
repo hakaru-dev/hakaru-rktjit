@@ -69,7 +69,9 @@
       [(stmt-for i start end body) (for->while i start end body)]
       [(stmt-block stmts) (sham:stmt:block (map es stmts))]
       [(stmt-assign var val) (sham:stmt:set! (ee var) (ee val))]
-      [(stmt-return v) (sham:stmt:return (ee v))]
+      [(stmt-return v)
+       (dtprintf "stmt-return: ~a, type: ~a\n" (pe v) (typeof v))
+       (sham:stmt:return (ee v))]
       [(stmt-void) (sham:stmt:void)]
       [else (error (format "not expanding stmt: ~a\n" (ps stmt)))]))
 
