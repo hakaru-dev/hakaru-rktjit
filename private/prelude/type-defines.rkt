@@ -63,6 +63,10 @@
 (define get-type-sym (compose string->symbol get-type-string))
 
 (define nrp? (curryr member '(nat real prob int bool unit i1)))
+(define (remove-measure t)
+  (match t
+    [`(measure ,t) t]
+    [else t]))
 (define (if-need-pointer t)
   (match t
     [`(measure ,mt) (if-need-pointer mt)]
