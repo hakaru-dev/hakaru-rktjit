@@ -23,7 +23,7 @@
                  (pat-var? (pat-pair-a (expr-branch-pat (car brs))))
                  (pat-var? (pat-pair-b (expr-branch-pat (car brs)))))
       (error "matching over pair with multiple branches or complex pattern." brs))
-    (printf "\n\nextract-pair: t: ~a, tst: ~a : ~a, \nbrs: ~a\n" t (pe tst) (typeof tst) (map pe brs))
+    (dtprintf "extract-pair: t: ~a, tst: ~a : ~a, \nbrs: ~a\n" t (pe tst) (typeof tst) (map pe brs))
     (define-values (car-type cdr-type)
       (match (typeof tst)
         [`(pair ,ta ,tb) (values ta tb)]))
@@ -63,6 +63,7 @@
                #:when (pred? i))
       v))
   (define (make-switch t lst v) ;;TODO actual switch maybe? :P
+    (dtprintf "make-switch: ~a" (map typeof lst))
     (for/fold ([b (expr-val t 0)])
               ([e lst]
                [i (in-range (length lst))])
@@ -71,15 +72,19 @@
     (expr [(expr-app t (expr-intrf 'empty) '())
            (expr-app t (expr-intrf 'empty) (list (expr-val 'nat 0)))]
 
-          [(expr-app t (expr-intrf 'dirac) (list val)) val]
+          [(expr-app t (expr-intrf 'dirac) (list val))
+           (dtprintf "dirac: t: ~a, tval: ~a\n" t (typeof val))
+           val]
+
           [(expr-app t (expr-intrf 'pose) (list arg1 arg2)) arg2]
 
           [(expr-app t (expr-intrf 'superpose) args)
+           (dtprintf "superpose: t: ~a\n" t)
            (define get-odds (curry filter-index odd?))
            (define get-evens (curry filter-index even?))
-           (define var (expr-var 'nat (gensym^ 's) '_))
+           (define var (expr-var t (gensym^ 's) '_))
            (wrap-expr t var
-                      (expr-app 'nat (expr-intrf 'superpose-categorical)
+                      (expr-app t (expr-intrf 'superpose-categorical)
                                 (get-evens args))
                       (stmt-void)
                       (make-switch t (get-odds args) var))]
