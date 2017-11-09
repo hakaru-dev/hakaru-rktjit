@@ -48,15 +48,15 @@
                           (meas m)]
                  (cons (sa prob env) (cons (sa meas env) out))))]
     [`((datum ,k ,v) : ,typ)
-     (printf "datum: k ~a, v ~a, typ: ~a\n" k v typ)
+     (dtprintf "datum: k ~a, v ~a, typ: ~a\n" k v typ)
      (define (get-datum kind val type)
        (match kind
          ['pair
           (match val
             [`(inl (et (konst ,v1) (et (konst ,v2) done)))
              (expr-app typ (expr-intrf 'cons) (list (sa v1 env) (sa v2 env)))])]
-         ['true (expr-val 'nat 1)]
-         ['false (expr-val 'nat 0)]))
+         ['true (expr-val typ 1)]
+         ['false (expr-val typ 0)]))
      (get-datum k v typ)]
     [`((,rator ,rands ...) : ,type)
      (define randse (map (curryr sa env) rands))
