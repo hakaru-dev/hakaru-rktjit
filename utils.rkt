@@ -37,6 +37,8 @@
                     (define (get-vector cs)
                       (cblock->vector (get-c-arrayf cs) type (size-array cs)))))))]))
 
+
+
 (define (prob->real x) (exp x))
 (define (real->prob x) (log x))
 (define (nat->prob x) (real->prob (exact->inexact x)))
@@ -67,3 +69,6 @@
         (string->number s)))))
 (define (write-vector-to-csv fname)
   (void))
+
+(define (get-cmd-argument i)
+  (vector-ref (current-command-line-arguments) i))
