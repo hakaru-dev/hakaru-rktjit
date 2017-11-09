@@ -1,1669 +1,379 @@
-applying pass: reduce-curry
-(fn
- ((n nat) (x18 (pair (array bool) (array bool))))
- (measure bool)
- ((match
-   (x18 : (pair (array bool) (array bool)))
-   ((pdatum
-     pair
-     (pc_inl (ps_et (pf_konst var) (ps_et (pf_konst var) (ps_done)))))
-    (bind
-     a5
-     (bind
-      a3
-      ((superpose
-        (((*
-           ((beta
-             ((+
-               ((nat2prob
-                 ((summate
-                   (x46 (0 : nat) (n : nat))
-                   ((index
-                     ((array-literal (0 : nat) (1 : nat)) : (array nat))
-                     ((match
-                       ((index (a5 : (array bool)) (x46 : nat)) : bool)
-                       ((pdatum true (pc_inl (ps_done))) (0 : nat))
-                       ((pdatum false (pc_inr (pc_inl (ps_done)))) (1 : nat)))
-                      :
-                      nat))
-                    :
-                    nat))
-                  :
-                  nat))
-                :
-                prob)
-               (1 : prob))
-              :
-              prob)
-             ((+
-               ((nat2prob
-                 ((summate
-                   (x46 (0 : nat) (n : nat))
-                   ((index
-                     ((array-literal (1 : nat) (0 : nat)) : (array nat))
-                     ((match
-                       ((index (a5 : (array bool)) (x46 : nat)) : bool)
-                       ((pdatum true (pc_inl (ps_done))) (0 : nat))
-                       ((pdatum false (pc_inr (pc_inl (ps_done)))) (1 : nat)))
-                      :
-                      nat))
-                    :
-                    nat))
-                  :
-                  nat))
-                :
-                prob)
-               (1 : prob))
-              :
-              prob))
-            :
-            prob)
-           ((beta
-             ((+
-               ((nat2prob
-                 ((summate
-                   (x46 (0 : nat) (n : nat))
-                   ((index
-                     ((array-literal (0 : nat) (1 : nat)) : (array nat))
-                     ((match
-                       ((index (a3 : (array bool)) (x46 : nat)) : bool)
-                       ((pdatum true (pc_inl (ps_done))) (0 : nat))
-                       ((pdatum false (pc_inr (pc_inl (ps_done)))) (1 : nat)))
-                      :
-                      nat))
-                    :
-                    nat))
-                  :
-                  nat))
-                :
-                prob)
-               (1 : prob))
-              :
-              prob)
-             ((+
-               ((nat2prob
-                 ((summate
-                   (x46 (0 : nat) (n : nat))
-                   ((index
-                     ((array-literal (1 : nat) (0 : nat)) : (array nat))
-                     ((match
-                       ((index (a3 : (array bool)) (x46 : nat)) : bool)
-                       ((pdatum true (pc_inl (ps_done))) (0 : nat))
-                       ((pdatum false (pc_inr (pc_inl (ps_done)))) (1 : nat)))
-                      :
-                      nat))
-                    :
-                    nat))
-                  :
-                  nat))
-                :
-                prob)
-               (1 : prob))
-              :
-              prob))
-            :
-            prob)
-           ((/ 1 16) : prob))
-          :
-          prob)
-         ((dirac ((datum true (inl done)) : bool)) : (measure bool)))
-        (((*
-           ((beta
-             ((+
-               ((nat2prob
-                 ((summate
-                   (x46 (0 : nat) (n : nat))
-                   ((index
-                     ((array-literal (0 : nat) (1 : nat)) : (array nat))
-                     ((match
-                       ((index (a5 : (array bool)) (x46 : nat)) : bool)
-                       ((pdatum true (pc_inl (ps_done))) (0 : nat))
-                       ((pdatum false (pc_inr (pc_inl (ps_done)))) (1 : nat)))
-                      :
-                      nat))
-                    :
-                    nat))
-                  :
-                  nat))
-                :
-                prob)
-               ((nat2prob
-                 ((summate
-                   (x46 (0 : nat) (n : nat))
-                   ((index
-                     ((array-literal (0 : nat) (1 : nat)) : (array nat))
-                     ((match
-                       ((index (a3 : (array bool)) (x46 : nat)) : bool)
-                       ((pdatum true (pc_inl (ps_done))) (0 : nat))
-                       ((pdatum false (pc_inr (pc_inl (ps_done)))) (1 : nat)))
-                      :
-                      nat))
-                    :
-                    nat))
-                  :
-                  nat))
-                :
-                prob)
-               (1 : prob))
-              :
-              prob)
-             ((+
-               ((nat2prob
-                 ((summate
-                   (x46 (0 : nat) (n : nat))
-                   ((index
-                     ((array-literal (1 : nat) (0 : nat)) : (array nat))
-                     ((match
-                       ((index (a5 : (array bool)) (x46 : nat)) : bool)
-                       ((pdatum true (pc_inl (ps_done))) (0 : nat))
-                       ((pdatum false (pc_inr (pc_inl (ps_done)))) (1 : nat)))
-                      :
-                      nat))
-                    :
-                    nat))
-                  :
-                  nat))
-                :
-                prob)
-               ((nat2prob
-                 ((summate
-                   (x46 (0 : nat) (n : nat))
-                   ((index
-                     ((array-literal (1 : nat) (0 : nat)) : (array nat))
-                     ((match
-                       ((index (a3 : (array bool)) (x46 : nat)) : bool)
-                       ((pdatum true (pc_inl (ps_done))) (0 : nat))
-                       ((pdatum false (pc_inr (pc_inl (ps_done)))) (1 : nat)))
-                      :
-                      nat))
-                    :
-                    nat))
-                  :
-                  nat))
-                :
-                prob)
-               (1 : prob))
-              :
-              prob))
-            :
-            prob)
-           ((/ 1 16) : prob))
-          :
-          prob)
-         ((dirac ((datum false (inr (inl done))) : bool)) : (measure bool))))
-       :
-       (measure bool))))))
-  :
-  (measure bool)))
+applying-pass: reduce-curry
 datum: k true, v (inl done), typ: bool
 datum: k false, v (inr (inl done)), typ: bool
-applying pass: parse-sexp
+applying-pass: parse-sexp
+dirac: t: (measure bool), tval: bool
+dirac: t: (measure bool), tval: bool
+superpose: t: (measure bool)
+make-switch: (bool bool)extract-pair: t: (measure bool), tst: x18 : (pair (array bool) (array bool)), 
+brs: (((pair var var) (/ bi3 -> (/ bi4 -> (elets ((s2 (superpose-categorical (* (beta (+ (nat2prob (summate (si13 0 n) (if (index bi3 si13) 0 1))) (nat2prob (summate (si14 0 n) (if (index bi4 si14) 0 1))) 1) (+ (nat2prob (summate (si15 0 n) (if (index bi3 si15) 1 0))) (nat2prob (summate (si16 0 n) (if (index bi4 si16) 1 0))) 1)) (/ 1 16)) (* (beta (+ (nat2prob (summate (si9 0 n) (if (index bi3 si9) 0 1))) 1) (+ (nat2prob (summate (si10 0 n) (if (index bi3 si10) 1 0))) 1)) (beta (+ (nat2prob (summate (si11 0 n) (if (index bi4 si11) 0 1))) 1) (+ (nat2prob (summate (si12 0 n) (if (index bi4 si12) 1 0))) 1)) (/ 1 16))))) <svoid> (if (== s2 1) 1 (if (== s2 0) 0 0)))))))
+	 bi3	: (array bool)
+	 bi4	: (array bool)
+	 body	: (elets ((s2 (superpose-categorical (* (beta (+ (nat2prob (summate (si13 0 n) (if (index bi3 si13) 0 1))) (nat2prob (summate (si14 0 n) (if (index bi4 si14) 0 1))) 1) (+ (nat2prob (summate (si15 0 n) (if (index bi3 si15) 1 0))) (nat2prob (summate (si16 0 n) (if (index bi4 si16) 1 0))) 1)) (/ 1 16)) (* (beta (+ (nat2prob (summate (si9 0 n) (if (index bi3 si9) 0 1))) 1) (+ (nat2prob (summate (si10 0 n) (if (index bi3 si10) 1 0))) 1)) (beta (+ (nat2prob (summate (si11 0 n) (if (index bi4 si11) 0 1))) 1) (+ (nat2prob (summate (si12 0 n) (if (index bi4 si12) 1 0))) 1)) (/ 1 16))))) <svoid> (if (== s2 1) 1 (if (== s2 0) 0 0)))
+types: car: (array bool), cdr: (array bool)
+applying-pass: initial-simplifications
+applying-pass: flatten-anf
+normal-var-map: (s2)
+wrapping-normals: ((s2 (superpose-categorical (* (beta (+ (nat2prob sm25) (nat2prob sm26) 1) (+ (nat2prob sm27) (nat2prob sm28) 1)) (/ 1 16)) (* (beta (+ (nat2prob sm29) 1) (+ (nat2prob sm30) 1)) (beta (+ (nat2prob sm31) 1) (+ (nat2prob sm32) 1)) (/ 1 16))) (measure bool) (measure bool) (measure bool)))
+loop-var: (sm32 sm31 sm28 sm29 sm25 sm27 sm30 sm26) groups: ((sm32 sm31 sm28 sm29 sm25 sm27 sm30 sm26))
+normal-var-map: (bi3 bi4)
+wrapping-normals: ((bi3 (car x18) (array bool) (array bool) (array bool)) (bi4 (cdr x18) (array bool) (array bool) (array bool)))
+applying-pass: combine-loops
+replacing-immutable: si14 <- ci2
+replacing-immutable: si10 <- ci2
+replacing-immutable: si15 <- ci2
+replacing-immutable: si13 <- ci2
+replacing-immutable: si9 <- ci2
+replacing-immutable: si16 <- ci2
+replacing-immutable: si11 <- ci2
+replacing-immutable: si12 <- ci2
+applying-pass: later-simplifications
+applying-pass: to-stmt
 ((main
   (function
    (n x18)
-   (match
-    x18
-    ((pair var var)
-     (/
-      bi1
-      ->
-      (/
-       bi2
-       ->
-       (superpose
-        (*
-         (beta
-          (+
-           (nat2prob
-            (summate
-             (si5 0 n)
-             (index
-              (array-literal 0 1)
-              (match (index bi1 si5) (true 0) (false 1)))))
-           (nat2prob
-            (summate
-             (si6 0 n)
-             (index
-              (array-literal 0 1)
-              (match (index bi2 si6) (true 0) (false 1)))))
-           1)
-          (+
-           (nat2prob
-            (summate
-             (si7 0 n)
-             (index
-              (array-literal 1 0)
-              (match (index bi1 si7) (true 0) (false 1)))))
-           (nat2prob
-            (summate
-             (si8 0 n)
-             (index
-              (array-literal 1 0)
-              (match (index bi2 si8) (true 0) (false 1)))))
-           1))
-         (/ 1 16))
-        (dirac 0)
-        (*
-         (beta
-          (+
-           (nat2prob
-            (summate
-             (si1 0 n)
-             (index
-              (array-literal 0 1)
-              (match (index bi1 si1) (true 0) (false 1)))))
-           1)
-          (+
-           (nat2prob
-            (summate
-             (si2 0 n)
-             (index
-              (array-literal 1 0)
-              (match (index bi1 si2) (true 0) (false 1)))))
-           1))
-         (beta
-          (+
-           (nat2prob
-            (summate
-             (si3 0 n)
-             (index
-              (array-literal 0 1)
-              (match (index bi2 si3) (true 0) (false 1)))))
-           1)
-          (+
-           (nat2prob
-            (summate
-             (si4 0 n)
-             (index
-              (array-literal 1 0)
-              (match (index bi2 si4) (true 0) (false 1)))))
-           1))
-         (/ 1 16))
-        (dirac 1)))))))))
-applying pass: macro-functions
-((main
-  (function
-   (n x18)
-   (match
-    x18
-    ((pair var var)
-     (/
-      bi1
-      ->
-      (/
-       bi2
-       ->
-       (let (s1
-             (superpose-categorical
-              (*
-               (beta
-                (+
-                 (nat2prob
-                  (summate
-                   (si5 0 n)
-                   (index
-                    (array-literal 0 1)
-                    (match (index bi1 si5) (true 0) (false 1)))))
-                 (nat2prob
-                  (summate
-                   (si6 0 n)
-                   (index
-                    (array-literal 0 1)
-                    (match (index bi2 si6) (true 0) (false 1)))))
-                 1)
-                (+
-                 (nat2prob
-                  (summate
-                   (si7 0 n)
-                   (index
-                    (array-literal 1 0)
-                    (match (index bi1 si7) (true 0) (false 1)))))
-                 (nat2prob
-                  (summate
-                   (si8 0 n)
-                   (index
-                    (array-literal 1 0)
-                    (match (index bi2 si8) (true 0) (false 1)))))
-                 1))
-               (/ 1 16))
-              (*
-               (beta
-                (+
-                 (nat2prob
-                  (summate
-                   (si1 0 n)
-                   (index
-                    (array-literal 0 1)
-                    (match (index bi1 si1) (true 0) (false 1)))))
-                 1)
-                (+
-                 (nat2prob
-                  (summate
-                   (si2 0 n)
-                   (index
-                    (array-literal 1 0)
-                    (match (index bi1 si2) (true 0) (false 1)))))
-                 1))
-               (beta
-                (+
-                 (nat2prob
-                  (summate
-                   (si3 0 n)
-                   (index
-                    (array-literal 0 1)
-                    (match (index bi2 si3) (true 0) (false 1)))))
-                 1)
-                (+
-                 (nat2prob
-                  (summate
-                   (si4 0 n)
-                   (index
-                    (array-literal 1 0)
-                    (match (index bi2 si4) (true 0) (false 1)))))
-                 1))
-               (/ 1 16))))
-         (if (== s1 1) 1 (if (== s1 0) 0 0))))))))))
-setting type of bi1 to (array bool)
-setting type of bi2 to (array bool)
-match-pair: at: (array bool), bt: (array bool)
-applying pass: simplify-match
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi1 (car x18)) (bi2 (cdr x18)))
-    (let (s1
-          (superpose-categorical
-           (*
-            (beta
-             (+
-              (nat2prob
-               (summate
-                (si5 0 n)
-                (index (array-literal 0 1) (if (index bi1 si5) 0 1))))
-              (nat2prob
-               (summate
-                (si6 0 n)
-                (index (array-literal 0 1) (if (index bi2 si6) 0 1))))
-              1)
-             (+
-              (nat2prob
-               (summate
-                (si7 0 n)
-                (index (array-literal 1 0) (if (index bi1 si7) 0 1))))
-              (nat2prob
-               (summate
-                (si8 0 n)
-                (index (array-literal 1 0) (if (index bi2 si8) 0 1))))
-              1))
-            (/ 1 16))
-           (*
-            (beta
-             (+
-              (nat2prob
-               (summate
-                (si1 0 n)
-                (index (array-literal 0 1) (if (index bi1 si1) 0 1))))
-              1)
-             (+
-              (nat2prob
-               (summate
-                (si2 0 n)
-                (index (array-literal 1 0) (if (index bi1 si2) 0 1))))
-              1))
-            (beta
-             (+
-              (nat2prob
-               (summate
-                (si3 0 n)
-                (index (array-literal 0 1) (if (index bi2 si3) 0 1))))
-              1)
-             (+
-              (nat2prob
-               (summate
-                (si4 0 n)
-                (index (array-literal 1 0) (if (index bi2 si4) 0 1))))
-              1))
-            (/ 1 16))))
-      (if (== s1 1) 1 (if (== s1 0) 0 0)))))))
-applying pass: mbind->let
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi1 (car x18)) (bi2 (cdr x18)))
-    (let (s1
-          (superpose-categorical
-           (*
-            (beta
-             (+
-              (nat2prob
-               (summate
-                (si5 0 n)
-                (index (array-literal 0 1) (if (index bi1 si5) 0 1))))
-              (nat2prob
-               (summate
-                (si6 0 n)
-                (index (array-literal 0 1) (if (index bi2 si6) 0 1))))
-              1)
-             (+
-              (nat2prob
-               (summate
-                (si7 0 n)
-                (index (array-literal 1 0) (if (index bi1 si7) 0 1))))
-              (nat2prob
-               (summate
-                (si8 0 n)
-                (index (array-literal 1 0) (if (index bi2 si8) 0 1))))
-              1))
-            (/ 1 16))
-           (*
-            (beta
-             (+
-              (nat2prob
-               (summate
-                (si1 0 n)
-                (index (array-literal 0 1) (if (index bi1 si1) 0 1))))
-              1)
-             (+
-              (nat2prob
-               (summate
-                (si2 0 n)
-                (index (array-literal 1 0) (if (index bi1 si2) 0 1))))
-              1))
-            (beta
-             (+
-              (nat2prob
-               (summate
-                (si3 0 n)
-                (index (array-literal 0 1) (if (index bi2 si3) 0 1))))
-              1)
-             (+
-              (nat2prob
-               (summate
-                (si4 0 n)
-                (index (array-literal 1 0) (if (index bi2 si4) 0 1))))
-              1))
-            (/ 1 16))))
-      (if (== s1 1) 1 (if (== s1 0) 0 0)))))))
-applying pass: remove-array-literals
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi1 (car x18)) (bi2 (cdr x18)))
-    (let (s1
-          (superpose-categorical
-           (*
-            (beta
-             (+
-              (nat2prob (summate (si5 0 n) (if (index bi1 si5) 0 1)))
-              (nat2prob (summate (si6 0 n) (if (index bi2 si6) 0 1)))
-              1)
-             (+
-              (nat2prob (summate (si7 0 n) (if (index bi1 si7) 1 0)))
-              (nat2prob (summate (si8 0 n) (if (index bi2 si8) 1 0)))
-              1))
-            (/ 1 16))
-           (*
-            (beta
-             (+ (nat2prob (summate (si1 0 n) (if (index bi1 si1) 0 1))) 1)
-             (+ (nat2prob (summate (si2 0 n) (if (index bi1 si2) 1 0))) 1))
-            (beta
-             (+ (nat2prob (summate (si3 0 n) (if (index bi2 si3) 0 1))) 1)
-             (+ (nat2prob (summate (si4 0 n) (if (index bi2 si4) 1 0))) 1))
-            (/ 1 16))))
-      (if (== s1 1) 1 (if (== s1 0) 0 0)))))))
-applying pass: flatten-anf
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi1 (cdr x18)) (bi2 (car x18)))
-    (lets
-     ((sm10 (summate (si6 0 n) (if (index bi2 si6) 0 1)))
-      (sm9 (summate (si5 0 n) (if (index bi1 si5) 0 1)))
-      (sm11 (summate (si7 0 n) (if (index bi1 si7) 1 0)))
-      (sm15 (summate (si3 0 n) (if (index bi2 si3) 0 1)))
-      (sm13 (summate (si1 0 n) (if (index bi1 si1) 0 1)))
-      (sm12 (summate (si8 0 n) (if (index bi2 si8) 1 0)))
-      (sm14 (summate (si2 0 n) (if (index bi1 si2) 1 0)))
-      (sm16 (summate (si4 0 n) (if (index bi2 si4) 1 0))))
-     (let (s1
-           (superpose-categorical
-            (*
-             (beta
-              (+ (nat2prob sm9) (nat2prob sm10) 1)
-              (+ (nat2prob sm11) (nat2prob sm12) 1))
-             (/ 1 16))
-            (*
-             (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-             (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-             (/ 1 16))))
-       (if (== s1 1) 1 (if (== s1 0) 0 0))))))))
-loop-var-map: (sm10 sm9 sm11 sm15 sm13 sm12 sm14 sm16)
-loop-groups: ((sm10 sm9 sm11 sm15 sm13 sm12 sm14 sm16))
-normal-var-map: (bi1 bi2)
-applying pass: combine-loops
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi1 (cdr x18)) (bi2 (car x18)))
-    (lets
-     ()
-     (lets
-      ((sm16 0) (sm14 0) (sm12 0) (sm13 0) (sm15 0) (sm11 0) (sm9 0) (sm10 0))
-      (expr-block
-       (for-stmt
-        (ci1 0 n)
+   (se
+    <svoid>
+    (elets
+     ((bi4 (cdr x18)) (bi3 (car x18)))
+     (block-stmt
+      <svoid>
+      (se
+       <svoid>
+       (elets
+        ((sm32 0)
+         (sm31 0)
+         (sm28 0)
+         (sm29 0)
+         (sm25 0)
+         (sm27 0)
+         (sm30 0)
+         (sm26 0))
         (block-stmt
-         (elet-stmt
-          ((si4 ci1))
-          (if-stmt
-           (index bi2 si4)
-           (set! sm16 (+ sm16 1))
-           (set! sm16 (+ sm16 0))))
-         (elet-stmt
-          ((si2 ci1))
-          (if-stmt
-           (index bi1 si2)
-           (set! sm14 (+ sm14 1))
-           (set! sm14 (+ sm14 0))))
-         (elet-stmt
-          ((si8 ci1))
-          (if-stmt
-           (index bi2 si8)
-           (set! sm12 (+ sm12 1))
-           (set! sm12 (+ sm12 0))))
-         (elet-stmt
-          ((si1 ci1))
-          (if-stmt
-           (index bi1 si1)
-           (set! sm13 (+ sm13 0))
-           (set! sm13 (+ sm13 1))))
-         (elet-stmt
-          ((si3 ci1))
-          (if-stmt
-           (index bi2 si3)
-           (set! sm15 (+ sm15 0))
-           (set! sm15 (+ sm15 1))))
-         (elet-stmt
-          ((si7 ci1))
-          (if-stmt
-           (index bi1 si7)
-           (set! sm11 (+ sm11 1))
-           (set! sm11 (+ sm11 0))))
-         (elet-stmt
-          ((si5 ci1))
-          (if-stmt (index bi1 si5) (set! sm9 (+ sm9 0)) (set! sm9 (+ sm9 1))))
-         (elet-stmt
-          ((si6 ci1))
-          (if-stmt
-           (index bi2 si6)
-           (set! sm10 (+ sm10 0))
-           (set! sm10 (+ sm10 1))))))
-       (let (s1
+         (for-stmt
+          (ci2 0 n)
+          (block-stmt
+           (se
+            <svoid>
+            (elets
+             ()
+             (if-stmt
+              (index bi4 ci2)
+              (set! sm26 (+ sm26 0))
+              (set! sm26 (+ sm26 1)))
+             0))
+           (se
+            <svoid>
+            (elets
+             ()
+             (if-stmt
+              (index bi3 ci2)
+              (set! sm30 (+ sm30 1))
+              (set! sm30 (+ sm30 0)))
+             0))
+           (se
+            <svoid>
+            (elets
+             ()
+             (if-stmt
+              (index bi3 ci2)
+              (set! sm27 (+ sm27 1))
+              (set! sm27 (+ sm27 0)))
+             0))
+           (se
+            <svoid>
+            (elets
+             ()
+             (if-stmt
+              (index bi3 ci2)
+              (set! sm25 (+ sm25 0))
+              (set! sm25 (+ sm25 1)))
+             0))
+           (se
+            <svoid>
+            (elets
+             ()
+             (if-stmt
+              (index bi3 ci2)
+              (set! sm29 (+ sm29 0))
+              (set! sm29 (+ sm29 1)))
+             0))
+           (se
+            <svoid>
+            (elets
+             ()
+             (if-stmt
+              (index bi4 ci2)
+              (set! sm28 (+ sm28 1))
+              (set! sm28 (+ sm28 0)))
+             0))
+           (se
+            <svoid>
+            (elets
+             ()
+             (if-stmt
+              (index bi4 ci2)
+              (set! sm31 (+ sm31 0))
+              (set! sm31 (+ sm31 1)))
+             0))
+           (se
+            <svoid>
+            (elets
+             ()
+             (if-stmt
+              (index bi4 ci2)
+              (set! sm32 (+ sm32 1))
+              (set! sm32 (+ sm32 0)))
+             0))))
+         (se
+          <svoid>
+          (elets
+           ((s2
              (superpose-categorical
               (*
                (beta
-                (+ (nat2prob sm9) (nat2prob sm10) 1)
-                (+ (nat2prob sm11) (nat2prob sm12) 1))
+                (+ (nat2prob sm25) (nat2prob sm26) 1)
+                (+ (nat2prob sm27) (nat2prob sm28) 1))
                (/ 1 16))
               (*
-               (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-               (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-               (/ 1 16))))
-         (if (== s1 1) 1 (if (== s1 0) 0 0))))))))))
-applying pass: remove-unit-lets
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi1 (cdr x18)) (bi2 (car x18)))
-    (lets
-     ()
-     (lets
-      ((sm16 0) (sm14 0) (sm12 0) (sm13 0) (sm15 0) (sm11 0) (sm9 0) (sm10 0))
-      (expr-block
-       (for-stmt
-        (ci1 0 n)
-        (block-stmt
-         (elet-stmt
-          ((si4 ci1))
-          (if-stmt
-           (index bi2 si4)
-           (set! sm16 (+ sm16 1))
-           (set! sm16 (+ sm16 0))))
-         (elet-stmt
-          ((si2 ci1))
-          (if-stmt
-           (index bi1 si2)
-           (set! sm14 (+ sm14 1))
-           (set! sm14 (+ sm14 0))))
-         (elet-stmt
-          ((si8 ci1))
-          (if-stmt
-           (index bi2 si8)
-           (set! sm12 (+ sm12 1))
-           (set! sm12 (+ sm12 0))))
-         (elet-stmt
-          ((si1 ci1))
-          (if-stmt
-           (index bi1 si1)
-           (set! sm13 (+ sm13 0))
-           (set! sm13 (+ sm13 1))))
-         (elet-stmt
-          ((si3 ci1))
-          (if-stmt
-           (index bi2 si3)
-           (set! sm15 (+ sm15 0))
-           (set! sm15 (+ sm15 1))))
-         (elet-stmt
-          ((si7 ci1))
-          (if-stmt
-           (index bi1 si7)
-           (set! sm11 (+ sm11 1))
-           (set! sm11 (+ sm11 0))))
-         (elet-stmt
-          ((si5 ci1))
-          (if-stmt (index bi1 si5) (set! sm9 (+ sm9 0)) (set! sm9 (+ sm9 1))))
-         (elet-stmt
-          ((si6 ci1))
-          (if-stmt
-           (index bi2 si6)
-           (set! sm10 (+ sm10 0))
-           (set! sm10 (+ sm10 1))))))
-       (let (s1
-             (superpose-categorical
-              (*
-               (beta
-                (+ (nat2prob sm9) (nat2prob sm10) 1)
-                (+ (nat2prob sm11) (nat2prob sm12) 1))
-               (/ 1 16))
-              (*
-               (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-               (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-               (/ 1 16))))
-         (if (== s1 1) 1 (if (== s1 0) 0 0))))))))))
-replacing: si4 with ci1
-	replaced: si4 with ci1
-replacing: si2 with ci1
-	replaced: si2 with ci1
-replacing: si8 with ci1
-	replaced: si8 with ci1
-replacing: si1 with ci1
-	replaced: si1 with ci1
-replacing: si3 with ci1
-	replaced: si3 with ci1
-replacing: si7 with ci1
-	replaced: si7 with ci1
-replacing: si5 with ci1
-	replaced: si5 with ci1
-replacing: si6 with ci1
-	replaced: si6 with ci1
-applying pass: simplify-lets
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi2 (car x18)) (bi1 (cdr x18)))
-    (lets
-     ((sm10 0) (sm9 0) (sm11 0) (sm15 0) (sm13 0) (sm12 0) (sm14 0) (sm16 0))
-     (expr-block
-      (for-stmt
-       (ci1 0 n)
-       (block-stmt
-        (if-stmt (index bi2 ci1) (set! sm16 (+ sm16 1)) (set! sm16 (+ sm16 0)))
-        (if-stmt (index bi1 ci1) (set! sm14 (+ sm14 1)) (set! sm14 (+ sm14 0)))
-        (if-stmt (index bi2 ci1) (set! sm12 (+ sm12 1)) (set! sm12 (+ sm12 0)))
-        (if-stmt (index bi1 ci1) (set! sm13 (+ sm13 0)) (set! sm13 (+ sm13 1)))
-        (if-stmt (index bi2 ci1) (set! sm15 (+ sm15 0)) (set! sm15 (+ sm15 1)))
-        (if-stmt (index bi1 ci1) (set! sm11 (+ sm11 1)) (set! sm11 (+ sm11 0)))
-        (if-stmt (index bi1 ci1) (set! sm9 (+ sm9 0)) (set! sm9 (+ sm9 1)))
-        (if-stmt
-         (index bi2 ci1)
-         (set! sm10 (+ sm10 0))
-         (set! sm10 (+ sm10 1)))))
-      (let (s1
-            (superpose-categorical
-             (*
+               (beta (+ (nat2prob sm29) 1) (+ (nat2prob sm30) 1))
+               (beta (+ (nat2prob sm31) 1) (+ (nat2prob sm32) 1))
+               (/ 1 16)))))
+           (block-stmt
+            <svoid>
+            (if-stmt
+             (== s2 1)
+             (return 1)
+             (if-stmt (== s2 0) (return 0) (return 0))))
+           0)))
+        0)))
+     0)))))
+expanding-function: prog
+	arg-types: (nat (pair (array bool) (array bool))), ret-type: (measure bool)
+stmt-return: 1, type: bool
+stmt-return: 0, type: bool
+stmt-return: 0, type: (measure bool)
+applying-pass: expand-to-lc
+(define (prog n x18)
+  (let (bi4 (cdr$pair<array<bool>*.array<bool>*> x18))
+    (bi3 (car$pair<array<bool>*.array<bool>*> x18))
+    svoid
+    (let (sm32 (uint 0 nat))
+      (sm31 (uint 0 nat))
+      (sm28 (uint 0 nat))
+      (sm29 (uint 0 nat))
+      (sm25 (uint 0 nat))
+      (sm27 (uint 0 nat))
+      (sm30 (uint 0 nat))
+      (sm26 (uint 0 nat))
+      (let (ci2 (uint 0 nat))
+        (while
+         (icmp-ult ci2 n)
+         (let (if
+               (get-index$array<bool> bi4 ci2)
+               (set! sm26 (add-nuw sm26 (uint 0 nat)))
+               (set! sm26 (add-nuw sm26 (uint 1 nat))))
+           (uint 0 nat))
+         (let (if
+               (get-index$array<bool> bi3 ci2)
+               (set! sm30 (add-nuw sm30 (uint 1 nat)))
+               (set! sm30 (add-nuw sm30 (uint 0 nat))))
+           (uint 0 nat))
+         (let (if
+               (get-index$array<bool> bi3 ci2)
+               (set! sm27 (add-nuw sm27 (uint 1 nat)))
+               (set! sm27 (add-nuw sm27 (uint 0 nat))))
+           (uint 0 nat))
+         (let (if
+               (get-index$array<bool> bi3 ci2)
+               (set! sm25 (add-nuw sm25 (uint 0 nat)))
+               (set! sm25 (add-nuw sm25 (uint 1 nat))))
+           (uint 0 nat))
+         (let (if
+               (get-index$array<bool> bi3 ci2)
+               (set! sm29 (add-nuw sm29 (uint 0 nat)))
+               (set! sm29 (add-nuw sm29 (uint 1 nat))))
+           (uint 0 nat))
+         (let (if
+               (get-index$array<bool> bi4 ci2)
+               (set! sm28 (add-nuw sm28 (uint 1 nat)))
+               (set! sm28 (add-nuw sm28 (uint 0 nat))))
+           (uint 0 nat))
+         (let (if
+               (get-index$array<bool> bi4 ci2)
+               (set! sm31 (add-nuw sm31 (uint 0 nat)))
+               (set! sm31 (add-nuw sm31 (uint 1 nat))))
+           (uint 0 nat))
+         (let (if
+               (get-index$array<bool> bi4 ci2)
+               (set! sm32 (add-nuw sm32 (uint 1 nat)))
+               (set! sm32 (add-nuw sm32 (uint 0 nat))))
+           (uint 0 nat))
+         (set! ci2 (add-nuw ci2 (uint 1 nat)))))
+      (let (s2
+            (categorical-2
+             (fadd
               (beta
-               (+ (nat2prob sm9) (nat2prob sm10) 1)
-               (+ (nat2prob sm11) (nat2prob sm12) 1))
-              (/ 1 16))
-             (*
-              (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-              (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-              (/ 1 16))))
-        (if (== s1 1) 1 (if (== s1 0) 0 0)))))))))
-applying pass: remove-empty-lets
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi2 (car x18)) (bi1 (cdr x18)))
-    (lets
-     ((sm10 0) (sm9 0) (sm11 0) (sm15 0) (sm13 0) (sm12 0) (sm14 0) (sm16 0))
-     (expr-block
-      (for-stmt
-       (ci1 0 n)
-       (block-stmt
-        (if-stmt (index bi2 ci1) (set! sm16 (+ sm16 1)) (set! sm16 (+ sm16 0)))
-        (if-stmt (index bi1 ci1) (set! sm14 (+ sm14 1)) (set! sm14 (+ sm14 0)))
-        (if-stmt (index bi2 ci1) (set! sm12 (+ sm12 1)) (set! sm12 (+ sm12 0)))
-        (if-stmt (index bi1 ci1) (set! sm13 (+ sm13 0)) (set! sm13 (+ sm13 1)))
-        (if-stmt (index bi2 ci1) (set! sm15 (+ sm15 0)) (set! sm15 (+ sm15 1)))
-        (if-stmt (index bi1 ci1) (set! sm11 (+ sm11 1)) (set! sm11 (+ sm11 0)))
-        (if-stmt (index bi1 ci1) (set! sm9 (+ sm9 0)) (set! sm9 (+ sm9 1)))
-        (if-stmt
-         (index bi2 ci1)
-         (set! sm10 (+ sm10 0))
-         (set! sm10 (+ sm10 1)))))
-      (let (s1
-            (superpose-categorical
-             (*
+               (add$3&prob
+                (nat2prob sm25)
+                (nat2prob sm26)
+                (real2prob (float 1.0 real)))
+               (add$3&prob
+                (nat2prob sm27)
+                (nat2prob sm28)
+                (real2prob (float 1.0 real))))
+              (recip-nat->prob (uint 1 nat) (uint 16 nat)))
+             (fadd
               (beta
-               (+ (nat2prob sm9) (nat2prob sm10) 1)
-               (+ (nat2prob sm11) (nat2prob sm12) 1))
-              (/ 1 16))
-             (*
-              (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-              (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-              (/ 1 16))))
-        (if (== s1 1) 1 (if (== s1 0) 0 0)))))))))
-applying pass: remove-unused-lets
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi2 (car x18)) (bi1 (cdr x18)))
-    (lets
-     ((sm10 0) (sm9 0) (sm11 0) (sm15 0) (sm13 0) (sm12 0) (sm14 0) (sm16 0))
-     (expr-block
-      (for-stmt
-       (ci1 0 n)
-       (block-stmt
-        (if-stmt (index bi2 ci1) (set! sm16 (+ sm16 1)) (set! sm16 (+ sm16 0)))
-        (if-stmt (index bi1 ci1) (set! sm14 (+ sm14 1)) (set! sm14 (+ sm14 0)))
-        (if-stmt (index bi2 ci1) (set! sm12 (+ sm12 1)) (set! sm12 (+ sm12 0)))
-        (if-stmt (index bi1 ci1) (set! sm13 (+ sm13 0)) (set! sm13 (+ sm13 1)))
-        (if-stmt (index bi2 ci1) (set! sm15 (+ sm15 0)) (set! sm15 (+ sm15 1)))
-        (if-stmt (index bi1 ci1) (set! sm11 (+ sm11 1)) (set! sm11 (+ sm11 0)))
-        (if-stmt (index bi1 ci1) (set! sm9 (+ sm9 0)) (set! sm9 (+ sm9 1)))
-        (if-stmt
-         (index bi2 ci1)
-         (set! sm10 (+ sm10 0))
-         (set! sm10 (+ sm10 1)))))
-      (let (s1
-            (superpose-categorical
-             (*
+               (add$2&prob (nat2prob sm29) (real2prob (float 1.0 real)))
+               (add$2&prob (nat2prob sm30) (real2prob (float 1.0 real))))
               (beta
-               (+ (nat2prob sm9) (nat2prob sm10) 1)
-               (+ (nat2prob sm11) (nat2prob sm12) 1))
-              (/ 1 16))
-             (*
-              (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-              (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-              (/ 1 16))))
-        (if (== s1 1) 1 (if (== s1 0) 0 0)))))))))
-applying pass: remove-pairs
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi2 (car x18)) (bi1 (cdr x18)))
-    (lets
-     ((sm10 0) (sm9 0) (sm11 0) (sm15 0) (sm13 0) (sm12 0) (sm14 0) (sm16 0))
-     (expr-block
-      (for-stmt
-       (ci1 0 n)
-       (block-stmt
-        (if-stmt (index bi2 ci1) (set! sm16 (+ sm16 1)) (set! sm16 (+ sm16 0)))
-        (if-stmt (index bi1 ci1) (set! sm14 (+ sm14 1)) (set! sm14 (+ sm14 0)))
-        (if-stmt (index bi2 ci1) (set! sm12 (+ sm12 1)) (set! sm12 (+ sm12 0)))
-        (if-stmt (index bi1 ci1) (set! sm13 (+ sm13 0)) (set! sm13 (+ sm13 1)))
-        (if-stmt (index bi2 ci1) (set! sm15 (+ sm15 0)) (set! sm15 (+ sm15 1)))
-        (if-stmt (index bi1 ci1) (set! sm11 (+ sm11 1)) (set! sm11 (+ sm11 0)))
-        (if-stmt (index bi1 ci1) (set! sm9 (+ sm9 0)) (set! sm9 (+ sm9 1)))
-        (if-stmt
-         (index bi2 ci1)
-         (set! sm10 (+ sm10 0))
-         (set! sm10 (+ sm10 1)))))
-      (let (s1
-            (superpose-categorical
-             (*
-              (beta
-               (+ (nat2prob sm9) (nat2prob sm10) 1)
-               (+ (nat2prob sm11) (nat2prob sm12) 1))
-              (/ 1 16))
-             (*
-              (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-              (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-              (/ 1 16))))
-        (if (== s1 1) 1 (if (== s1 0) 0 0)))))))))
-applying pass: simplify-lets
-((main
-  (function
-   (n x18)
-   (lets
-    ((bi1 (cdr x18)) (bi2 (car x18)))
-    (lets
-     ((sm16 0) (sm14 0) (sm12 0) (sm13 0) (sm15 0) (sm11 0) (sm9 0) (sm10 0))
-     (expr-block
-      (for-stmt
-       (ci1 0 n)
-       (block-stmt
-        (if-stmt (index bi2 ci1) (set! sm16 (+ sm16 1)) (set! sm16 (+ sm16 0)))
-        (if-stmt (index bi1 ci1) (set! sm14 (+ sm14 1)) (set! sm14 (+ sm14 0)))
-        (if-stmt (index bi2 ci1) (set! sm12 (+ sm12 1)) (set! sm12 (+ sm12 0)))
-        (if-stmt (index bi1 ci1) (set! sm13 (+ sm13 0)) (set! sm13 (+ sm13 1)))
-        (if-stmt (index bi2 ci1) (set! sm15 (+ sm15 0)) (set! sm15 (+ sm15 1)))
-        (if-stmt (index bi1 ci1) (set! sm11 (+ sm11 1)) (set! sm11 (+ sm11 0)))
-        (if-stmt (index bi1 ci1) (set! sm9 (+ sm9 0)) (set! sm9 (+ sm9 1)))
-        (if-stmt
-         (index bi2 ci1)
-         (set! sm10 (+ sm10 0))
-         (set! sm10 (+ sm10 1)))))
-      (let (s1
-            (superpose-categorical
-             (*
-              (beta
-               (+ (nat2prob sm9) (nat2prob sm10) 1)
-               (+ (nat2prob sm11) (nat2prob sm12) 1))
-              (/ 1 16))
-             (*
-              (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-              (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-              (/ 1 16))))
-        (if (== s1 1) 1 (if (== s1 0) 0 0)))))))))
-applying pass: mod-stmt
-((main
-  (function
-   (n x18)
-   (elet-stmt
-    ((bi1 (cdr x18)) (bi2 (car x18)))
-    (elet-stmt
-     ((sm16 0) (sm14 0) (sm12 0) (sm13 0) (sm15 0) (sm11 0) (sm9 0) (sm10 0))
-     (block-stmt
-      (for-stmt
-       (ci1 0 n)
-       (block-stmt
-        (if-stmt (index bi2 ci1) (set! sm16 (+ sm16 1)) (set! sm16 (+ sm16 0)))
-        (if-stmt (index bi1 ci1) (set! sm14 (+ sm14 1)) (set! sm14 (+ sm14 0)))
-        (if-stmt (index bi2 ci1) (set! sm12 (+ sm12 1)) (set! sm12 (+ sm12 0)))
-        (if-stmt (index bi1 ci1) (set! sm13 (+ sm13 0)) (set! sm13 (+ sm13 1)))
-        (if-stmt (index bi2 ci1) (set! sm15 (+ sm15 0)) (set! sm15 (+ sm15 1)))
-        (if-stmt (index bi1 ci1) (set! sm11 (+ sm11 1)) (set! sm11 (+ sm11 0)))
-        (if-stmt (index bi1 ci1) (set! sm9 (+ sm9 0)) (set! sm9 (+ sm9 1)))
-        (if-stmt
-         (index bi2 ci1)
-         (set! sm10 (+ sm10 0))
-         (set! sm10 (+ sm10 1)))))
-      (elet-stmt
-       ((s1
-         (superpose-categorical
-          (*
-           (beta
-            (+ (nat2prob sm9) (nat2prob sm10) 1)
-            (+ (nat2prob sm11) (nat2prob sm12) 1))
-           (/ 1 16))
-          (*
-           (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-           (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-           (/ 1 16)))))
-       (if-stmt
-        (== s1 1)
-        (return 1)
-        (if-stmt (== s1 0) (return 0) (return 0))))))))))
-applying pass: simplify-set
-((main
-  (function
-   (n x18)
-   (elet-stmt
-    ((bi1 (cdr x18)) (bi2 (car x18)))
-    (elet-stmt
-     ((sm16 0) (sm14 0) (sm12 0) (sm13 0) (sm15 0) (sm11 0) (sm9 0) (sm10 0))
-     (block-stmt
-      (for-stmt
-       (ci1 0 n)
-       (block-stmt
-        (if-stmt (index bi2 ci1) (set! sm16 (+ sm16 1)) (set! sm16 (+ sm16 0)))
-        (if-stmt (index bi1 ci1) (set! sm14 (+ sm14 1)) (set! sm14 (+ sm14 0)))
-        (if-stmt (index bi2 ci1) (set! sm12 (+ sm12 1)) (set! sm12 (+ sm12 0)))
-        (if-stmt (index bi1 ci1) (set! sm13 (+ sm13 0)) (set! sm13 (+ sm13 1)))
-        (if-stmt (index bi2 ci1) (set! sm15 (+ sm15 0)) (set! sm15 (+ sm15 1)))
-        (if-stmt (index bi1 ci1) (set! sm11 (+ sm11 1)) (set! sm11 (+ sm11 0)))
-        (if-stmt (index bi1 ci1) (set! sm9 (+ sm9 0)) (set! sm9 (+ sm9 1)))
-        (if-stmt
-         (index bi2 ci1)
-         (set! sm10 (+ sm10 0))
-         (set! sm10 (+ sm10 1)))))
-      (elet-stmt
-       ((s1
-         (superpose-categorical
-          (*
-           (beta
-            (+ (nat2prob sm9) (nat2prob sm10) 1)
-            (+ (nat2prob sm11) (nat2prob sm12) 1))
-           (/ 1 16))
-          (*
-           (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-           (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-           (/ 1 16)))))
-       (if-stmt
-        (== s1 1)
-        (return 1)
-        (if-stmt (== s1 0) (return 0) (return 0))))))))))
-applying pass: cleanup
-((main
-  (function
-   (n x18)
-   (elet-stmt
-    ((bi1 (cdr x18)) (bi2 (car x18)))
-    (elet-stmt
-     ((sm16 0) (sm14 0) (sm12 0) (sm13 0) (sm15 0) (sm11 0) (sm9 0) (sm10 0))
-     (block-stmt
-      (for-stmt
-       (ci1 0 n)
-       (block-stmt
-        (if-stmt (index bi2 ci1) (set! sm16 (+ sm16 1)) (set! sm16 (+ sm16 0)))
-        (if-stmt (index bi1 ci1) (set! sm14 (+ sm14 1)) (set! sm14 (+ sm14 0)))
-        (if-stmt (index bi2 ci1) (set! sm12 (+ sm12 1)) (set! sm12 (+ sm12 0)))
-        (if-stmt (index bi1 ci1) (set! sm13 (+ sm13 0)) (set! sm13 (+ sm13 1)))
-        (if-stmt (index bi2 ci1) (set! sm15 (+ sm15 0)) (set! sm15 (+ sm15 1)))
-        (if-stmt (index bi1 ci1) (set! sm11 (+ sm11 1)) (set! sm11 (+ sm11 0)))
-        (if-stmt (index bi1 ci1) (set! sm9 (+ sm9 0)) (set! sm9 (+ sm9 1)))
-        (if-stmt
-         (index bi2 ci1)
-         (set! sm10 (+ sm10 0))
-         (set! sm10 (+ sm10 1)))))
-      (elet-stmt
-       ((s1
-         (superpose-categorical
-          (*
-           (beta
-            (+ (nat2prob sm9) (nat2prob sm10) 1)
-            (+ (nat2prob sm11) (nat2prob sm12) 1))
-           (/ 1 16))
-          (*
-           (beta (+ (nat2prob sm13) 1) (+ (nat2prob sm14) 1))
-           (beta (+ (nat2prob sm15) 1) (+ (nat2prob sm16) 1))
-           (/ 1 16)))))
-       (if-stmt
-        (== s1 1)
-        (return 1)
-        (if-stmt (== s1 0) (return 0) (return 0))))))))))
-expanding function: prog
-(define-function
- (passes)
- (attrs AlwaysInline)
- (prog (n : nat) (x18 : pair<array<bool>*,array<bool>*>*) : bool)
- (expr
-  (let ((bi1 : array<bool>* (cdr:pair<array<bool>*,array<bool>*>. x18))
-        (bi2 : array<bool>* (car:pair<array<bool>*,array<bool>*>. x18)))
-    (expr
-     (let ((sm16 : nat (%uint 0 nat))
-           (sm14 : nat (%uint 0 nat))
-           (sm12 : nat (%uint 0 nat))
-           (sm13 : nat (%uint 0 nat))
-           (sm15 : nat (%uint 0 nat))
-           (sm11 : nat (%uint 0 nat))
-           (sm9 : nat (%uint 0 nat))
-           (sm10 : nat (%uint 0 nat)))
-       (block
-        (expr
-         (let ((ci1 : nat (%uint 0 nat)))
-           (while
-            (icmp-ult ci1 n)
-            (block
-             (block
-              (if (get-index:array<bool>. bi2 ci1)
-                (set! sm16 (add-nuw sm16 (%uint 1 nat)))
-                (set! sm16 (add-nuw sm16 (%uint 0 nat))))
-              (if (get-index:array<bool>. bi1 ci1)
-                (set! sm14 (add-nuw sm14 (%uint 1 nat)))
-                (set! sm14 (add-nuw sm14 (%uint 0 nat))))
-              (if (get-index:array<bool>. bi2 ci1)
-                (set! sm12 (add-nuw sm12 (%uint 1 nat)))
-                (set! sm12 (add-nuw sm12 (%uint 0 nat))))
-              (if (get-index:array<bool>. bi1 ci1)
-                (set! sm13 (add-nuw sm13 (%uint 0 nat)))
-                (set! sm13 (add-nuw sm13 (%uint 1 nat))))
-              (if (get-index:array<bool>. bi2 ci1)
-                (set! sm15 (add-nuw sm15 (%uint 0 nat)))
-                (set! sm15 (add-nuw sm15 (%uint 1 nat))))
-              (if (get-index:array<bool>. bi1 ci1)
-                (set! sm11 (add-nuw sm11 (%uint 1 nat)))
-                (set! sm11 (add-nuw sm11 (%uint 0 nat))))
-              (if (get-index:array<bool>. bi1 ci1)
-                (set! sm9 (add-nuw sm9 (%uint 0 nat)))
-                (set! sm9 (add-nuw sm9 (%uint 1 nat))))
-              (if (get-index:array<bool>. bi2 ci1)
-                (set! sm10 (add-nuw sm10 (%uint 0 nat)))
-                (set! sm10 (add-nuw sm10 (%uint 1 nat)))))
-             (set! ci1 (add-nuw ci1 (%uint 1 nat)))))
-           evoid))
-        (expr
-         (let ((s1
-                :
-                nat
-                (categorical-2
-                 (fadd
-                  (beta
-                   (add-3-prob
-                    (nat2prob sm9)
-                    (nat2prob sm10)
-                    (real2prob (%float 1.0 real)))
-                   (add-3-prob
-                    (nat2prob sm11)
-                    (nat2prob sm12)
-                    (real2prob (%float 1.0 real))))
-                  (fadd
-                   (real2prob (nat2real (%uint 1 nat)))
-                   (recip-prob (real2prob (nat2real (%uint 16 nat))))))
-                 (fadd
-                  (beta
-                   (add-2-prob (nat2prob sm13) (real2prob (%float 1.0 real)))
-                   (add-2-prob (nat2prob sm14) (real2prob (%float 1.0 real))))
-                  (beta
-                   (add-2-prob (nat2prob sm15) (real2prob (%float 1.0 real)))
-                   (add-2-prob (nat2prob sm16) (real2prob (%float 1.0 real))))
-                  (fadd
-                   (real2prob (nat2real (%uint 1 nat)))
-                   (recip-prob (real2prob (nat2real (%uint 16 nat)))))))))
-           (if (icmp-eq s1 (%uint 1 nat))
-             (return (%uint 1 nat))
-             (if (icmp-eq s1 (%uint 0 nat))
-               (return (%uint 0 nat))
-               (return (%uint 0 nat))))
-           evoid)))
-       evoid))
-    evoid)))
-applying pass: expand-to-lc
-(module ((passes) (ffi-libs (libgslcblas libgslcblas #:global? #t) (libgsl libgsl))) (define-type
-                                                                                      nat
-                                                                                      i64)
-  (define-type real f64)
-  (define-type prob f64)
-  (define-type nat* (* nat))
-  (define-type real* (* real))
-  (define-type prob* (* prob))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (nat2prob (v : nat) : prob)
-   (return (real2prob (ui->fp v (%type real)))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (nat2real (v : nat) : real)
-   (return (ui->fp v (%type real))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (prob2real (v : prob) : real)
-   (return ((intrinsic llvm.exp.f64 prob) v)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (real2prob (v : real) : prob)
-   (return ((intrinsic llvm.log.f64 prob) v)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (recip-nat (v : nat) : real)
-   (return (fdiv (%float 1.0 real) (ui->fp v (%type real)))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (recip-real (v : real) : real)
-   (return (fdiv (%float 1.0 real) v)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (recip-prob (v : real) : real)
-   (return (fmul (%float -1.0 real) v)))
-  (define-type array<nat> (struct ((size : nat) (data : nat*))))
-  (define-type array<nat>* (* array<nat>))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (make:array<nat>. (size : nat) (data : nat*) : array<nat>*)
-   (expr
-    (let ((ap* : array<nat>* (malloc (%type array<nat>)))
-          (ap-size* : (* nat) (%gep ap* (%uint 0 i32) (%uint 0 i32)))
-          (ap-data* : (* nat*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
-      (block
-       (expr (store! size ap-size*))
-       (expr (store! data ap-data*))
-       (return ap*))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (new-sized:array<nat>. (size : nat) : array<nat>*)
-   (expr
-    (let ((apt
-           :
-           array<nat>*
-           (make:array<nat>. size (arr-malloc (%type nat) size))))
-      (block
-       svoid
-       (expr
-        ((intrinsic llvm.memset.i64 void)
-         (load (%gep apt (%uint 0 i32) (%uint 1 i32)))
-         (%uint 0 nat)
-         (mul-nuw (%sizeof nat) size)
-         (%uint 0 nat)
-         (%uint 1 nat)))
-       (return apt))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (empty:array<nat>. : array<nat>*)
-   (return (new-sized:array<nat>. (%uint 0 nat))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-size:array<nat>. (array-ptr : array<nat>*) : nat)
-   (return (load (%gep array-ptr (%uint 0 i32) (%uint 0 i32)))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-data:array<nat>. (ap* : array<nat>*) : nat*)
-   (expr
-    (let ((adt* : (* nat*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
-      (return (load adt*))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-index:array<nat>. (array-ptr : array<nat>*) (index : nat) : nat)
-   (return
-    (load (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (set-index:array<nat>.
-    (array-ptr : array<nat>*)
-    (index : nat)
-    (v : nat)
-    :
-    void)
-   (block
-    (expr
-     (store!
-      v
-      (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index)))
-    (return evoid)))
-  (define-type array<real> (struct ((size : nat) (data : real*))))
-  (define-type array<real>* (* array<real>))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (make:array<real>. (size : nat) (data : real*) : array<real>*)
-   (expr
-    (let ((ap* : array<real>* (malloc (%type array<real>)))
-          (ap-size* : (* nat) (%gep ap* (%uint 0 i32) (%uint 0 i32)))
-          (ap-data* : (* real*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
-      (block
-       (expr (store! size ap-size*))
-       (expr (store! data ap-data*))
-       (return ap*))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (new-sized:array<real>. (size : nat) : array<real>*)
-   (expr
-    (let ((apt
-           :
-           array<real>*
-           (make:array<real>. size (arr-malloc (%type real) size))))
-      (block
-       svoid
-       (expr
-        ((intrinsic llvm.memset.i64 void)
-         (load (%gep apt (%uint 0 i32) (%uint 1 i32)))
-         (%uint 0 nat)
-         (mul-nuw (%sizeof nat) size)
-         (%uint 0 nat)
-         (%uint 1 nat)))
-       (return apt))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (empty:array<real>. : array<real>*)
-   (return (new-sized:array<real>. (%uint 0 nat))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-size:array<real>. (array-ptr : array<real>*) : nat)
-   (return (load (%gep array-ptr (%uint 0 i32) (%uint 0 i32)))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-data:array<real>. (ap* : array<real>*) : real*)
-   (expr
-    (let ((adt* : (* real*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
-      (return (load adt*))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-index:array<real>. (array-ptr : array<real>*) (index : nat) : real)
-   (return
-    (load (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (set-index:array<real>.
-    (array-ptr : array<real>*)
-    (index : nat)
-    (v : real)
-    :
-    void)
-   (block
-    (expr
-     (store!
-      v
-      (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index)))
-    (return evoid)))
-  (define-type array<prob> (struct ((size : nat) (data : prob*))))
-  (define-type array<prob>* (* array<prob>))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (make:array<prob>. (size : nat) (data : prob*) : array<prob>*)
-   (expr
-    (let ((ap* : array<prob>* (malloc (%type array<prob>)))
-          (ap-size* : (* nat) (%gep ap* (%uint 0 i32) (%uint 0 i32)))
-          (ap-data* : (* prob*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
-      (block
-       (expr (store! size ap-size*))
-       (expr (store! data ap-data*))
-       (return ap*))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (new-sized:array<prob>. (size : nat) : array<prob>*)
-   (expr
-    (let ((apt
-           :
-           array<prob>*
-           (make:array<prob>. size (arr-malloc (%type prob) size))))
-      (block
-       svoid
-       (expr
-        ((intrinsic llvm.memset.i64 void)
-         (load (%gep apt (%uint 0 i32) (%uint 1 i32)))
-         (%uint 0 nat)
-         (mul-nuw (%sizeof nat) size)
-         (%uint 0 nat)
-         (%uint 1 nat)))
-       (return apt))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (empty:array<prob>. : array<prob>*)
-   (return (new-sized:array<prob>. (%uint 0 nat))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-size:array<prob>. (array-ptr : array<prob>*) : nat)
-   (return (load (%gep array-ptr (%uint 0 i32) (%uint 0 i32)))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-data:array<prob>. (ap* : array<prob>*) : prob*)
-   (expr
-    (let ((adt* : (* prob*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
-      (return (load adt*))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-index:array<prob>. (array-ptr : array<prob>*) (index : nat) : prob)
-   (return
-    (load (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (set-index:array<prob>.
-    (array-ptr : array<prob>*)
-    (index : nat)
-    (v : prob)
-    :
-    void)
-   (block
-    (expr
-     (store!
-      v
-      (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index)))
-    (return evoid)))
-  (define-global gsl-rng void*)
-  (define-function
-   (passes)
-   (attrs)
-   (init-rng : void)
-   (block
-    (set! gsl-rng
-      ((external libgsl gsl_rng_alloc void*)
-       (%external libgsl gsl_rng_taus void*)))
-    (return evoid)))
-  (define-function
-   (passes)
-   (attrs)
-   (uniform (v1 : real) (v2 : real) : real)
-   (return ((external libgsl gsl_ran_flat real) gsl-rng v1 v2)))
-  (define-function
-   (passes)
-   (attrs)
-   (normal (mean : real) (sigma : prob) : real)
-   (return
-    (fadd
-     mean
-     ((external libgsl gsl_ran_gaussian real) gsl-rng (prob2real sigma)))))
-  (define-function
-   (passes)
-   (attrs)
-   (beta (a : prob) (b : prob) : prob)
-   (return
-    (real2prob
-     ((external libgsl gsl_ran_beta real)
-      gsl-rng
-      (prob2real a)
-      (prob2real b)))))
-  (define-function
-   (passes)
-   (attrs)
-   (gamma (a : prob) (b : prob) : prob)
-   (return
-    (real2prob
-     ((external libgsl gsl_ran_gamma real)
-      gsl-rng
-      (prob2real a)
-      (prob2real b)))))
-  (define-function
-   (passes)
-   (attrs)
-   (categorical (arr : array<prob>) : nat)
-   (return (%uint 0 nat)))
-  (define-type bool i1)
-  (define-type bool* (* bool))
-  (define-type array<bool> (struct ((size : nat) (data : bool*))))
-  (define-type array<bool>* (* array<bool>))
-  (define-type
-   pair<array<bool>*,array<bool>*>
-   (struct ((a : array<bool>*) (b : array<bool>*))))
-  (define-type
-   pair<array<bool>*,array<bool>*>*
-   (* pair<array<bool>*,array<bool>*>))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (make:pair<array<bool>*,array<bool>*>.
-    (a : array<bool>*)
-    (b : array<bool>*)
-    :
-    (* pair<array<bool>*,array<bool>*>))
-   (expr
-    (let ((pp
-           :
-           (* pair<array<bool>*,array<bool>*>)
-           (malloc (%type (struct ((a : array<bool>*) (b : array<bool>*))))))
-          (ap : (* array<bool>*) (%gep pp (%uint 0 i32) (%uint 0 i32)))
-          (bp : (* array<bool>*) (%gep pp (%uint 0 i32) (%uint 1 i32))))
-      (block (expr (store! a ap)) (expr (store! b bp)) (return pp))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (car:pair<array<bool>*,array<bool>*>.
-    (p : (* pair<array<bool>*,array<bool>*>))
-    :
-    array<bool>*)
-   (return (load (%gep p (%uint 0 i32) (%uint 0 i32)))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (cdr:pair<array<bool>*,array<bool>*>.
-    (p : (* pair<array<bool>*,array<bool>*>))
-    :
-    array<bool>*)
-   (return (load (%gep p (%uint 0 i32) (%uint 1 i32)))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (make:array<bool>. (size : nat) (data : bool*) : array<bool>*)
-   (expr
-    (let ((ap* : array<bool>* (malloc (%type array<bool>)))
-          (ap-size* : (* nat) (%gep ap* (%uint 0 i32) (%uint 0 i32)))
-          (ap-data* : (* bool*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
-      (block
-       (expr (store! size ap-size*))
-       (expr (store! data ap-data*))
-       (return ap*))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (new-sized:array<bool>. (size : nat) : array<bool>*)
-   (expr
-    (let ((apt
-           :
-           array<bool>*
-           (make:array<bool>. size (arr-malloc (%type bool) size))))
-      (block
-       svoid
-       (expr
-        ((intrinsic llvm.memset.i64 void)
-         (load (%gep apt (%uint 0 i32) (%uint 1 i32)))
-         (%uint 0 nat)
-         (mul-nuw (%sizeof nat) size)
-         (%uint 0 nat)
-         (%uint 1 nat)))
-       (return apt))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (empty:array<bool>. : array<bool>*)
-   (return (new-sized:array<bool>. (%uint 0 nat))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-size:array<bool>. (array-ptr : array<bool>*) : nat)
-   (return (load (%gep array-ptr (%uint 0 i32) (%uint 0 i32)))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-data:array<bool>. (ap* : array<bool>*) : bool*)
-   (expr
-    (let ((adt* : (* bool*) (%gep ap* (%uint 0 i32) (%uint 1 i32))))
-      (return (load adt*))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (get-index:array<bool>. (array-ptr : array<bool>*) (index : nat) : bool)
-   (return
-    (load (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (set-index:array<bool>.
-    (array-ptr : array<bool>*)
-    (index : nat)
-    (v : bool)
-    :
-    void)
-   (block
-    (expr
-     (store!
-      v
-      (%gep (load (%gep array-ptr (%uint 0 i32) (%uint 1 i32))) index)))
-    (return evoid)))
-  (define-function
-   (passes)
-   (attrs)
-   (categorical-2 (v0 : prob) (v1 : prob) : nat)
-   (expr
-    (let ((arr : array<prob> (new-sized:array<prob>. (%uint 2 nat))))
-      (block
-       (expr (set-index:array<prob>. arr (%uint 0 nat) v0))
-       (expr (set-index:array<prob>. arr (%uint 1 nat) v1))
-       (return (categorical arr)))
-      evoid)))
-  (define-function
-   (passes)
-   (attrs)
-   (add-3-prob (v0 : prob) (v1 : prob) (v2 : prob) : prob)
-   (return (real2prob (fadd (prob2real v0) (prob2real v1) (prob2real v2)))))
-  (define-function
-   (passes)
-   (attrs)
-   (add-2-prob (v0 : prob) (v1 : prob) : prob)
-   (return (real2prob (fadd (prob2real v0) (prob2real v1)))))
-  (define-function
-   (passes)
-   (attrs AlwaysInline)
-   (prog (n : nat) (x18 : pair<array<bool>*,array<bool>*>*) : bool)
-   (expr
-    (let ((bi1 : array<bool>* (cdr:pair<array<bool>*,array<bool>*>. x18))
-          (bi2 : array<bool>* (car:pair<array<bool>*,array<bool>*>. x18)))
-      (expr
-       (let ((sm16 : nat (%uint 0 nat))
-             (sm14 : nat (%uint 0 nat))
-             (sm12 : nat (%uint 0 nat))
-             (sm13 : nat (%uint 0 nat))
-             (sm15 : nat (%uint 0 nat))
-             (sm11 : nat (%uint 0 nat))
-             (sm9 : nat (%uint 0 nat))
-             (sm10 : nat (%uint 0 nat)))
-         (block
-          (expr
-           (let ((ci1 : nat (%uint 0 nat)))
-             (while
-              (icmp-ult ci1 n)
-              (block
-               (block
-                (if (get-index:array<bool>. bi2 ci1)
-                  (set! sm16 (add-nuw sm16 (%uint 1 nat)))
-                  (set! sm16 (add-nuw sm16 (%uint 0 nat))))
-                (if (get-index:array<bool>. bi1 ci1)
-                  (set! sm14 (add-nuw sm14 (%uint 1 nat)))
-                  (set! sm14 (add-nuw sm14 (%uint 0 nat))))
-                (if (get-index:array<bool>. bi2 ci1)
-                  (set! sm12 (add-nuw sm12 (%uint 1 nat)))
-                  (set! sm12 (add-nuw sm12 (%uint 0 nat))))
-                (if (get-index:array<bool>. bi1 ci1)
-                  (set! sm13 (add-nuw sm13 (%uint 0 nat)))
-                  (set! sm13 (add-nuw sm13 (%uint 1 nat))))
-                (if (get-index:array<bool>. bi2 ci1)
-                  (set! sm15 (add-nuw sm15 (%uint 0 nat)))
-                  (set! sm15 (add-nuw sm15 (%uint 1 nat))))
-                (if (get-index:array<bool>. bi1 ci1)
-                  (set! sm11 (add-nuw sm11 (%uint 1 nat)))
-                  (set! sm11 (add-nuw sm11 (%uint 0 nat))))
-                (if (get-index:array<bool>. bi1 ci1)
-                  (set! sm9 (add-nuw sm9 (%uint 0 nat)))
-                  (set! sm9 (add-nuw sm9 (%uint 1 nat))))
-                (if (get-index:array<bool>. bi2 ci1)
-                  (set! sm10 (add-nuw sm10 (%uint 0 nat)))
-                  (set! sm10 (add-nuw sm10 (%uint 1 nat)))))
-               (set! ci1 (add-nuw ci1 (%uint 1 nat)))))
-             evoid))
-          (expr
-           (let ((s1
-                  :
-                  nat
-                  (categorical-2
-                   (fadd
-                    (beta
-                     (add-3-prob
-                      (nat2prob sm9)
-                      (nat2prob sm10)
-                      (real2prob (%float 1.0 real)))
-                     (add-3-prob
-                      (nat2prob sm11)
-                      (nat2prob sm12)
-                      (real2prob (%float 1.0 real))))
-                    (fadd
-                     (real2prob (nat2real (%uint 1 nat)))
-                     (recip-prob (real2prob (nat2real (%uint 16 nat))))))
-                   (fadd
-                    (beta
-                     (add-2-prob (nat2prob sm13) (real2prob (%float 1.0 real)))
-                     (add-2-prob
-                      (nat2prob sm14)
-                      (real2prob (%float 1.0 real))))
-                    (beta
-                     (add-2-prob (nat2prob sm15) (real2prob (%float 1.0 real)))
-                     (add-2-prob
-                      (nat2prob sm16)
-                      (real2prob (%float 1.0 real))))
-                    (fadd
-                     (real2prob (nat2real (%uint 1 nat)))
-                     (recip-prob (real2prob (nat2real (%uint 16 nat)))))))))
-             (if (icmp-eq s1 (%uint 1 nat))
-               (return (%uint 1 nat))
-               (if (icmp-eq s1 (%uint 0 nat))
-                 (return (%uint 0 nat))
-                 (return (%uint 0 nat))))
-             evoid)))
-         evoid))
-      evoid))))
+               (add$2&prob (nat2prob sm31) (real2prob (float 1.0 real)))
+               (add$2&prob (nat2prob sm32) (real2prob (float 1.0 real))))
+              (recip-nat->prob (uint 1 nat) (uint 16 nat)))))
+        svoid
+        (if (icmp-eq s2 (uint 1 bool))
+          (return (uint 1 bool))
+          (if (icmp-eq s2 (uint 0 bool))
+            (return (uint 0 bool))
+            (return (uint 0 bool))))
+        (uint 0 nat))
+      (uint 0 nat))
+    (uint 0 nat)))
+registering def: nat
+registering def: int
+registering def: real
+registering def: prob
+registering def: bool
+registering def: nat*
+registering def: int*
+registering def: real*
+registering def: prob*
+registering def: nat2prob
+registering def: nat2real
+registering def: nat2int
+registering def: int2nat
+registering def: int2real
+registering def: prob2real
+registering def: real2prob
+registering def: recip-nat
+registering def: recip-real
+registering def: recip-prob
+registering def: root-prob-nat
+registering def: exp-real2prob
+registering def: fdiv-nat
+registering def: natpow
+registering def: array<nat>
+registering def: array<nat>*
+registering def: make$array<nat>
+registering def: new-sized$array<nat>
+registering def: empty$array<nat>
+registering def: get-size$array<nat>
+registering def: get-data$array<nat>
+registering def: get-index$array<nat>
+registering def: set-index!$array<nat>
+registering def: array<real>
+registering def: array<real>*
+registering def: make$array<real>
+registering def: new-sized$array<real>
+registering def: empty$array<real>
+registering def: get-size$array<real>
+registering def: get-data$array<real>
+registering def: get-index$array<real>
+registering def: set-index!$array<real>
+registering def: array<prob>
+registering def: array<prob>*
+registering def: make$array<prob>
+registering def: new-sized$array<prob>
+registering def: empty$array<prob>
+registering def: get-size$array<prob>
+registering def: get-data$array<prob>
+registering def: get-index$array<prob>
+registering def: set-index!$array<prob>
+registering def: gsl-rng
+registering def: init-rng
+registering def: uniform
+registering def: normal
+registering def: beta
+registering def: gamma
+registering def: categorical
+registering def: bool*
+registering def: array<bool>
+registering def: array<bool>*
+registering def: pair<array<bool>*.array<bool>*>
+registering def: make$pair<array<bool>*.array<bool>*>
+registering def: car$pair<array<bool>*.array<bool>*>
+registering def: cdr$pair<array<bool>*.array<bool>*>
+registering def: set-car!$pair<array<bool>*.array<bool>*>
+registering def: set-cdr!$pair<array<bool>*.array<bool>*>
+registering def: make$array<bool>
+registering def: new-sized$array<bool>
+registering def: empty$array<bool>
+registering def: get-size$array<bool>
+registering def: get-data$array<bool>
+registering def: get-index$array<bool>
+registering def: set-index!$array<bool>
+registering def: pair<array<bool>*.array<bool>*>*
+registering def: categorical-2
+registering def: add$3&prob
+registering def: recip-nat->prob
+registering def: add$2&prob
+registering def: prog
 compiling-function nat2prob
 compiling-function nat2real
+compiling-function nat2int
+compiling-function int2nat
+compiling-function int2real
 compiling-function prob2real
 compiling-function real2prob
 compiling-function recip-nat
 compiling-function recip-real
 compiling-function recip-prob
-compiling-function make:array<nat>.
-compiling-function new-sized:array<nat>.
-compiling-function empty:array<nat>.
-compiling-function get-size:array<nat>.
-compiling-function get-data:array<nat>.
-compiling-function get-index:array<nat>.
-compiling-function set-index:array<nat>.
-compiling-function make:array<real>.
-compiling-function new-sized:array<real>.
-compiling-function empty:array<real>.
-compiling-function get-size:array<real>.
-compiling-function get-data:array<real>.
-compiling-function get-index:array<real>.
-compiling-function set-index:array<real>.
-compiling-function make:array<prob>.
-compiling-function new-sized:array<prob>.
-compiling-function empty:array<prob>.
-compiling-function get-size:array<prob>.
-compiling-function get-data:array<prob>.
-compiling-function get-index:array<prob>.
-compiling-function set-index:array<prob>.
+compiling-function root-prob-nat
+compiling-function exp-real2prob
+compiling-function fdiv-nat
+compiling-function natpow
+compiling-function make$array<nat>
+compiling-function new-sized$array<nat>
+compiling-function empty$array<nat>
+compiling-function get-size$array<nat>
+compiling-function get-data$array<nat>
+compiling-function get-index$array<nat>
+compiling-function set-index!$array<nat>
+compiling-function make$array<real>
+compiling-function new-sized$array<real>
+compiling-function empty$array<real>
+compiling-function get-size$array<real>
+compiling-function get-data$array<real>
+compiling-function get-index$array<real>
+compiling-function set-index!$array<real>
+compiling-function make$array<prob>
+compiling-function new-sized$array<prob>
+compiling-function empty$array<prob>
+compiling-function get-size$array<prob>
+compiling-function get-data$array<prob>
+compiling-function get-index$array<prob>
+compiling-function set-index!$array<prob>
 compiling-function init-rng
 compiling-function uniform
 compiling-function normal
 compiling-function beta
 compiling-function gamma
 compiling-function categorical
-compiling-function make:pair<array<bool>*,array<bool>*>.
-compiling-function car:pair<array<bool>*,array<bool>*>.
-compiling-function cdr:pair<array<bool>*,array<bool>*>.
-compiling-function make:array<bool>.
-compiling-function new-sized:array<bool>.
-compiling-function empty:array<bool>.
-compiling-function get-size:array<bool>.
-compiling-function get-data:array<bool>.
-compiling-function get-index:array<bool>.
-compiling-function set-index:array<bool>.
+compiling-function make$pair<array<bool>*.array<bool>*>
+compiling-function car$pair<array<bool>*.array<bool>*>
+compiling-function cdr$pair<array<bool>*.array<bool>*>
+compiling-function set-car!$pair<array<bool>*.array<bool>*>
+compiling-function set-cdr!$pair<array<bool>*.array<bool>*>
+compiling-function make$array<bool>
+compiling-function new-sized$array<bool>
+compiling-function empty$array<bool>
+compiling-function get-size$array<bool>
+compiling-function get-data$array<bool>
+compiling-function get-index$array<bool>
+compiling-function set-index!$array<bool>
 compiling-function categorical-2
-compiling-function add-3-prob
-compiling-function add-2-prob
+compiling-function add$3&prob
+compiling-function recip-nat->prob
+compiling-function add$2&prob
 compiling-function prog
