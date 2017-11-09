@@ -68,7 +68,7 @@
      [(? array-rator?) get-array-rator]
      [(? probability-rator?) get-probability-rator]
      [else (error "why is this rator not done yet?" sym tresult trands)])
-   sym tresult trands))
+   sym (remove-measure tresult) (map remove-measure trands)))
 
 (define (get-value v type)
   (match type

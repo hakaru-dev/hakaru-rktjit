@@ -24,6 +24,7 @@
    type-int-def
    type-real-def
    type-prob-def
+   type-bool-def
    (sham$def:type nat* (sham:type:pointer type-nat-ref))
    (sham$def:type int* (sham:type:pointer type-int-ref))
    (sham$def:type real* (sham:type:pointer type-real-ref))
@@ -133,6 +134,9 @@
    (sham:stmt:return
     (sham$app nat2prob (sham$app udiv v0 v1)))))
 
+(define (build-eq-dif-type trands tresult)
+  (error 'notdoneyet))
+
 (define (get-basic-rator sym trslt trnds)
   (define tresult (if-need-pointer trslt))
   (define trands (map if-need-pointer trnds))
@@ -169,8 +173,11 @@
         (define def (build-recip-nat->prob))
         (values (sham:rator:symbol (sham:def-id def)) def)]
 
-    ['== #:when (tbool? tresult)
+    ['== #:when (and (tbool? tresult) (andmap (curry equal? (car trands)) trands))
          (values (sham:rator:symbol 'icmp-eq) (void))]
+    ['== #:when (tbool? tresult)
+         (values (sham:rator:symbol (get-fun-symbol eq-dif-type trands))
+                 (build-eq-dif-type trands tresult))]
     ['and #:when (andmap tbool? trands)
           (values (sham:rator:symbol 'and) (void))]
     ['not #:when (andmap tbool? trands)
@@ -214,10 +221,15 @@
 (module+ test
   (require rackunit)
   (require "../../utils.rkt")
+  (define defs (append
+                (basic-defs)
+                (list (build-add-prob 3)
+                      (build-add-prob 4))))
   (define mod
     (sham:module
      (void)
-     (basic-defs)))
+     defs))
+
   ;(pretty-print (sham-ast->sexp mod))
   (define bmod (compile-module mod))
 
@@ -225,7 +237,7 @@
   (define benv (initialize-jit bmod))
   (jit-dump-module benv)
   (jit-verify-module benv)
-  (define (get-t t) (jit-get-racket-type (env-lookup t benv)))
+  (define (get-t t) (jit-get-racket-type t benv))
   (define (get-f f) (jit-get-function f benv))
 
   (define t-real (get-t 'real))
@@ -240,6 +252,8 @@
   (define recip-real (get-f 'recip-real))
   (define recip-prob (get-f 'recip-prob))
 
+  (define add3prob (get-f 'add$3&prob))
+  (define add4prob (get-f 'add$4&prob))
   ;; (define add-2-nat (get-f 'add-2-nat))
   ;; (define add-2-real (get-f 'add-2-real))
   ;; (define add-3-real (get-f 'add-3-real))
