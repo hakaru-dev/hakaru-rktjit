@@ -1,1 +1,0 @@
-[(fn a (nat -> prob) [(fn b prob [(+ [a : prob][(nat2prob [b : nat]) : prob]) : prob]) : (nat -> prob)]) : (prob -> (nat -> prob))]

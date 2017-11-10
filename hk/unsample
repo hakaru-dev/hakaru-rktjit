@@ -1,7 +1,0 @@
-#!/usr/bin/perl -0777 -p
-# A quick-and-dirty script to extract deterministic parameters
-# from our benchmark probabilistic programs
-BEGIN { $np = qr{(?:(?>[^()]+)|\((??{$np})\))*} } # from perlre man page
-s/\bweight\s*\($np,\s*categorical\s*(\($np\))\s*\)/$1/sg;
-s/\nweight\s*\($np,($np)\s*\)/$1/sg;
-s/\breject\s*\.\s*measure\s*\($np\)/array i of 0: 0.0/sg;

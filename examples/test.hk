@@ -1,3 +1,0 @@
-fn a real:
-   fn b nat:
-      a + nat2prob(b)

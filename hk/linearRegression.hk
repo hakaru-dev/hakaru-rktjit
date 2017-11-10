@@ -1,9 +1,0 @@
-summarize(simplify(
-fn dataX array(real):
-disint(
-   invNoise <~ gamma(1,1)
-   a <~ normal(0,1/sqrt(invNoise))
-   b <~ normal(5,sqrt(10/3)/sqrt(invNoise))
-   y <~ plate i of size(dataX): normal(a*dataX[i]+b, 1/sqrt(invNoise))
-   return (y, [a,b,invNoise])
-)))

@@ -1,5 +1,0 @@
-fn a array(prob):
-   fn b array(prob):
-      product i from 0 to size(a):
-        summate j from 0 to size(b):
- 	  a[i] * b[j]
