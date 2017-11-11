@@ -160,6 +160,10 @@
        (expr-if t (sl tst env)
                 (sl thn env)
                 (sl els env))]
+      [(expr-app 'prob (expr-intrf '+) args)
+       (dtprintf "got prob add: ~a\n" (map typeof args))
+       (expr-app 'prob (expr-intrf '+) args)]
+
       [(expr-app t rator rands)
        (expr-app t rator (map (curryr sl env) rands))]
 
@@ -208,6 +212,7 @@
       ;;                             (if (equal? s 'car) 'a 'b))
       ;;              '_))
       ;;  (if (hash-has-key? env var-to-check) var-to-check e)]
+
 
 
       [(stmt-assign lhs rhs)

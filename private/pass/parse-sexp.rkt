@@ -42,11 +42,9 @@
      (define ve (expr-var 'bind (gensym^ 'bi) v))
      (expr-bind ve (sa e (hash-set env v ve)))]
     [`((superpose (,p ,m) ...) : ,type)
-     (expr-app type (expr-intrf 'superpose)
-               (for/fold ([out '()])
-                         [(prob p)
-                          (meas m)]
-                 (cons (sa prob env) (cons (sa meas env) out))))]
+     (define ms (map (curryr sa env) m))
+     (define ps (map (curryr sa env) p))
+     (expr-app type (expr-intrf 'superpose) (apply append (map list ps ms)))]
     [`((datum ,k ,v) : ,typ)
      (dtprintf "datum: k ~a, v ~a, typ: ~a\n" k v typ)
      (define (get-datum kind val type)
@@ -58,9 +56,18 @@
          ['true (expr-val typ 1)]
          ['false (expr-val typ 0)]))
      (get-datum k v typ)]
+    [`((prob_ ,v1 % ,v2) : prob)
+     (expr-app 'prob (expr-intrf 'real2prob)
+               (list (expr-val 'real (exact->inexact
+                                      (/ (get-value v1) (get-value v2))))))]
+    [`((real_ ,v1 % ,v2) : real)
+     (expr-val 'real (exact->inexact (/ (get-value v1) (get-value v2))))]
+    [`((nat_ ,v) : nat)
+     #:when (and (number? v))
+     (expr-val 'nat v)]
     [`((,rator ,rands ...) : ,type)
      (define randse (map (curryr sa env) rands))
-     (expr-app type (sa rator env) randse)]
+     (expr-app type (expr-intrf rator) randse)]
     [`(,s : ,type) #:when (and (symbol? s)
                                (hash-has-key? env s))
                    (define orig (hash-ref env s))
@@ -69,13 +76,14 @@
                        (hash-ref env s))]
     [`(,s : ,type) #:when (number? s)
                    (expr-val type s)]
-    [(? symbol?) #:when (hash-has-key? env e)
-                 (hash-ref env e)]
-    [(? symbol?)
-     (expr-intrf e)]
-    [(? exact-nonnegative-integer?) (expr-val 'nat e)]
-    [(? integer?) (expr-val 'int e)]
-    [else (error (format "match: no matching clause found for ~a" e))]))
+    [`(,s : ,type)
+     #:when (and (symbol? s) (hash-has-key? env e))
+     (hash-ref env s)]))
+    ;; [else (error (format "match: no matching clause found for ~a" e))]
+(define (get-value v)
+  (match v
+    [(? number?) v]
+    [`(,n) #:when (number? n) n]))
 
 (define (sr r env)
   (match r

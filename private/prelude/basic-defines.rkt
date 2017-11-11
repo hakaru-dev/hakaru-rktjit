@@ -132,7 +132,9 @@
    (build-list 2 get-vi)
    (build-list 2 (const type-nat-ref)) type-prob-ref
    (sham:stmt:return
-    (sham$app nat2prob (sham$app udiv v0 v1)))))
+    (sham$app nat2prob (sham$app fdiv
+                                 (sham$app nat2real v0)
+                                 (sham$app nat2real v1))))))
 
 (define (build-eq-dif-type trands tresult)
   (error 'notdoneyet))

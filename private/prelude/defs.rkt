@@ -74,8 +74,7 @@
   (match type
     ['nat (nat-value (truncate (inexact->exact v)))]
     ['unit (nat-value (truncate (inexact->exact 0)))]
-    ['prob (sham:expr:app (sham:rator:symbol'real2prob)
-                          (list (real-value (exact->inexact v))))]
+    ['prob (prob-value (exact->inexact v))]
     ['real (real-value (exact->inexact v))]
     ['int (sham:expr:si-value v type-int-ref)]
     ['bool (sham:expr:ui-value v type-bool-ref)]

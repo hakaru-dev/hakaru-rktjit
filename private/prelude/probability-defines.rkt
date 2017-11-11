@@ -12,7 +12,7 @@
          get-probability-rator)
 
 (define (probability-rator? sym)
-  (member sym '(uniform normal beta gamma categorical superpose-categorical)))
+  (member sym '(uniform normal beta gamma betafunc gammafunc categorical superpose-categorical)))
 
 (define (get-probability-rator sym tresult trands)
   (if (equal? sym 'superpose-categorical)
@@ -62,8 +62,11 @@
                        (list (sham$var 'gsl-rng)
                              (sham:expr:app (sham:rator:symbol 'prob2real)
                                             (list (sham$var 'sigma)))))))))
+
     (sham$define
      (beta (prelude-function-info) (a tprob) (b tprob) tprob)
+     ;; (sham:stmt:expr (sham$app print-prob a))
+     ;; (sham:stmt:expr (sham$app print-prob b))
      (sham:stmt:return
       (sham:expr:app (sham:rator:symbol 'real2prob)
                      (list
@@ -73,6 +76,32 @@
                                                           (list (sham$var 'a)))
                                            (sham:expr:app (sham:rator:symbol 'prob2real)
                                                           (list (sham$var 'b)))))))))
+    (sham$define
+     (bf-rrr (prelude-function-info) (a treal) (b treal) treal)
+     (sham:stmt:return
+      (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_beta treal)
+                     (list (sham$var a) (sham$var  b)))))
+    (sham$define
+     (bfln-rrp (prelude-function-info) (a treal) (b treal) tprob)
+     ;; (sham:stmt:expr (sham$app print-prob a))
+     ;; (sham:stmt:expr (sham$app print-prob b))
+     (sham:stmt:if (sham$app or
+                             (sham:expr:app (sham:rator:symbol 'fcmp-oeq)
+                                            (list (sham$var 'a)
+                                                  (real-value 0.0)))
+                             (sham:expr:app (sham:rator:symbol 'fcmp-oeq)
+                                            (list (sham$var 'b)
+                                                  (real-value 0))))
+                   (sham:stmt:return (sham$app recip-real (real-value 0.0)))
+                   (sham:stmt:return (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_lnbeta treal)
+                                                    (list (sham$var a) (sham$var  b))))))
+
+    (sham$define
+     (betafunc (prelude-function-info) (a tprob) (b tprob) tprob)
+     (sham:stmt:return
+      (sham:expr:app (sham$rator bfln-rrp)
+                     (list (sham$app prob2real a) (sham$app prob2real b)))))
+
     (sham$define
      (gamma (prelude-function-info) (a tprob) (b tprob) tprob)
      (sham:stmt:return
@@ -84,8 +113,27 @@
                                                           (list (sham$var 'a)))
                                            (sham:expr:app (sham:rator:symbol 'prob2real)
                                                           (list (sham$var 'b)))))))))
+    (sham$define
+     (gammaFunc (prelude-function-info) (a tprob) tprob)
+     (sham:stmt:return
+      (sham:expr:app (sham:rator:symbol 'real2prob)
+                     (list
+                      (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_gamma treal)
+                                     (list
+                                      (sham:expr:app (sham:rator:symbol 'prob2real)
+                                                     (list (sham$var 'a)))))))))
 
-
+    (sham:def:function
+     (void)
+     'print-prob (list 'a) (list (sham:type:ref 'f64)) (sham:type:ref 'void)
+     (sham:stmt:block
+      (list
+       (sham:stmt:expr (sham:expr:app (sham:rator:racket 'rktprint
+                                                         (λ (a) (printf "printing: ~a\n" a))
+                                                         (sham:type:function (list (sham:type:ref 'f64))
+                                                                             (sham:type:ref 'void)))
+                                      (list (sham:expr:var 'a))))
+       (sham:stmt:return (sham:expr:void)))))
     (sham$define
      (categorical-real (prelude-function-info) (arr (sham:type:ref 'array<real>*)) tnat)
      (sham:stmt:return (sham:expr:app (gsl-rator 'gsl_ran_discrete tnat)
@@ -117,44 +165,63 @@
   (sham:rator:external 'libgsl sym type))
 
 (define (build-superpose-categorical tresult len) ;;TODO we can probably optimize len two with binomial
+  (define len 2)
   (define fun-name (string->symbol (format "categorical-~a" len)))
   (define func
     (sham:def:function
      (prelude-function-info) fun-name
-     (build-list len get-vi) (build-list len (const (sham:type:ref 'prob)))
+     (build-list 2 get-vi) (build-list 2 (const (sham:type:ref 'prob)))
      (sham:type:ref tresult)
-     (sham:stmt:expr
-      (sham:expr:let (list 'arr)
-                     (list (sham:type:ref 'array<prob>*))
-                     (list (sham:expr:app
-                            (sham:rator:symbol
-                             (string->symbol (format new-size-array-fun-format
-                                                     'array<prob>)))
-                            (list (nat-value len))))
-                     (sham:stmt:block
-                      (append
-                       (for/list [(i (in-range len))]
-                         (sham:stmt:expr
-                          (sham:expr:app (sham:rator:symbol
-                                          (string->symbol (format set-index-fun-format
-                                                                  'array<prob>)))
-                                         (list (sham$var 'arr)
-                                               (nat-value i)
-                                               (sham$var (get-vi i))))))
-                       (list
-                        (sham:stmt:return
-                         (if (equal? tresult 'nat)
-                             (sham:expr:app (sham:rator:symbol 'categorical)
-                                            (list (sham$var 'arr)))
-                             (sham:expr:app (sham:rator:symbol 'intcast)
-                                            (list
-                                             (sham:expr:app (sham:rator:symbol 'categorical)
-                                                            (list (sham$var 'arr)))
-                                             (sham:expr:type (sham:type:ref tresult)))))))))
-
-                     (sham:expr:void))))) ;;TODO free arr :P
+     (sham:stmt:if (sham$app fcmp-ule (get-vi 0) (get-vi 1))
+                   (sham:stmt:return (nat-value 1))
+                   (sham:stmt:return (nat-value 0)))))
+  ;;TODO free arr :P
   (values (sham:rator:symbol fun-name) func))
-;  (values (cons func (array-defs '(array prob))) (sham:rator:symbol fun-name)))
+
+;; (define (build-superpose-categorical tresult len) ;;TODO we can probably optimize len two with binomial
+;;   (define fun-name (string->symbol (format "categorical-~a" len)))
+;;   (define func
+;;     (sham:def:function
+;;      (prelude-function-info) fun-name
+;;      (build-list len get-vi) (build-list len (const (sham:type:ref 'prob)))
+;;      (sham:type:ref tresult)
+;;      (sham:stmt:expr
+;;       (sham:expr:let (list 'arr)
+;;                      (list (sham:type:ref 'array<prob>*))
+;;                      (list (sham:expr:app
+;;                             (sham:rator:symbol
+;;                              (string->symbol (format new-size-array-fun-format
+;;                                                      'array<prob>)))
+;;                             (list (nat-value len))))
+;;                      (sham:stmt:block
+;;                       (append
+;;                        (for/list [(i (in-range len))]
+;;                          (sham:stmt:expr
+;;                           (sham:expr:app (sham:rator:symbol 'print-prob)
+;;                                          (list (sham$var (get-vi i))))))
+;;                        (for/list [(i (in-range len))]
+;;                          (sham:stmt:expr
+;;                           (sham:expr:app (sham:rator:symbol
+;;                                           (string->symbol (format set-index-fun-format
+;;                                                                   'array<prob>)))
+;;                                          (list (sham$var 'arr)
+;;                                                (nat-value i)
+;;                                                (sham$var (get-vi i))))))
+
+;;                        (list
+;;                         (sham:stmt:return
+;;                          (if (equal? tresult 'nat)
+;;                              (sham:expr:app (sham:rator:symbol 'categorical)
+;;                                             (list (sham$var 'arr)))
+;;                              (sham:expr:app (sham:rator:symbol 'intcast)
+;;                                             (list
+;;                                              (sham:expr:app (sham:rator:symbol 'categorical)
+;;                                                             (list (sham$var 'arr)))
+;;                                              (sham:expr:type (sham:type:ref tresult)))))))))
+
+;;                      (sham:expr:void))))) ;;TODO free arr :P
+;;   (values (sham:rator:symbol fun-name) func))
+
 
 (module+ test
   (require rackunit
@@ -167,6 +234,8 @@
   (define defs (append (basic-defs)
                        (probability-defs)
                        (list sc2)))
+
+
 
   ;(pretty-print (map sham-def->sexp defs))
 
@@ -199,8 +268,11 @@
   (init-rng)
   (define uniform (get-f 'uniform))
   (define normal (get-f 'normal))
+  (define beta (get-f 'beta))
   (define categorical-2 (get-f 'categorical-2))
   (define categorical-real (get-f 'categorical-real))
+
+  (define betaFunc (get-f 'betafunc))
   (define ars '(array real))
   (define ((gf frmt) tsym)
     (get-f (get-fun-symbol frmt (get-type-string tsym))))
@@ -220,12 +292,14 @@
   (define get-index-array-real (index-f ars))
   (define set-index-array-real (index!-f ars))
 
-;  (define t-real (get-t 'real))
+  ;  (define t-real (get-t 'real))
   (define ta '(0.0 0.0 4.0))
   (define test-real-array (list->cblock ta t-real))
   (define test-arr (make-array-real (length ta) test-real-array))
 
+  (betaFunc (c-real2prob 4.0) (c-real2prob 4.0))
+  ;; hkp logFromlogFloat $ betaFunc (prob_ 4.0) (prob_ 4.0)
   (printf "cat-real : ~a\n" (categorical-real test-arr))
-  (printf "cat2: ~a\n" (categorical-2 1.0 2.0))
+  (printf "cat2: ~a\n" (categorical-2 100.0 23.0))
   (printf "random normal mu=0, sd=1: ~a\n" (normal 0.0 (c-real2prob 1.0)))
   (printf "random uniform 1-5: ~a\n" (uniform 1.0 5.0)))
