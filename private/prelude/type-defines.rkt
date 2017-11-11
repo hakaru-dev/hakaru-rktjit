@@ -32,14 +32,13 @@
   (equal? t 'int))
 
 (define (real-value v)
-  (sham:expr:fl-value v type-real-ref))
+  (sham:expr:fl-value (exact->inexact v) type-real-ref))
 (define (nat-value v)
   (sham:expr:ui-value v type-nat-ref))
 (define (nat32-value v)
   (sham:expr:ui-value v (sham:type:ref 'i32)))
 (define (prob-value v)
-  (sham:expr:app (sham:rator:symbol'real2prob)
-                (list (real-value (exact->inexact v)))))
+  (sham:expr:fl-value (exact->inexact v) type-prob-ref))
 
 (define (get-struct-field sym . indexs)
   (sham:expr:gep (sham$var sym) (cons (nat32-value 0) (map nat32-value indexs))))

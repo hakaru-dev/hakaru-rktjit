@@ -5,7 +5,8 @@
          "pass.rkt"
          "utils.rkt")
 
-(provide compile-file)
+(provide compile-file
+         debug-file)
 
 (define pp-expr (compose pretty-display print-expr))
 (define pp-sham (compose pretty-display print-sham-module))
@@ -27,10 +28,12 @@
 
         (cons flatten-anf             pp-expr)
         (cons combine-loops           pp-expr)
+
         (cons later-simplifications   pp-expr)
         (cons to-stmt                 pp-expr)
 
         (cons expand-to-lc            pp-prog)))
+
 
 (define to-print? (make-parameter (const #t)))
 (define to-not-print? (make-parameter (const #f)))
@@ -79,7 +82,7 @@
            ;; later-simplifications
             to-stmt
             expand-to-lc))]
-       [to-not-print? (const #t)])
+       [to-not-print? (const #f)])
     (compile-src src)))
 
 (define debug-file (compose debug-src file->value))
@@ -93,7 +96,7 @@
 
 (module+ test
   (require ffi/unsafe)
-  (define module-env (debug-file "../../testcode/hkrkt/clinicalTrial_simp.hkr"))
+  (define module-env (debug-file "../../testcode/hkrkt/ClinicalTrial.hkr"))
   (require disassemble)
   (jit-dump-module module-env)
   (jit-verify-module module-env)
@@ -101,6 +104,7 @@
     (jit-get-function sym module-env))
   (define prog (jit-get-function 'prog module-env))
   (define init-rng (jit-get-function 'init-rng module-env))
+  (init-rng)
   (define tbool (jit-get-racket-type 'bool module-env))
   (define make-boolarr-pair (jit-get-function 'make$pair<array<bool>*.array<bool>*> module-env))
   (define make-bool-array (jit-get-function 'make$array<bool> module-env))
@@ -112,11 +116,12 @@
   (define (make-carray f t l)
     (f (length l) (list->cblock l t)))
   (define n 10)
-  (define a (make-carray make-bool-array tbool '(1 0 1 1 1 1 1 1 1 0)))
-  (define b (make-carray make-bool-array tbool '(0 1 1 0 1 1 1 1 0 1)))
-  (define p (make-boolarr-pair a b))
-  (disassemble-ffi-function (jit-get-function-ptr 'prog module-env) #:size 600))
-  ;;(prog n p))
+  (define a (make-carray make-bool-array tbool '(0 0 0 0 0 1 0 0 0 1)))
+  (define b (make-carray make-bool-array tbool '(0 0 0 0 0 0 0 0 0 1)))
+  (define p (make-boolarr-pair a b)))
+
+  ;(disassemble-ffi-function (jit-get-function-ptr 'prog module-env) #:size 600)
+  ;(prog n p))
   ;; (debug-file "../../testcode/hkrkt/linearRegression_simp.hkr")
   ;; (debug-file "../../testcode/hkrkt/gmm_gibbs_simp.hkr")
   ;; (debug-file "../../testcode/hkrkt/naive_bayes_gibbs_simp.hkr")
