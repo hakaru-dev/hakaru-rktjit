@@ -61,9 +61,9 @@
   (jit-optimize-module module-env #:opt-level 3)
   (jit-optimize-function module-env #:opt-level 3)
   ;(jit-dump-module module-env)
-  (jit-dump-function module-env 'prog)
+  ;(jit-dump-function module-env 'prog)
 
-  (jit-verify-module module-env)
+  ;(jit-verify-module module-env)
   (initialize-jit module-env #:opt-level 3))
 
 (define compile-file (compose compile-src file->value))
