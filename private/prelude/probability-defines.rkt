@@ -12,12 +12,15 @@
          get-probability-rator)
 
 (define (probability-rator? sym)
-  (member sym '(uniform normal beta gamma betafunc gammafunc categorical superpose-categorical)))
+  (member sym '(uniform normal beta gamma
+                        betafunc realbetafunc betafuncreal gammafunc
+                        categorical
+                        superpose-categorical superpose-categorical-real)))
 
 (define (get-probability-rator sym tresult trands)
-  (if (equal? sym 'superpose-categorical)
-      (build-superpose-categorical tresult (length trands))
-      (values (sham:rator:symbol sym) (void))))
+  (cond [(equal? sym 'superpose-categorical) (build-superpose-categorical tresult (length trands))]
+        [(equal? sym 'superpose-categorical-real) (build-superpose-categorical-real tresult (length trands))]
+        [else (values (sham:rator:symbol sym) (void))]))
 
 (define (probability-defs)
   (define adefs (append
@@ -77,29 +80,22 @@
                                            (sham:expr:app (sham:rator:symbol 'prob2real)
                                                           (list (sham$var 'b)))))))))
     (sham$define
-     (bf-rrr (prelude-function-info) (a treal) (b treal) treal)
-     (sham:stmt:return
-      (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_beta treal)
-                     (list (sham$var a) (sham$var  b)))))
+     (realbetafunc (prelude-function-info) (a treal) (b treal) treal)
+     (sham$block
+      (sham:stmt:expr (sham$app print-prob a))
+      (sham:stmt:expr (sham$app print-prob b))
+      (sham:stmt:return
+       (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_beta treal)
+                      (list (sham$var a) (sham$var  b))))))
     (sham$define
-     (bfln-rrp (prelude-function-info) (a treal) (b treal) tprob)
-     ;; (sham:stmt:expr (sham$app print-prob a))
-     ;; (sham:stmt:expr (sham$app print-prob b))
-     (sham:stmt:if (sham$app or
-                             (sham:expr:app (sham:rator:symbol 'fcmp-oeq)
-                                            (list (sham$var 'a)
-                                                  (real-value 0.0)))
-                             (sham:expr:app (sham:rator:symbol 'fcmp-oeq)
-                                            (list (sham$var 'b)
-                                                  (real-value 0))))
-                   (sham:stmt:return (sham$app recip-real (real-value 0.0)))
-                   (sham:stmt:return (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_lnbeta treal)
-                                                    (list (sham$var a) (sham$var  b))))))
+     (betafuncreal (prelude-function-info) (a treal) (b treal) tprob)
+     (sham:stmt:return (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_lnbeta treal)
+                                      (list (sham$var a) (sham$var  b)))))
 
     (sham$define
      (betafunc (prelude-function-info) (a tprob) (b tprob) tprob)
      (sham:stmt:return
-      (sham:expr:app (sham$rator bfln-rrp)
+      (sham:expr:app (sham$rator betafuncreal)
                      (list (sham$app prob2real a) (sham$app prob2real b)))))
 
     (sham$define
@@ -171,6 +167,20 @@
     (sham:def:function
      (prelude-function-info) fun-name
      (build-list 2 get-vi) (build-list 2 (const (sham:type:ref 'prob)))
+     (sham:type:ref tresult)
+     (sham:stmt:if (sham$app fcmp-ule (get-vi 0) (get-vi 1))
+                   (sham:stmt:return (nat-value 1))
+                   (sham:stmt:return (nat-value 0)))))
+  ;;TODO free arr :P
+  (values (sham:rator:symbol fun-name) func))
+
+(define (build-superpose-categorical-real tresult len) ;;TODO we can probably optimize len two with binomial
+  (define len 2)
+  (define fun-name (string->symbol (format "categorical-~a" len)))
+  (define func
+    (sham:def:function
+     (prelude-function-info) fun-name
+     (build-list 2 get-vi) (build-list 2 (const (sham:type:ref 'real)))
      (sham:type:ref tresult)
      (sham:stmt:if (sham$app fcmp-ule (get-vi 0) (get-vi 1))
                    (sham:stmt:return (nat-value 1))
@@ -273,6 +283,7 @@
   (define categorical-real (get-f 'categorical-real))
 
   (define betaFunc (get-f 'betafunc))
+  (define realbetaFunc (get-f 'realbetafunc))
   (define ars '(array real))
   (define ((gf frmt) tsym)
     (get-f (get-fun-symbol frmt (get-type-string tsym))))

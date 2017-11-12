@@ -16,8 +16,8 @@
 (define (change-orig-var v o)
   (set-expr-var-orig! v o))
 
-(define csym '$)
-(define msym 'm)
+(define csym '$c)
+(define msym '$m)
 (define (set-mutable-var v) (change-orig-var v msym) v)
 (define (set-constant-var v) (change-orig-var v csym) v)
 
