@@ -3,7 +3,8 @@
 (require "ast.rkt")
 (require "utils.rkt")
 (require racket/trace)
-(provide flatten-anf)
+(provide flatten-anf
+         pull-indexes)
 
 #|
  Does anf and let hoisting in single pass using sorting
@@ -227,3 +228,127 @@
      (define nb (uf body))
      (for ([ef (ufb-efvp nb)]) (void))
      (expr-mod (expr-fun args ret-type (combine-ufb (uf body))) '())]))
+
+
+(define (pull-indexes expr)
+  (define combine-imaps append)
+  (define (group-alpha-eq imps) ;;we know they all are index app so alpha eq is symbol eq
+    (group-by (λ (im) (symbol-append (pe (first (expr-app-rands (cdr im))))
+                                     (pe (second (expr-app-rands (cdr im))))))
+              imps))
+  (define (clean imps)
+    (define aleq (group-alpha-eq imps))
+    (define uniq (map first aleq))
+    (append uniq
+            (apply append
+             (for/list ([u uniq]
+                        [rs (map cdr aleq)])
+               (for/list ([r rs])
+                 (cons (car r) (car u)))))))
+  (define (wrap s e imps)
+    (define ci (clean imps))
+    (define tvls (map (λ (i) (list (typeof (cdr i)) (car i) (cdr i))) ci))
+    (expr-lets (map first tvls) (map second tvls) (map third tvls) s e))
+
+  (define (wrap-expr e imps)
+    (wrap (stmt-void) e imps))
+  (define (wrap-stmt s imps)
+    (stmt-expr (stmt-void) (wrap s (expr-val 'nat 0) imps)))
+
+  (define (cant-can imap vars)
+    (for/fold ([cant '()]
+               [can '()])
+              ([im imap])
+      (define ffv (find-free-variables (cdr im)))
+      (if (ormap (curry set-member? ffv) vars)
+          (values (cons im cant) can)
+          (values cant (cons im can)))))
+  (define (check&wrap-f es-i vars f)
+    (match-define (cons es imap) es-i)
+    (define-values (cant can) (cant-can imap vars))
+    (cons (f es cant) can))
+
+  (define (check&wrap-expr e-i vars)
+    (check&wrap-f e-i vars wrap-expr))
+
+  (define (check&wrap-stmt s-i vars)
+    (check&wrap-f s-i vars wrap-stmt))
+
+  (define (pull-stmt stmt) ;; -> (cons stmt index-map)
+    (match stmt
+      [(stmt-block stmts)
+       (define stmtsl (map pull-stmt stmts))
+       (define nstmts (map car stmtsl))
+       (define stmts-imap (append-map cdr stmtsl))
+       (cons (stmt-block nstmts) stmts-imap)]
+      [(stmt-if tst thn els)
+       (match-define (cons ntst tst-imap) (pull-expr tst))
+       (match-define (cons nthn thn-imap) (pull-stmt thn))
+       (match-define (cons nels els-imap) (pull-stmt els))
+       (cons (stmt-if ntst nthn nels) (combine-imaps tst-imap thn-imap els-imap))]
+      [(stmt-for i start end body)
+       (match-define (cons body1 b-imap1) (pull-stmt body))
+       (match-define (cons nbody body-imap) (check&wrap-stmt (cons body1 b-imap1) (list i)))
+       (cons (stmt-for i start end nbody) body-imap)]
+      [(stmt-assign lhs rhs)
+       (match-define (cons nrhs rhs-imap) (pull-expr rhs))
+       (cons (stmt-assign lhs nrhs) rhs-imap)]
+      [(stmt-expr stmt expr)
+       (match-define (cons nstmt stmt-imap) (pull-stmt stmt))
+       (match-define (cons nexpr expr-imap) (pull-expr expr))
+       (cons (stmt-expr nstmt nexpr) (combine-imaps stmt-imap expr-imap))]
+      [(stmt-return e)
+       (match-define (cons ne e-imap) (pull-expr e))
+       (cons (stmt-return ne) e-imap)]
+      [(stmt-void) (cons stmt '())]))
+
+  (define (pull-index-tvl tvls)
+    (define all-vars (map second tvls))
+    (define-values (typs vars vals imap)
+      (for/fold ([typs '()]
+                 [vars '()]
+                 [vals '()]
+                 [imap '()])
+                ([tvl (reverse tvls)])
+        (match-define (list type var val) tvl)
+        (match-define (cons nv v-imap) (check&wrap-expr (pull-expr val) all-vars))
+        (values (cons type typs)
+                (cons var vars)
+                (cons nv vals)
+                (append v-imap imap))))
+    (cons (list typs vars vals) imap))
+
+  (define (pull-expr expr) ;; -> (cons expr index-map)
+    (match expr
+      [(expr-lets types vars vals stmt expr)
+       (match-define (cons (list ntypes nvars nvals) tvl-imap)
+         (pull-index-tvl (map list types vars vals)))
+       (match-define (cons nstmt stmt-imap) (check&wrap-stmt (pull-stmt stmt) nvars))
+       (define expl (pull-expr expr))
+       (match-define (cons nbody body-imap) (check&wrap-expr expl nvars))
+       (cons (expr-lets ntypes nvars nvals nstmt nbody) (combine-imaps tvl-imap stmt-imap body-imap))]
+      [(expr-if t tst thn els)
+       (match-define (cons ntst tst-imap) (pull-expr tst))
+       (match-define (cons nthn thn-imap) (pull-expr thn))
+       (match-define (cons nels els-imap) (pull-expr els))
+       (cons (expr-if t ntst nthn nels) (combine-imaps tst-imap thn-imap els-imap))]
+      [(expr-app t (expr-intrf 'index) rds)
+       (define ni (gensym^ 'indp))
+       (define nivar (expr-var t ni csym))
+       (define rdsl (map pull-expr rds))
+       (define nrds (map car rdsl))
+       (define rds-imps (append-map cdr rdsl))
+       (cons nivar (combine-imaps (list (cons nivar (expr-app t (expr-intrf 'index) nrds))) rds-imps))]
+      [(expr-app t rtr rds)
+       (define rdsl (map pull-expr rds))
+       (define nrds (map car rdsl))
+       (define rds-imps (append-map cdr rdsl))
+       (cons (expr-app t rtr nrds) rds-imps)]
+      [(? expr-var?) (cons expr '())]
+      [(? expr-val?) (cons expr '())]))
+
+
+  (match (expr-mod-main expr)
+    [(expr-fun args ret-type body)
+     (match-define (cons nbody imp) (pull-expr body))
+     (expr-mod (expr-fun args ret-type (wrap-expr nbody imp)) '())]))
