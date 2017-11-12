@@ -42,6 +42,7 @@
     (sham$return
      (sham$app ui->fp v (sham$etype real))))
 
+
    (sham$define
     (nat2int (v nat) int)
     ;;NOTE: I think going from signed to unsigned is easy because of 2's complement
@@ -139,19 +140,83 @@
 (define (build-eq-dif-type trands tresult)
   (error 'notdoneyet))
 
+(define (build-add tresult trands)
+  (define (get-add-fun)
+    (match tresult
+      ['nat 'add-nuw]
+      ['int 'add-nsw]
+      ['real 'fadd]
+      ['prob 'fadd]))
+  (define len (length trands))
+  (define tref (sham:type:ref tresult))
+  (sham:def:function
+   (prelude-function-info)
+   (get-add-sym len tresult)
+   (build-list len get-vi)
+   (build-list len (const tref)) tref
+   (sham:stmt:return
+    (for/fold ([body (sham$var (get-vi 0))])
+              ([i (in-range 1 len)])
+      (sham:expr:app (sham:rator:symbol (get-add-fun))
+                     (list (sham$var (get-vi i))
+                           body))))))
+
+(define (build-mul tresult trands)
+  (define (get-mul-fun)
+    (match tresult
+      ['nat 'mul-nuw]
+      ['int 'mul-nsw]
+      ['real 'fmul]))
+  (define len (length trands))
+  (define tref (sham:type:ref tresult))
+  (sham:def:function
+   (prelude-function-info)
+   (get-mul-sym len tresult)
+   (build-list len get-vi)
+   (build-list len (const tref)) tref
+   (sham:stmt:return
+    (for/fold ([body (sham$var (get-vi 0))])
+              ([i (in-range 1 len)])
+      (sham:expr:app (sham:rator:symbol (get-mul-fun))
+                     (list (sham$var (get-vi i))
+                           body))))))
+
+(define (get-add-sym len tresult)
+  (get-fun-symbol add-fun-format len (get-type-string tresult)))
+(define (get-mul-sym len tresult)
+  (get-fun-symbol mul-fun-format len (get-type-string tresult)))
+
+(define (build-add-rator tresult trands)
+  (sham:rator:symbol (get-add-sym (length trands) tresult)))
+(define (build-mul-rator tresult trands)
+  (sham:rator:symbol (get-mul-sym (length trands) tresult)))
+
 (define (get-basic-rator sym trslt trnds)
   (define tresult (if-need-pointer trslt))
   (define trands (map if-need-pointer trnds))
   (match sym
     [(? simple-rator?) (values (sham:rator:symbol sym) (void))]
-    ['* #:when (and (andmap tprob? trands))
-        (values (sham:rator:symbol 'fadd) (void))]
-    ['* #:when (and (andmap treal? trands))
-        (values (sham:rator:symbol 'fmul) (void))]
-    ['* #:when (and (andmap tnat? trands))
-        (values (sham:rator:symbol 'mul-nuw) (void))]
-    ['* #:when (and (andmap tint? trands))
-        (values  (sham:rator:symbol 'mul-nsw) (void))]
+    ['+ #:when (and (andmap tprob? trands) (tprob? tresult))
+        (values (sham:rator:symbol (add-prob-sym (length trands)))
+                (build-add-prob (length trands)))]
+    ['* #:when (and (andmap tprob? trands) (tprob? tresult))
+        (values (build-add-rator tresult trands)
+                (build-add tresult trands))]
+
+    ['* #:when (andmap (curry equal? tresult) trands)
+        (values (build-mul-rator tresult trands) (build-mul tresult trands))]
+    ['+ #:when (andmap (curry equal? tresult) trands)
+        (values (build-add-rator tresult trands) (build-add tresult trands))]
+
+    ;; ['* #:when (and (andmap tprob? trands))
+    ;;     (values (sham:rator:symbol 'fadd) (void))]
+    ;; ['* #:when (and (andmap treal? trands))
+    ;;     (values (sham:rator:symbol 'fmul) (void))]
+    ;; ['* #:when (and (andmap tnat? trands))
+    ;;     (values (sham:rator:symbol 'mul-nuw) (void))]
+    ;; ['* #:when (and (andmap tint? trands))
+    ;;     (values  (sham:rator:symbol 'mul-nsw) (void))]
+
 
     ['+ #:when (and (andmap treal? trands))
         (values  (sham:rator:symbol 'fadd) (void))]
@@ -159,9 +224,7 @@
         (values  (sham:rator:symbol 'add-nuw) (void))]
     ['+ #:when (and (andmap tint? trands))
         (values  (sham:rator:symbol 'add-nsw) (void))]
-    ['+ #:when (and (andmap tprob? trands) (tprob? tresult))
-        (values (sham:rator:symbol (add-prob-sym (length trands)))
-                (build-add-prob (length trands)))]
+
 
     ['< #:when (andmap tnat? trands)
         (values (sham:rator:symbol 'icmp-ult) (void))]
@@ -209,11 +272,11 @@
      (define tr (if-need-pointer tresult))
      (values (sham:rator:symbol (get-fun-symbol reject-fun-format tr))
              (sham:def:function (prelude-function-info)
-              (get-fun-symbol reject-fun-format tr) '() '() (sham:type:ref tresult)
-              (sham$return (sham$uiv 0 (sham$tref tr)))))]
+                                (get-fun-symbol reject-fun-format tr) '() '() (sham:type:ref tresult)
+                                (sham$return (sham$uiv 0 (sham$tref tr)))))]
 
     [else (error "why is this basic-rator not figured out?"
-                  sym tresult trands trslt trnds)]))
+                 sym tresult trands trslt trnds)]))
 
 
 (define (basic-mod-info)
@@ -247,6 +310,8 @@
   (define t-prob (get-t 'prob))
 
   (define c-nat2prob (get-f 'nat2prob))
+  (define c-nat2real (get-f 'nat2real))
+
   (define c-prob2real (get-f 'prob2real))
   (define c-real2prob (get-f 'real2prob))
 
