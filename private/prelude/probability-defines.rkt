@@ -71,22 +71,19 @@
      ;; (sham:stmt:expr (sham$app print-prob a))
      ;; (sham:stmt:expr (sham$app print-prob b))
      (sham:stmt:return
-      (sham:expr:app (sham:rator:symbol 'real2prob)
-                     (list
-                      (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_beta treal)
-                                     (list (sham:expr:var 'gsl-rng)
-                                           (sham:expr:app (sham:rator:symbol 'prob2real)
-                                                          (list (sham$var 'a)))
-                                           (sham:expr:app (sham:rator:symbol 'prob2real)
-                                                          (list (sham$var 'b)))))))))
+      (sham:expr:app (sham:rator:symbol 'betafuncreal)
+                     (list (sham:expr:app (sham:rator:symbol 'prob2real)
+                                          (list (sham$var 'a)))
+                           (sham:expr:app (sham:rator:symbol 'prob2real)
+                                          (list (sham$var 'b)))))))
+
+
     (sham$define
      (realbetafunc (prelude-function-info) (a treal) (b treal) treal)
-     (sham$block
-      (sham:stmt:expr (sham$app print-prob a))
-      (sham:stmt:expr (sham$app print-prob b))
-      (sham:stmt:return
-       (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_beta treal)
-                      (list (sham$var a) (sham$var  b))))))
+     (sham:stmt:return
+      (sham:expr:app (sham:rator:symbol 'prob2real)
+                     (list (sham:expr:app (sham:rator:symbol 'betafuncreal) (list (sham$var a) (sham$var  b)))))))
+
     (sham$define
      (betafuncreal (prelude-function-info) (a treal) (b treal) tprob)
      (sham:stmt:return (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_lnbeta treal)
@@ -283,6 +280,7 @@
   (define categorical-real (get-f 'categorical-real))
 
   (define betaFunc (get-f 'betafunc))
+  (define betaFuncreal (get-f 'betafuncreal))
   (define realbetaFunc (get-f 'realbetafunc))
   (define ars '(array real))
   (define ((gf frmt) tsym)
