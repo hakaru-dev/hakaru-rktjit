@@ -11,7 +11,6 @@
   (expr
    (mod (main fns) [expr (* (symbol . expr))])
    (fun (args ret-type body) [(* expr) symbol expr])
-   (let (type var val body) [symbol expr expr expr])
    (lets (types vars vals body) [symbol (* expr) (* expr) expr])
    (var (type sym orig) [symbol symbol symbol])
    (arr (type index size body) [symbol expr expr expr])
@@ -34,7 +33,6 @@
    (index (n i a) (expr expr reducer)))
   (stmt
    (if (tst thn els) (expr stmt stmt))
-;   (lets (vars bstmt) ((* expr) stmt))
    (elets (vars vals bstmt) ((* expr) (* expr) stmt))
    (for (i start end body) (expr expr expr stmt))
    (block (stmts) ((* stmt)))
@@ -64,11 +62,6 @@
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-fun args ret-type body) e^)
          (expr-fun (map f-expr args) (f-symbol ret-type) (if (stmt? body) (f-stmt body) (f-expr body))))))
-    ;; (struct expr-let expr (type var val body)
-    ;;   #:methods gen:exprg
-    ;;   ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
-    ;;      (match-define (expr-let type var val body) e^)
-    ;;      (expr-let (f-symbol type) (f-expr var) (f-expr val) (f-expr body)))))
     (struct expr-lets expr (types vars vals stmt body)
       #:methods gen:exprg
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
@@ -191,6 +184,8 @@
       ((define (map-reducer f-expr f-reducer f-stmt f-pat e^)
          (match-define (reducer-index n i a) e^)
          (reducer-index (f-expr n) (f-expr i) (f-reducer a))))))
+
+
   (begin
     (define-generics stmtg (map-stmt f-expr f-reducer f-stmt f-pat stmtg))
     (struct stmt ())
