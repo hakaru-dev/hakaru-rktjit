@@ -130,9 +130,25 @@
                 (pe var) (typeof var) (pe val) (typeof val) (pe e) (typeof e))
        val]
       [else e]))
+  (define (canbereal? e)
+    (match e
+      [(expr-app t (expr-intrf s) rands)
+       (or (set-member? (list->set '(nat2prob real2prob)) s)
+           (and (equal? s 'betafunc) (andmap canbereal? rands)))]))
+  (define (get-real e)
+    (match e
+      [(expr-app 'prob (expr-intrf 'nat2prob) rands)
+       (expr-app 'real (expr-intrf 'nat2real) rands)]
+      [(expr-app 'prob (expr-intrf 'real2prob) rands)
+       #:when (equal? (length rands) 1)
+       (first rands)]
+      [(expr-app 'prob (expr-intrf 'betafunc) rands)
+       (expr-app 'real (expr-intrf 'realbetafunc) (map get-real rands))]))
 
   (define (sl e env)
     (match e
+      [(expr-lets '() '() '() (stmt-void) b)
+       (sl b env)]
       [(expr-lets ts vars vals stmt body)
 
        (define bffv (set-union (find-free-variables body) (find-free-variables stmt)))
@@ -152,7 +168,10 @@
              [(and (expr-var? nv) (not (is-mutable-var? var)))
               (dtprintf "replacing-immutable: ~a <- ~a\n" (pe var) (pe val))
               (values nts nvars nvals (hash-set e var nv))]
-             [else (values (cons t nts) (cons var nvars) (cons nv nvals) e)])))
+             [else
+              ;; (dtprintf "expr-let-nothing: ~a, ffv?: ~a, var?: ~a, mv?: ~a\n"
+              ;;           (pe var) (set-member? bffv var) (expr-var? nv) (is-mutable-var? var))
+              (values (cons t nts) (cons var nvars) (cons nv nvals) e)])))
        (clean-expr-lets
         (expr-lets nts nvars nvals (sl stmt ne) (sl body ne)))]
 
@@ -160,27 +179,69 @@
        (expr-if t (sl tst env)
                 (sl thn env)
                 (sl els env))]
+
+      ;; removing redundant logfloatconversions
       [(expr-app 'prob (expr-intrf '+) args)
-       (dtprintf "got prob add: ~a\n" (map typeof args))
-       (expr-app 'prob (expr-intrf '+) args)]
+       #:when (andmap canbereal? args)
+       (sl (expr-app 'prob (expr-intrf 'real2prob)
+                     (list (expr-app 'real (expr-intrf '+) (map get-real args))))
+           env)]
+
+
+      [(expr-app 'prob (expr-intrf '*) args)
+       #:when (andmap canbereal? args)
+       (sl (expr-app 'prob (expr-intrf 'real2prob)
+                     (list (expr-app 'real (expr-intrf '*) (map get-real args))))
+           env)]
+
+      [(expr-app 'prob (expr-intrf 'betafunc) args)
+       #:when (andmap canbereal? args)
+       (sl (expr-app 'prob (expr-intrf 'betafuncreal) (map get-real args)) env)]
+
+      [(expr-app t (expr-intrf 'superpose-categorical) args)
+       (define nargs (map (curryr sl env) args))
+       (if (andmap canbereal? nargs)
+           (expr-app t (expr-intrf 'superpose-categorical-real)
+                     (map get-real nargs))
+           (expr-app t (expr-intrf 'superpose-categorical)
+                       nargs))]
+      ;;end removing logfloat conversions
 
       [(expr-app t rator rands)
        (expr-app t rator (map (curryr sl env) rands))]
 
-
+      ;; stmt simplifications
       [(stmt-for i start end b)
-       (stmt-for i (sl start env)
-                 (sl end env)
-                 (sl b env))]
+       (stmt-for i (sl start env) (sl end env) (sl b env))]
+
       [(stmt-expr s e)
-       (stmt-expr (sl s env) (sl e env))]
+       (define se (stmt-expr (sl s env) (sl e env)))
+       (match se
+         [(stmt-expr (stmt-void) (expr-lets '() '() '() s (expr-val 'nat 0)))
+          (sl s env)]
+         [(stmt-expr (stmt-void) (expr-val 'nat 0))
+          (stmt-void)]
+         [else se])]
+
+      [(stmt-block (list s)) s]
+
       [(stmt-block stmts)
-       (stmt-block (map (curryr sl env) stmts))]
+       (define nstmts (map (curryr sl env) stmts))
+       (define (combine-ifs stmts)
+         (define if-groups (group-by (λ (s) (stmt-if-tst s)) stmts))
+         (for/list ([g if-groups])
+           (stmt-if (stmt-if-tst (first g))
+                    (sl (stmt-block (map stmt-if-thn g)) env)
+                    (sl (stmt-block (map stmt-if-els g)) env))))
+       (if (andmap stmt-if? nstmts)
+           (stmt-block (combine-ifs nstmts))
+           (stmt-block nstmts))]
+
       [(stmt-void) (stmt-void)]
+
       [(stmt-if tst thn els)
-       (stmt-if (sl tst env)
-                (sl thn env)
-                (sl els env))]
+       (stmt-if (sl tst env) (sl thn env) (sl els env))]
+
       [(stmt-assign lhs rhs)
        #:when (expr-app? lhs)
        (sl
