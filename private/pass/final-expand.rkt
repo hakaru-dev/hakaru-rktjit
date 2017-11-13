@@ -8,9 +8,9 @@
          "utils.rkt"
          "../utils.rkt")
 
-(provide expand-to-lc)
+(provide to-sham-lc)
 
-(define (expand-to-lc mod)
+(define (to-sham-lc mod)
   (define prl (new-prelude))
   (add-basic&probability-defs prl)
 
@@ -85,7 +85,8 @@
        (dtprintf "expanding-function: ~a\n\targ-types: ~a, ret-type: ~a\n"
                  fname (map expr-var-type args) ret-type)
        (sham:def:function
-        (mod-fun-info) fname
+        (prog-fun-info (map typeof args) ret-type fname)
+        fname
         (map expr-var-sym args) (map (compose get&add-type expr-var-type) args)
         (get&add-type ret-type)
         (es b))]))
@@ -93,8 +94,6 @@
   (define prog (expand-fun (cons 'prog (expr-mod-main mod))))
 
   (sham:module
-   (build-info (void) ;;TODO move this info to defs somewhere
-               '((ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
-                              (libgsl . ("libgsl"))))))
+   (basic-mod-info)
    (append (cleanup-defs (get-defs-prelude prl))
            (cons prog (map expand-fun (expr-mod-fns mod))))))

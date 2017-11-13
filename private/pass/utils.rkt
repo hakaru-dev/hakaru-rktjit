@@ -4,8 +4,7 @@
          "../utils.rkt"
          "ast.rkt")
 
-(provide expr->stmt
-         gensym^
+(provide (all-defined-out)
          (all-from-out "../utils.rkt"))
 
 ;; converts an expression to a simple statment with the value given to
@@ -39,6 +38,11 @@
   (match st
     [(state prg info passes)
      ((car passes) (state prg info (cdr passes)))]))
+
+(define (run-next-state st)
+  (match st
+    [(state prg info passes)
+     ((second passes) (state prg info (cddr passes)))]))
 
 (define (vector-getpos vec f?)
   (map cadr (filter (λ (vi) (f? (car vi)))  (map list (vector->list vec) (build-list (vector-length vec) identity)))))

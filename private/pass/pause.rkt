@@ -2,17 +2,15 @@
 (require sham)
 (require "ast.rkt"
          "utils.rkt")
-(provide pause)
+(provide pause stop)
 
-(define state (box (void)))
-(define rest-pass (box (void)))
+(define state-box (box (void)))
 
 (define-namespace-anchor anchor)
 (define ns (namespace-anchor->namespace anchor))
 
-(define (pause st rp)
-  (set-box! state st)
-  (set-box! rest-pass rp)
+(define (pause st)
+  (set-box! state-box st)
   (printf "pausing compilation\n")
   (printf "\n> ")
   (let loop ([inp (read)])
@@ -22,4 +20,10 @@
        (printf "\n> ")
        (loop (read))))
   (printf "continuing evaluation\n")
-  ((car rp) st (cdr rp)))
+  (run-next-state st))
+
+(define (stop st)
+  (printf "stopping pipeline here")
+  (match st
+    [(state prg info rp)
+     (state #f info '())]))

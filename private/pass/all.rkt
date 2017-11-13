@@ -1,18 +1,22 @@
 #lang racket
 
 (require
- "reduce-curry.rkt"
+ "clean-curry.rkt"
  "parse-sexp.rkt"
  "flatten.rkt"
+ "pause.rkt"
  "combine-loops.rkt"
  "simplifications.rkt"
- "expand-lc.rkt")
+ "final-expand.rkt"
+ "jit.rkt")
 
 (provide
  (all-from-out
-  "reduce-curry.rkt"
+  "clean-curry.rkt"
   "parse-sexp.rkt"
   "flatten.rkt"
+  "pause.rkt"
   "combine-loops.rkt"
   "simplifications.rkt"
-  "expand-lc.rkt"))
+  "final-expand.rkt"
+  "jit.rkt"))

@@ -124,7 +124,7 @@
     [`(pdatum pair ,c)  (match-define (list a b) (pc c)) (pat-pair a b)]))
 
 ;;S-expression to ast struct
-(define (parse-sexp expr)
+(define (parse-sexp state)
   (sa expr (make-immutable-hash)))
 
 (module+ test

@@ -3,14 +3,19 @@
 (require sham
          "ast.rkt"
          "pass.rkt"
+         "pass/utils.rkt"
          "utils.rkt")
 
 (provide compile-file)
 
 (define passes
+
   (list
+   clean-curry
+
    pause
-   reduce-curry
+   stop
+
    parse-sexp
    initial-simplifications
    flatten-anf
@@ -19,13 +24,13 @@
    pull-indexes
    later-simplifications
    to-stmt
-   expand-to-sham-lc
+   to-sham-lc
    compile-with-sham
    optimize&init-jit))
 
-(define (send-to-pipeline src arg-info)
+(define (run-pipeline src arg-info)
   (define init-state
-    (state src (make-immutable-hash (cons prog-arg-info (list->vector arg-info)) passes)))
+    (state src (make-immutable-hash (cons prog-arg-info (list->vector arg-info))) passes))
   (run-state init-state))
 
 ;; this arginfo for now only talks about the prog function,
@@ -90,7 +95,7 @@
                      (list `(arrayinfo (size . ,points) (valuerange (0 . ,(- classes 1)))))
                      (list `(arrayinfo (size . ,points)) 'curryhere)
                      (list `(natinfo (valuerange (0 . ,(- points 1)))))))
-    (defien gg-module-env(compile-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
+    (define gg-module-env(compile-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
     (dv gg-module-env))
 
 
