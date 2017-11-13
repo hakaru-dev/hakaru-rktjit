@@ -71,6 +71,12 @@
     [`(measure ,mt) (if-need-pointer mt)]
     [tp #:when (nrp? t) tp]
     [else `(pointer ,t)]))
+(define (pointer-type? t)
+  (printf "pointer-type?: ~a=~a\n" t
+          (and (pair? (if-need-pointer t))
+               (equal? (car (if-need-pointer t)) 'pointer)))
+  (and (pair? (if-need-pointer t))
+       (equal? (car (if-need-pointer t)) 'pointer)))
 (define (expand-type t)
   (define et expand-type)
   (match t

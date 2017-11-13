@@ -6,6 +6,3 @@
 
 (define (get-vi i)
   (string->symbol (format "v~a" i)))
-
-
-(define (prelude-function-info) '())
