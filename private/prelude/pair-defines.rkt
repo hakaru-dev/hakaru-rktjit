@@ -1,9 +1,10 @@
 #lang racket
 
-(require sham/ast
+(require sham
          (submod sham/ast utils))
 (require "template-format.rkt"
          "type-defines.rkt"
+         "basic-defines.rkt"
          "utils.rkt")
 
 (provide pair-defs
@@ -115,17 +116,15 @@
                   (pair (pair nat nat) nat)))))
 ;  (pretty-print (map sham-def->sexp defs))
   (define mod
-    (sham:module
-     (build-info (basic-module-info)
-                 '((ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
-                                (libgsl . ("libgsl"))))))
-     defs))
+    (sham:module (basic-mod-info) defs))
   (define cmod (compile-module mod))
-  (jit-optimize-module cmod #:opt-level 3)
+  (optimize-module cmod)
+
   (jit-dump-module cmod)
   (jit-verify-module cmod)
-  (define cjmod (initialize-jit cmod))
-  (define (get-t t) (jit-get-racket-type (env-lookup t cmod)))
+  (initialize-jit! cmod)
+
+  (define (get-t t) (jit-get-racket-type t cmod))
   (define (get-f f) (jit-get-function f cmod))
   (define ((gf frmt) tsym)
     (get-f (get-fun-symbol frmt (get-type-string tsym))))

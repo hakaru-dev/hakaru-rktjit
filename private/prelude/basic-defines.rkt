@@ -4,8 +4,7 @@
 
 (require ffi/unsafe)
 
-(require sham/jit
-         sham/ast
+(require sham
          (submod sham/ast utils)
          "utils.rkt"
          "../ast.rkt"
@@ -13,6 +12,7 @@
          "template-format.rkt")
 
 (provide (all-defined-out))
+
 
 (define (basic-defs)
   (define nat type-nat-ref)
@@ -208,28 +208,11 @@
     ['+ #:when (andmap (curry equal? tresult) trands)
         (values (build-add-rator tresult trands) (build-add tresult trands))]
 
-    ;; ['* #:when (and (andmap tprob? trands))
-    ;;     (values (sham:rator:symbol 'fadd) (void))]
-    ;; ['* #:when (and (andmap treal? trands))
-    ;;     (values (sham:rator:symbol 'fmul) (void))]
-    ;; ['* #:when (and (andmap tnat? trands))
-    ;;     (values (sham:rator:symbol 'mul-nuw) (void))]
-    ;; ['* #:when (and (andmap tint? trands))
-    ;;     (values  (sham:rator:symbol 'mul-nsw) (void))]
-
-
-    ['+ #:when (and (andmap treal? trands))
-        (values  (sham:rator:symbol 'fadd) (void))]
-    ['+ #:when (and (andmap tnat? trands))
-        (values  (sham:rator:symbol 'add-nuw) (void))]
-    ['+ #:when (and (andmap tint? trands))
-        (values  (sham:rator:symbol 'add-nsw) (void))]
-
-
     ['< #:when (andmap tnat? trands)
         (values (sham:rator:symbol 'icmp-ult) (void))]
     ['< #:when (andmap tint? trands)
         (values (sham:rator:symbol 'icmp-slt) (void))]
+
     ['/ #:when (and (andmap tnat? trands) (tnat? tresult))
         (values (sham:rator:symbol 'udiv) (void))]
     ['/ #:when (and (andmap tnat? trands) (treal? tresult))
@@ -243,24 +226,29 @@
     ['== #:when (tbool? tresult)
          (values (sham:rator:symbol (get-fun-symbol eq-dif-type trands))
                  (build-eq-dif-type trands tresult))]
+
     ['and #:when (andmap tbool? trands)
           (values (sham:rator:symbol 'and) (void))]
     ['not #:when (andmap tbool? trands)
           (values (sham:rator:symbol 'not) (void))]
+
     ['natpow
      #:when (and (treal? tresult) (treal? (first trands)) (tnat? (second trands)))
      (values (sham:rator:intrinsic 'llvm.powi.f64 (sham:type:ref 'real)) (void))]
+
     ['root
      #:when (and (tprob? tresult)
                  (equal? (length trands) 2)
                  (tprob? (first trands))
                  (tnat? (second trands)))
      (values (sham:rator:symbol 'root-prob-nat) (void))]
+
     ['exp
      #:when (and (tprob? tresult)
                  (equal? (length trands) 1)
                  (treal? (first trands)))
      (values (sham:rator:symbol 'exp-real2prob) (void))]
+
     ['recip
      (define (get-recip type)
        (match type
@@ -280,9 +268,27 @@
 
 
 (define (basic-mod-info)
-  '((passes . ())
-    (ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
-                 (libgsl . ("libgsl"))))))
+  (define mod-info (empty-mod-env-info))
+  (mod-info-add-ffi-libs
+   mod-info
+   `(libgslcblas . ("libgslcblas" #:global? #t))
+   `(libgsl . ("libgsl")))
+  mod-info)
+
+(define (prelude-function-info) (fninfo-empty))
+
+(define (prog-fun-info arg-types ret-type fname)
+  (define fn-attrs (fninfo-add-attrs (fninfo-empty) 'norecurse 'readonly 'argmemonly 'speculatable 'nounwind))
+  (define ret-attrs (if (pointer-type? ret-type)
+                        (fninfo-add-ret-attrs fn-attrs 'nonnull 'noalias)
+                        fn-attrs))
+  (for/fold ([info ret-attrs])
+            ([arg-type arg-types]
+             [i (in-range 1 (add1 (length arg-types)))])
+    (if (pointer-type? arg-type)
+        (fninfo-add-argi-attrs info i 'noalias 'nocapture 'nonnull)
+        info)))
+
 (module+ test
   (require rackunit)
   (require "../../utils.rkt")
@@ -290,16 +296,11 @@
                 (basic-defs)
                 (list (build-add-prob 3)
                       (build-add-prob 4))))
-  (define mod
-    (sham:module
-     (void)
-     defs))
+  (define mod (sham:module (basic-mod-info) defs))
 
-  ;(pretty-print (sham-ast->sexp mod))
-  (define bmod (compile-module mod))
-
-  (jit-optimize-module bmod #:opt-level 3)
-  (define benv (initialize-jit bmod))
+  (define benv (compile-module mod))
+  (optimize-module benv)
+  (initialize-jit! benv)
   (jit-dump-module benv)
   (jit-verify-module benv)
   (define (get-t t) (jit-get-racket-type t benv))

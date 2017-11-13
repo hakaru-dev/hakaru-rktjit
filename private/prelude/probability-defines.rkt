@@ -1,9 +1,10 @@
 #lang racket
 
-(require sham/ast
+(require sham
          (submod sham/ast utils))
 (require "template-format.rkt"
          "type-defines.rkt"
+         "basic-defines.rkt"
          "array-defines.rkt"
          "utils.rkt")
 
@@ -117,7 +118,7 @@
                                                      (list (sham$var 'a)))))))))
 
     (sham:def:function
-     (void)
+     (prelude-function-info)
      'print-prob (list 'a) (list (sham:type:ref 'f64)) (sham:type:ref 'void)
      (sham:stmt:block
       (list
@@ -247,18 +248,13 @@
   ;(pretty-print (map sham-def->sexp defs))
 
   (define mod
-    (sham:module
-     (build-info (basic-module-info)
-                 '((ffi-libs . ((libgslcblas . ("libgslcblas" #:global? #t))
-                                (libgsl . ("libgsl"))))))
-
-     defs))
+    (sham:module (basic-mod-info) defs))
   (define cmod (compile-module mod))
 
-  (jit-optimize-module cmod #:opt-level 3)
+  (optimize-module cmod)
   ;(jit-dump-module cmod)
   (jit-verify-module cmod)
-  (define cjmod (initialize-jit cmod))
+  (initialize-jit! cmod)
   (pretty-print cmod)
   (define (get-t t) (jit-get-racket-type t cmod))
   (define (get-f f) (jit-get-function f cmod))
