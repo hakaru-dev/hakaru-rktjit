@@ -7,7 +7,9 @@
          "pair-defines.rkt"
          "probability-defines.rkt")
 
-(provide (all-defined-out))
+(provide (all-defined-out)
+         basic-mod-info
+         prog-fun-info)
 
 (define (new-prelude)
   (box '()))
