@@ -57,11 +57,12 @@
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-mod main fns) e^)
          (expr-mod (f-expr main) (map (λ (f) (cons (car f) (f-expr (cdr f)))) fns)))))
-    (struct expr-fun expr (args ret-type body)
+
+    (struct expr-fun expr (name args ret-type body)
       #:methods gen:exprg
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
-         (match-define (expr-fun args ret-type body) e^)
-         (expr-fun (map f-expr args) (f-symbol ret-type) (if (stmt? body) (f-stmt body) (f-expr body))))))
+         (match-define (expr-fun name args ret-type body) e^)
+         (expr-fun name (map f-expr args) (f-symbol ret-type) (if (stmt? body) (f-stmt body) (f-expr body))))))
     (struct expr-lets expr (types vars vals stmt body)
       #:methods gen:exprg
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
@@ -72,7 +73,7 @@
           (map f-expr vals)
           (f-stmt st)
           (f-expr body)))))
-    (struct expr-var expr ([type #:mutable] sym [orig #:mutable])
+    (struct expr-var expr ([type #:mutable] sym [info #:mutable])
       ;; orig is also used to tag mutable and constants for inlining
       #:methods gen:equal+hash
       ((define (equal-proc v1 v2 _)
@@ -326,7 +327,7 @@
 
 (define (typeof ast)
   (match ast
-    [(expr-fun args ret-type body) 'fn]
+    [(expr-fun name args ret-type body) 'fn]
     [(expr-if t _ _ _) t]
     [(expr-app t _ _) t]
     [(expr-lets _ _ _ _ b) (typeof b)]
@@ -349,10 +350,11 @@
      `((main ,(pe main))
        ,@(for/list [(fn fns)]
            `(,(car fn) ,(pe (cdr fn)))))]
-    [(expr-fun args ret-type body) #:when (stmt? body)
-                                   `(function ,(map pe args) ,(ps body))]
-    [(expr-fun args ret-type body)
-     `(function ,(map pe args) ,(pe body))]
+    [(expr-fun name args ret-type body)
+     #:when (stmt? body)
+     `(function ,name ,(map pe args) ,(ps body))]
+    [(expr-fun name args ret-type body)
+     `(function ,name ,(map pe args) ,(pe body))]
     [(expr-var type sym orig)
      (if (hakrit-print-debug)
          `(,sym : ,type \| ,orig)
@@ -387,7 +389,7 @@
     ;; [(expr-intr s) s]
     [(expr-intrf s) s]
     [(expr-val t v) v]
-    [else `(? ,e)]))
+    [else '?]))
 (define print-expr pe)
 (define display-expr (compose pretty-display print-expr))
 (define (pr red)
