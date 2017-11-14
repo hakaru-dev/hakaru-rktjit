@@ -6,6 +6,7 @@
 
 (define pointer-format "~a*")
 (define array-format "array<~a>")
+(define sized-array-format "array<~a.~a>")
 (define array-args '(size data))
 
 (define pair-format "pair<~a.~a>")
@@ -31,6 +32,11 @@
 (define pair-set-car-fun-format (cft "set-car!" 1))
 (define pair-set-cdr-fun-format (cft "set-cdr!" 1))
 
+;struct
+(define struct-literal-fun-format (cft "literal" 1))
+(define struct-make-fun-format (cft "make" 1))
+(define struct-get-index-fun-format (cft "index" 2))
+
 ;;array-funs
 (define make-array-fun-format (cft "make" 1))
 (define new-size-array-fun-format (cft "new-sized" 1))
@@ -40,6 +46,7 @@
 (define get-index-fun-format (cft "get-index" 1))
 (define set-index-fun-format (cft "set-index!" 1))
 (define array-literal-fun-format (cft "array-literal" 2))
+(define size-array-literal-fun-format (cft "literal" 1))
 
 (define add-fun-format (cft "add" 2));;add <num-args> <type>
 (define mul-fun-format (cft "mul" 2));;mul <num-args> <type>
