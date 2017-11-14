@@ -5,6 +5,9 @@
 
 (provide combine-loops)
 
+(define debug-combine-loops (make-parameter #f))
+(define dpc (debug-printf debug-combine-loops))
+
 (define (expr-sym-append var sym t)
   (match-define (expr-var _ s o) var)
   (expr-var t (symbol-append s sym) o))
@@ -210,29 +213,27 @@
            (map list (map pe vars) (map pe vals) types (map typeof vars) (map typeof vals)))
   (wrap-expr types vars vals (stmt-void) body))
 
-(define (combine-loops e)
+(define (combine-loops st)
   (define pass
     (create-rpass
      (expr
       [(expr-lets types vars vals (stmt-void) body)
-       ;; (dprintf (not (empty? vars))
-       ;;          "combine-loop got: \n~a\n"
-       ;;          (map list (map pe vars) types (map typeof vars) (map typeof vals)))
        (define-values (loop-var-map normal-var-map)
          (partition (λ (p) (is-loop? (second p))) (map list vars vals types)))
        (define loop-groups (group-same-size loop-var-map))
        (dprint normal-var-map loop-var-map loop-groups)
        (wrap-body-for-normals normal-var-map (wrap-body-for-groups loop-groups body))])
      (reducer) (stmt) (pat)))
-  (pass e))
+  (match st
+    [(state prg info os)
+     (define nprg (pass prg))
+     (dpc "combine loops:\n~a\n" (pretty-format (pe nprg)))
+     (run-next nprg info st)]))
 
 (define (dprint normal-var-map loop-var-map loop-groups)
-  (dprintf (not (empty? normal-var-map))
-           "normal-var-map: ~a\n"
-           (map (compose print-expr car) normal-var-map))
-  (dprintf (not (empty? loop-var-map))
-           "loop-var: ~a "
-           (map (compose print-expr car) loop-var-map))
-  (dprintf (not (empty? loop-groups))
-           "groups: ~a\n"
-           (map (curry map (compose print-expr car)) loop-groups)))
+  (when (not (empty? normal-var-map))
+    (dpc "normal-var-map: ~a\n" (map (compose print-expr car) normal-var-map)))
+  (when (not (empty? loop-var-map))
+    (dpc "loop-var: ~a " (map (compose print-expr car) loop-var-map)))
+  (when (not (empty? loop-groups))
+    (dpc "groups: ~a\n" (map (curry map (compose print-expr car)) loop-groups))))
