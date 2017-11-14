@@ -494,5 +494,6 @@
     [(stmt-expr s e)
      (set-union (ffv^ s) (ffv^ e))]
     [(stmt-void) (set)]
+    [(stmt-return v) (ffv^ v)]
     [(stmt-assign to val)
      (set-union (ffv^ to) (ffv^ val))]))
