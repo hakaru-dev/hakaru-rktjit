@@ -7,6 +7,7 @@
  "pause.rkt"
  "combine-loops.rkt"
  "simplifications.rkt"
+ "to-stmt.rkt"
  "final-expand.rkt"
  "jit.rkt")
 
@@ -18,5 +19,6 @@
   "pause.rkt"
   "combine-loops.rkt"
   "simplifications.rkt"
+  "to-stmt.rkt"
   "final-expand.rkt"
   "jit.rkt"))
