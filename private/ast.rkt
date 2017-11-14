@@ -450,6 +450,9 @@
 (define (find-free-variables expr)
   (define ffv^ find-free-variables)
   (match expr
+    [(expr-fun name args ret-type b)
+     (define bfree (ffv^ b))
+     (set-subtract bfree (apply set args))]
     [(expr-lets ts vars vals s b)
      (define total-free-vars
        (set-union (ffv^ s) (ffv^ b)
