@@ -11,6 +11,9 @@
 (define debug-init-simplifications (make-parameter #f))
 (define dpi (debug-printf debug-init-simplifications))
 
+(define debug-later-simplifications (make-parameter #f))
+(define dpl (debug-printf debug-later-simplifications))
+
 
 ;; stuff we can easily remove/simplify before running flatten-anf
 (define (initial-simplifications st)
@@ -136,7 +139,7 @@
 ;;stuff that come up after flatten and combining loops that we can remove or simplify
 ;; this has an env which stores the bindings uptil that expression or statements
 ;; so all the stuff which depends on environment should come here,
-(define (later-simplifications e)
+(define (later-simplifications st)
   (define (clean-expr-lets e)
     (match e
       [(expr-lets '() '() '() (stmt-void) e)
@@ -165,10 +168,12 @@
 
   (define (sl e env)
     (match e
+      [(expr-fun name args ret-type body)
+       (expr-fun name args ret-type (sl body env))]
       [(expr-lets '() '() '() (stmt-void) b)
        (sl b env)]
-      [(expr-lets ts vars vals stmt body)
 
+      [(expr-lets ts vars vals stmt body)
        (define bffv (set-union (find-free-variables body) (find-free-variables stmt)))
        (dprintf (and  (not (empty? vars))
                       (ormap (λ (var val) (not (equal? (typeof var) (typeof val)))) vars vals))
@@ -194,9 +199,7 @@
         (expr-lets nts nvars nvals (sl stmt ne) (sl body ne)))]
 
       [(expr-if t tst thn els)
-       (expr-if t (sl tst env)
-                (sl thn env)
-                (sl els env))]
+       (expr-if t (sl tst env) (sl thn env) (sl els env))]
 
       ;; removing redundant logfloatconversions
       [(expr-app 'prob (expr-intrf '+) args)
@@ -222,7 +225,7 @@
            (expr-app t (expr-intrf 'superpose-categorical-real)
                      (map get-real nargs))
            (expr-app t (expr-intrf 'superpose-categorical)
-                       nargs))]
+                     nargs))]
       ;;end removing logfloat conversions
 
       [(expr-app t rator rands)
@@ -241,6 +244,24 @@
           (stmt-void)]
          [else se])]
 
+      [(stmt-block stmts)
+       #:when (and (andmap stmt-expr? stmts)
+                   (andmap (λ (se) (stmt-void? (stmt-expr-stmt se))) stmts)
+                   (andmap (λ (se) (match (stmt-expr-expr se)
+                                     [(expr-lets ts vs vls s (expr-val t 0)) #t]
+                                     [else #f]))
+                           stmts))
+       (define tvls
+         (map
+          (λ (se)
+            (match (stmt-expr-expr se)
+              [(expr-lets ts vs vls s (expr-val t 0)) (list ts vs vls s)]))
+          stmts))
+       (dpl "tvls: ~a\n" tvls)
+       (stmt-expr (stmt-void)
+                  (expr-lets (append-map first tvls) (append-map second tvls) (append-map third tvls)
+                             (stmt-block (map fourth tvls))
+                             (expr-val 'nat 0)))]
       [(stmt-block (list s)) s]
 
       [(stmt-block stmts)
@@ -274,9 +295,9 @@
             (expr-app 'void (expr-intrf 'set-index!) (append args (list rhs)))]))
         env)]
       [v #:when (hash-has-key? env v)
-         (dprintf (not (equal? (typeof v) (typeof (hash-ref env v))))
-                  "\treplaced: ~a:~a with ~a:~a\n"
-                  (print-expr v) (typeof v) (print-expr (hash-ref env v)) (typeof (hash-ref env v)))
+         (dpl (not (equal? (typeof v) (typeof (hash-ref env v))))
+              "\treplaced: ~a:~a with ~a:~a\n"
+              (print-expr v) (typeof v) (print-expr (hash-ref env v)) (typeof (hash-ref env v)))
          (hash-ref env v)]
       [v #:when (or (expr-var? v) (expr-val? v)) v]
 
@@ -302,9 +323,11 @@
       [(? expr?) (error "expr not done: ~a\n" (pe e))]
       [else (error 'notdone)]))
 
-  (match e
-    [(expr-mod (expr-fun name args ret-type body) '())
-     (expr-mod (expr-fun name args ret-type (sl body (make-immutable-hash))) '())]))
+  (match st
+    [(state prg info os)
+     (define nprg (sl prg (make-immutable-hash)))
+     (dpl "later-simplifications: \n~a\n" (pretty-format (pe nprg)))
+     (run-next nprg info st)]))
 
 
 ;; Converts body of functions to statements, if expressions
