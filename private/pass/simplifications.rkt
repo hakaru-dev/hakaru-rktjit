@@ -8,8 +8,12 @@
          to-stmt
          cleanup-blocks)
 
+(define debug-init-simplifications (make-parameter #f))
+(define dpi (debug-printf debug-init-simplifications))
+
+
 ;; stuff we can easily remove/simplify before running flatten-anf
-(define (initial-simplifications e)
+(define (initial-simplifications st)
   (define (toif t tst brs)
     (define-values (tb fb)
       (if (pat-true? (expr-branch-pat (car brs)))
@@ -23,7 +27,7 @@
                  (pat-var? (pat-pair-a (expr-branch-pat (car brs))))
                  (pat-var? (pat-pair-b (expr-branch-pat (car brs)))))
       (error "matching over pair with multiple branches or complex pattern." brs))
-    (dtprintf "extract-pair: t: ~a, tst: ~a : ~a, \nbrs: ~a\n" t (pe tst) (typeof tst) (map pe brs))
+    (dpi "init-simple: extract-pair: t: ~a, tst: ~a : ~a, \n" t (pe tst) (typeof tst))
     (define-values (car-type cdr-type)
       (match (typeof tst)
         [`(pair ,ta ,tb) (values ta tb)]))
@@ -35,9 +39,8 @@
     (set-expr-var-type! car-var car-type)
     (set-expr-var-type! cdr-var cdr-type)
 
-    (dtprintf "\t ~a\t: ~a\n" (print-expr car-var) car-type)
-    (dtprintf "\t ~a\t: ~a\n" (print-expr cdr-var) cdr-type)
-    (dtprintf "\t body\t: ~a\n" (pe body))
+    (dpi "\t ~a\t: ~a\n" (print-expr car-var) car-type)
+    (dpi "\t ~a\t: ~a\n" (print-expr cdr-var) cdr-type)
 
     (if (expr-var? body)
         (match body
@@ -49,7 +52,7 @@
            (expr-app cdr-type (expr-intrf 'cdr) (list tst))])
         (let ([car-val (expr-app car-type (expr-intrf 'car) (list tst))]
               [cdr-val (expr-app cdr-type (expr-intrf 'cdr) (list tst))])
-          (dtprintf "types: car: ~a, cdr: ~a\n" (typeof car-val) (typeof cdr-val))
+          (dpi "init-simple: types: car: ~a, cdr: ~a\n" (typeof car-val) (typeof cdr-val))
           (expr-lets
            (list car-type cdr-type)
            (list car-var cdr-var)
@@ -58,62 +61,77 @@
            body))))
 
   (define (filter-index pred? lst)
-    (for/list ([i (in-range (length lst))]
-               [v lst]
-               #:when (pred? i))
-      v))
+    (for/list ([i (in-range (length lst))] [v lst] #:when (pred? i)) v))
+
   (define (make-switch t lst v) ;;TODO actual switch maybe? :P
-    (dtprintf "make-switch: ~a" (map typeof lst))
+    (dpi "make-switch: ~a\n" (map typeof lst))
     (for/fold ([b (expr-val t 0)])
               ([e lst]
                [i (in-range (length lst))])
       (expr-if t (expr-app 'bool (expr-intrf '==) (list v (expr-val t i))) e b)))
-  ((create-rpass
-    (expr [(expr-app t (expr-intrf 'empty) '())
-           (expr-app t (expr-intrf 'empty) (list (expr-val 'nat 0)))]
+  (define pass
+    (create-rpass
+     (expr [(expr-app t (expr-intrf 'empty) '())
+            (expr-app t (expr-intrf 'empty) (list (expr-val 'nat 0)))]
 
-          [(expr-app t (expr-intrf 'dirac) (list val))
-           (dtprintf "dirac: t: ~a, tval: ~a\n" t (typeof val))
-           val]
+           [(expr-app t (expr-intrf 'dirac) (list val))
+            (dpi "dirac: t: ~a, tval: ~a\n" t (typeof val))
+            val]
 
-          [(expr-app t (expr-intrf 'pose) (list arg1 arg2)) arg2]
+           [(expr-app t (expr-intrf 'pose) (list arg1 arg2)) arg2]
 
-          [(expr-app t (expr-intrf 'superpose) args)
-           (dtprintf "superpose: t: ~a\n" t)
-           (define get-odds (curry filter-index odd?))
-           (define get-evens (curry filter-index even?))
-           (define var (expr-var t (gensym^ 's) '_))
-           (wrap-expr t var
-                      (expr-app t (expr-intrf 'superpose-categorical)
-                                (get-evens args))
-                      (stmt-void)
-                      (make-switch t (get-odds args) var))]
+           [(expr-app t (expr-intrf 'superpose) args)
+            (dpi "superpose: t: ~a\n" t)
+            (define get-odds (curry filter-index odd?))
+            (define get-evens (curry filter-index even?))
+            (define var (expr-var t (gensym^ 's) '_))
+            (wrap-expr t var
+                       (expr-app t (expr-intrf 'superpose-categorical)
+                                 (get-evens args))
+                       (stmt-void)
+                       (make-switch t (get-odds args) var))]
 
-          [(expr-app t (expr-intrf 'mbind)
-                     (list val (expr-bind (expr-var vt var org-sym) body)))
-           (dprintf #t "mbind: ~a : ~a\n" var (typeof val))
-           (wrap-expr t (expr-var (typeof val) var org-sym) val (stmt-void) body)]
+           [(expr-app t (expr-intrf 'mbind)
+                      (list val (expr-bind (expr-var vt var org-sym) body)))
+            (dprintf #t "mbind: ~a : ~a\n" var (typeof val))
+            (wrap-expr t (expr-var (typeof val) var org-sym) val (stmt-void) body)]
 
-          [(expr-app ta (expr-intrf 'index)
-                     (list (expr-app t (expr-intrf 'array-literal) aargs) iarg))
-           (define (check-if-remove arr-vals indexer orig-b)
-             (if (complex? indexer)
-                 orig-b
-                 (match indexer
-                   [(expr-if t chk (expr-val 'nat vthn) (expr-val 'nat vels))
-                    (expr-if t chk (list-ref arr-vals vthn) (list-ref arr-vals vels))]
-                   [else orig-b])))
-           (define ab
-             (expr-app ta (expr-intrf 'index)
-                       (list (expr-app t (expr-intrf 'array-literal) aargs) iarg)))
-           (if (< (length aargs) 5) (check-if-remove aargs iarg ab) ab)]
+           [(expr-app ta (expr-intrf 'index)
+                      (list (expr-app t (expr-intrf 'array-literal) aargs) iarg))
+            (define (check-if-remove arr-vals indexer orig-b)
+              (if (complex? indexer)
+                  orig-b
+                  (match indexer
+                    [(expr-if t chk (expr-val 'nat vthn) (expr-val 'nat vels))
+                     (expr-if t chk (list-ref arr-vals vthn) (list-ref arr-vals vels))]
+                    [else orig-b])))
+            (define ab
+              (expr-app ta (expr-intrf 'index)
+                        (list (expr-app t (expr-intrf 'array-literal) aargs) iarg)))
+            (if (< (length aargs) 5) (check-if-remove aargs iarg ab) ab)]
+           [(expr-app ta (expr-intrf 'size) (list (expr-var t sym info)))
+            #:when (constant-size-array? t)
+            (dpi "init-simple: got sized array: ~a\n" sym)
+            (expr-val ta (get-size-of-array t))]
 
-          [(expr-match t tst brs)
-           (if (eq? (typeof tst) 'bool) (toif t tst brs) (extract-pair t tst brs))])
+           [(expr-match t tst brs)
+            (if (eq? (typeof tst) 'bool) (toif t tst brs) (extract-pair t tst brs))]
+           [(expr-var t sym info)
+            #:when (and (pair? t)
+                        (member (car t) '(nat real int))
+                        (assocv 'constant (cdr t)))
+            (dpi "init-simple: got constant from info replacing: ~a=~a\n" sym (assocv 'constant (cdr t)))
+            (expr-val t (assocv 'constant (cdr t)))])
+     (reducer)
+     (stmt)
+     (pat)))
+  (match st
+    [(state prg info os)
+     (define nprg (pass prg))
+     (dpi "initial simplification:\n~a\n" (pretty-format (pe nprg)))
+     (run-next nprg info st)]))
 
-    (reducer)
-    (stmt)
-    (pat)) e))
+
 
 ;;stuff that come up after flatten and combining loops that we can remove or simplify
 ;; this has an env which stores the bindings uptil that expression or statements
@@ -285,8 +303,8 @@
       [else (error 'notdone)]))
 
   (match e
-    [(expr-mod (expr-fun args ret-type body) '())
-     (expr-mod (expr-fun args ret-type (sl body (make-immutable-hash))) '())]))
+    [(expr-mod (expr-fun name args ret-type body) '())
+     (expr-mod (expr-fun name args ret-type (sl body (make-immutable-hash))) '())]))
 
 
 ;; Converts body of functions to statements, if expressions
@@ -296,8 +314,8 @@
       (define (expr->ret-stmt e)
         (expr->stmt e (λ (e) (stmt-return e))))
       (match f
-        [(expr-fun args ret-type body)
-         (if (expr? body) (expr-fun args ret-type (expr->ret-stmt body)) f)]))
+        [(expr-fun name args ret-type body)
+         (if (expr? body) (expr-fun name args ret-type (expr->ret-stmt body)) f)]))
     (match m
       [(expr-mod main fns)
        (expr-mod (fn-stmt main)
