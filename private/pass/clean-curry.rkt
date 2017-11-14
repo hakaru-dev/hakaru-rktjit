@@ -52,6 +52,7 @@
     ['nat  (number-type)]
     ['real (number-type)]
     ['prob (number-type)]
+    ['bool (number-type)]
     [`(pair ,at ,bt)
      (define pair-info (assocv 'pairinfo var-info))
      (if pair-info
