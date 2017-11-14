@@ -344,29 +344,3 @@
        (expr-mod (fn-stmt main)
                  (map (λ (p) (cons (car p) (fn-stmt (cdr p)))) fns))]))
   (mod-stmt m))
-
-(define (cleanup-blocks e)
-  (define (merge-stmt-block s)
-    (match s
-      [(stmt-block stmts)
-       (define ns
-         (append-map
-          (λ (s)
-            (match s
-              [(stmt-block ss) ss]
-              [(stmt-void) '()]
-              [else (list s)]))
-          stmts))
-       (if (eq? (length ns) 1)
-           (car ns)
-           (stmt-block ns))]
-      [else s]))
-  ((create-rpass
-    (expr
-     [(expr-lets _ '() _ (stmt-void) b) b])
-    (reducer)
-    (stmt
-     [(stmt-block '()) (stmt-void)]
-     [(stmt-block stmts) (merge-stmt-block (stmt-block stmts))])
-
-    (pat)) e))
