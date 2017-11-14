@@ -214,6 +214,24 @@
      (sham:stmt:return (sham$app load (sham:expr:gep (sham$var 'arr) (list (sham:expr:ui-value 0 nat)
                                                                            (sham$var ind)))))))
   ;;TODO array literal, figure out if we remove the pointer's in sized array can we get more optimizations
+
+  (define (build-array-literal)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name size-array-literal-fun-format)
+     (build-list size get-vi)
+     (build-list size (const adtref)) aptref
+     (sham:stmt:let
+      '(arl) (list aptref)
+      (list (sham:expr:app
+             (sham:rator:symbol (get-fun-name new-size-array-fun-format)) '()))
+      (sham:stmt:block
+       (append (build-list size
+                           (λ (i)
+                             (sham:stmt:expr
+                              (sham:expr:app (sham:rator:symbol (get-fun-name set-index-fun-format))
+                                             (list (sham$var 'arl) (nat-value i) (sham$var (get-vi i)))))))
+               (list (sham:stmt:return (sham$var 'arl))))))))
   (define (set-index)
     (sham:def:function
      (prelude-function-info)
@@ -229,6 +247,7 @@
    (reverse atdefs)
    (reverse aptdefs)
    (list
+    (build-array-literal)
     (make-array)
     (new-array)
     (get-array-size)
