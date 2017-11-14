@@ -1,0 +1,10 @@
+* Constant values
+Added constant values for aggregates(array and values) in sham expressions.
+Need a way to create these aggregates before calling our function, and how to pass these constant aggregates to our compiled function
+One way is to call LLVMRunFunction (but then we need to cast these into generic value ref, and also I don't know if llvmrunfunction
+compiles with optimizations or not
+
+* Time
+Maybe we can create a timer function using get_time in our llvm code which calls prog and returns us the time.
+also then we need a way to create aggregates and the type of timer will be pair of time and the value returned
+by prog
