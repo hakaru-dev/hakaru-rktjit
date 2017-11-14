@@ -189,7 +189,7 @@
       [(expr-fun name args ret-type body)
        (define nb (get-ufb-without (uf body) args))
        (dpf "flatten: function args: ~a\n" (map pe args))
-       (dpf "flatte: efvp for function: ~a\n" (map print-efv (ufb-efvp nb)))
+       (dpf "flatten: efvp for function: ~a\n" (map print-efv (ufb-efvp nb)))
        (define nargs (append args (cons (expr-var '$ '$ '()) (map efv-var (ufb-efvp nb)))))
        ;; we could also store something in arg-info to do the same, meh too much effort
        ;; this should work for now, its easier to visualize and debug.
