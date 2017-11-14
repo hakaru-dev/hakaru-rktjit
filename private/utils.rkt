@@ -14,15 +14,15 @@
 (define (symbol-append s1 s2) (string->symbol (format "~a~a" s1 s2)))
 
 (define (change-orig-var v o)
-  (set-expr-var-orig! v o))
+  (set-expr-var-info! v o))
 
 (define csym '$c)
 (define msym '$m)
 (define (set-mutable-var v) (change-orig-var v msym) v)
 (define (set-constant-var v) (change-orig-var v csym) v)
 
-(define (is-mutable-var? v) (equal? (expr-var-orig v) msym))
-(define (is-constant-var? v) (equal? (expr-var-orig v) csym))
+(define (is-mutable-var? v) (equal? (expr-var-info v) msym))
+(define (is-constant-var? v) (equal? (expr-var-info v) csym))
 
 (define (wrap-expr typs vars vals s b)
   (cond [(list? vars) (expr-lets typs vars vals s b)]
