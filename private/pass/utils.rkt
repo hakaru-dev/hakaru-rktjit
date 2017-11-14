@@ -71,3 +71,12 @@
   (match t
     [`(array ,_ ... (size . ,size)) size]
     [else (error "getting size of an array type whose size we don't know")]))
+
+
+(define (debug-print st)
+  (match st
+    [(state prg info os)
+     (if (list? prg)
+         (printf "debug-printing multiple: \n~a\n" (map (compose pretty-format pe) prg))
+         (printf "debug-printing: \n~a\n" (pretty-format (pe prg))))
+     (run-next prg info st)]))
