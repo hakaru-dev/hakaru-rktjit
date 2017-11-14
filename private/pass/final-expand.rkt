@@ -9,8 +9,20 @@
          "../utils.rkt")
 
 (provide to-sham-lc)
+(define debug-to-sham (make-parameter #t))
+(define dts (debug-printf debug-to-sham))
 
-(define (to-sham-lc mod)
+
+(define (clean-basic-type t)
+  (match t
+    [`(nat ,_) 'nat]
+    [`(real ,_) 'real]
+    [`(prob ,_) 'prob]
+    [`(int ,_) 'int]
+    [else t]))
+
+
+(define (to-sham-lc st)
   (define prl (new-prelude))
   (add-basic&probability-defs prl)
 
@@ -21,7 +33,8 @@
 
   (define (ea tresult rator rands)
     (define trands (map typeof rands))
-    (define-values (rtr def) (get-rator (expr-intrf-sym rator) tresult trands))
+    (define-values (rtr def)
+      (get-rator (expr-intrf-sym rator) (clean-basic-type tresult) (map clean-basic-type trands)))
     (unless (void? def)
       (add-defs-prelude! prl (list def)))
     (sham:expr:app rtr (map ee rands)))
@@ -79,21 +92,28 @@
   (define (mod-info) (void))
 
   (define (expand-fun fp)
-    (define fname (car fp))
-    (match (cdr fp)
-      [(expr-fun args ret-type b)
-       (dtprintf "expanding-function: ~a\n\targ-types: ~a, ret-type: ~a\n"
-                 fname (map expr-var-type args) ret-type)
+    (match fp
+      [(expr-fun fname args ret-type b)
+       (define nargs (map (λ (a) (if (expr-val? a) (expr-var (expr-val-type a) '_ '()) a)) args))
+       (dts "expanding-function: ~a\n\targ-types: ~a, ret-type: ~a\n"
+                 fname (map expr-var-type nargs) ret-type)
        (sham:def:function
-        (prog-fun-info (map typeof args) ret-type fname)
+        (prog-fun-info  (map typeof nargs) ret-type fname)
         fname
-        (map expr-var-sym args) (map (compose get&add-type expr-var-type) args)
+        (map expr-var-sym nargs) (map (compose get&add-type expr-var-type) nargs)
         (get&add-type ret-type)
         (es b))]))
 
-  (define prog (expand-fun (cons 'prog (expr-mod-main mod))))
+  (match st
+    [(state prgs info passes)
+     (define new-prgs (for/list ([prg prgs]) (expand-fun prg)))
 
-  (sham:module
-   (basic-mod-info)
-   (append (cleanup-defs (get-defs-prelude prl))
-           (cons prog (map expand-fun (expr-mod-fns mod))))))
+     (printf "defs: \n~a" (pretty-format (map print-sham-def new-prgs)))
+     (printf "prelude: \n~a" (cleanup-defs (get-defs-prelude prl)))
+     (run-next new-prgs info st)]))
+
+
+  ;; (sham:module
+  ;;  (basic-mod-info)
+  ;;  (append (cleanup-defs (get-defs-prelude prl))
+  ;;          (cons prog (map expand-fun (expr-mod-fns mod)))))
