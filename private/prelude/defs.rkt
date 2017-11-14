@@ -5,6 +5,7 @@
          "basic-defines.rkt"
          "array-defines.rkt"
          "pair-defines.rkt"
+         "struct-defines.rkt"
          "probability-defines.rkt")
 
 (provide (all-defined-out)
@@ -42,6 +43,13 @@
       [`(array ,arr-t)
        (define-values (_ odefs) (get-defs&ref-type arr-t))
        (append (array-defs type-ast) odefs)]
+      [`(array ,arr-t (size . ,t))
+       (define-values (_ odefs)
+         (get-defs&ref-type arr-t))
+       (append (const-array-defs type-ast) odefs)]
+      [`(struct-type (,ts ...))
+       (define tsdefs (map (λ (t) (define-values (_ odefs) (get-defs&ref-type t))  odefs) ts))
+       (append (get-struct-defs type-ast) tsdefs)]
       [`(pair ,ta ,tb)
        (define-values (taref tadefs) (get-defs&ref-type ta))
        (define-values (tbref tbdefs) (get-defs&ref-type tb))
@@ -56,6 +64,7 @@
       ['real (list type-real-def)]
       ['unit (list type-nat-def)]
       ['void (list type-void-def)]
+      [`(,t ,_) #:when (nrp? t) (define-values (ref def) (get-defs&ref-type t)) def]
       [else (error "unknown type" type-ast)])
     (list (car (get-sham-type-define tast))))))
 
@@ -69,11 +78,12 @@
      [(? pair-rator?) get-pair-rator]
      [(? array-rator?) get-array-rator]
      [(? probability-rator?) get-probability-rator]
+     [(? struct-rator?) get-struct-rator]
      [else (error "why is this rator not done yet?" sym tresult trands)])
    sym (remove-measure tresult) (map remove-measure trands)))
 
 (define (get-value v type)
-  (match type
+  (match (clean-type-info type)
     ['nat (nat-value (truncate (inexact->exact v)))]
     ['unit (nat-value (truncate (inexact->exact 0)))]
     ['prob (prob-value (exact->inexact v))]
@@ -82,6 +92,14 @@
     ['bool (sham:expr:ui-value v type-bool-ref)]
     [`(measure ,t) (get-value v t)]))
 
+(define (clean-type-info t)
+  (match t
+    [`(nat ,_) 'nat]
+    [`(real ,_) 'real]
+    [`(prob ,_) 'prob]
+    [`(int ,_) 'int]
+    [`(array ,t ,_) `(array ,t)]
+    [else t]))
 (module+ test
   (define-values
     (ref defs)
