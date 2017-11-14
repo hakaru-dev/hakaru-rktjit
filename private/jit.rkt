@@ -12,12 +12,12 @@
 
   (list
    clean-curry
+   parse-sexp
 
-   pause
+   initial-simplifications
    stop
 
-   parse-sexp
-   initial-simplifications
+
    flatten-anf
    combine-loops
    later-simplifications
@@ -30,7 +30,9 @@
 
 (define (run-pipeline src arg-info)
   (define init-state
-    (state src (make-immutable-hash (cons prog-arg-info (list->vector arg-info))) passes))
+    (state src
+           (make-immutable-hash (list (cons prog-arg-info (list->vector arg-info))))
+           passes))
   (run-state init-state))
 
 ;; this arginfo for now only talks about the prog function,
@@ -69,11 +71,11 @@
       (jit-verify-module mod-env)))
   (define (doct)
     (define nct 10)
-    (define ctinfo (list (list `(constant ,nct))
-                         (list `(pairinfo ((arrayinfo (size . ,nct)
-                                                      (valuerange (0 . 1))))
-                                          ((arrayinfo (size . ,nct)
-                                                      (valuerange (0 . 1))))))))
+    (define ctinfo
+      (list (list `(natinfo . ((constant . ,nct))))
+            (list `(pairinfo ((ainfo . (arrayinfo . ((size . ,nct))))
+                              (binfo . (arrayinfo . ((size . ,nct)))))))))
+
     (define ct-module-env
       (compile-file "../../testcode/hkrkt/ClinicalTrial.hkr" ctinfo))
     (dv ct-module-env))
@@ -82,8 +84,8 @@
   (define (dolr)
     (define nlr 10)
     (define lrinfo (list
-                    (list `(arrayinfo (size . ,nlr)) 'curryhere)
-                    (list `(arrayinfo (size . ,nlr)))))
+                    (list `(arrayinfo . ((size . ,nlr))) 'curry)
+                    (list `(arrayinfo . ((size . ,nlr))))))
     (define lr-module-env (compile-file "../../testcode/hkrkt/LinearRegression.hkr" lrinfo))
     (dv lr-module-env))
 
@@ -91,13 +93,16 @@
     (define classes 3)
     (define points 10)
     (define gmminfo (list
-                     (list `(arrayinfo (size . ,classes) (valuerange (1 . 1))))
-                     (list `(arrayinfo (size . ,points) (valuerange (0 . ,(- classes 1)))))
-                     (list `(arrayinfo (size . ,points)) 'curryhere)
-                     (list `(natinfo (valuerange (0 . ,(- points 1)))))))
+                     (list `(arrayinfo . ((size . ,classes)
+                                          (typeinfo . ((probinfo . ((valuerange . (1 . 1)))))))))
+                     (list `(arrayinfo . ((size . ,points)
+                                          (typeinfo . ((natinfo . ((valuerange . (0 . ,(- classes 1))))))))))
+                     (list `(arrayinfo . ((size . ,points))) 'curry)
+                     (list `(natinfo . ((valuerange . (0 . ,(- points 1))))))))
     (define gg-module-env(compile-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
     (dv gg-module-env))
 
 
-
-  (doct))
+  (printf "pipeline ClinicalTrial\n")  (doct)
+  (printf "\n\n\npipeline LinearRegression\n")  (dolr)
+  (printf "\n\n\npipeline GmmGibbs\n")  (dogg))
