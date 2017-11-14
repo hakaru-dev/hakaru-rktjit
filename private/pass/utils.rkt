@@ -26,6 +26,17 @@
     (hash-set! gensym-hash sym n)
     (string->symbol (string-append (symbol->string sym) sep (number->string n)))))
 
+(define (assocv sym lst)
+  (if lst
+      (let ([av (assoc sym lst)])
+        (if av (cdr av) #f))
+      #f))
+
+(define ((debug-printf param) . args)
+  (when (param)
+    (apply printf args)))
+
+
 (struct state (prg info rest-pass))
 (define (run-next new-prg new-info old-state)
   (match old-state
@@ -48,4 +59,15 @@
   (map cadr (filter (λ (vi) (f? (car vi)))  (map list (vector->list vec) (build-list (vector-length vec) identity)))))
 
 ;;info syms
-(define prog-arg-info 'prog-arg-info)
+(define prog-arg-info 'arg-info)
+
+(define (build-var-info arg-info)
+  `((arg-info . ,arg-info)))
+(define (constant-size-array? t)
+  (match t
+    [`(array ,_ ... (size . ,size)) #t]
+    [else #f]))
+(define (get-size-of-array t)
+  (match t
+    [`(array ,_ ... (size . ,size)) size]
+    [else (error "getting size of an array type whose size we don't know")]))
