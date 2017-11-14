@@ -4,9 +4,7 @@
          "utils.rkt")
 
 (provide initial-simplifications
-         later-simplifications
-         to-stmt
-         cleanup-blocks)
+         later-simplifications)
 
 (define debug-init-simplifications (make-parameter #f))
 (define dpi (debug-printf debug-init-simplifications))
@@ -174,7 +172,10 @@
        (sl b env)]
 
       [(expr-lets ts vars vals stmt body)
-       (define bffv (set-union (find-free-variables body) (find-free-variables stmt)))
+       (define bffv (set-union (find-free-variables body)
+                               (find-free-variables stmt)
+                               (apply set-union (cons (set) (map find-free-variables vals)))))
+
        (dprintf (and  (not (empty? vars))
                       (ormap (λ (var val) (not (equal? (typeof var) (typeof val)))) vars vals))
                 "simplifying-expr-lets: (types incorrect): ~a\n"
@@ -294,6 +295,8 @@
            [(expr-app t (expr-intrf 'index) args)
             (expr-app 'void (expr-intrf 'set-index!) (append args (list rhs)))]))
         env)]
+      [(stmt-return v)
+       (stmt-return v)]
       [v #:when (hash-has-key? env v)
          (dpl (not (equal? (typeof v) (typeof (hash-ref env v))))
               "\treplaced: ~a:~a with ~a:~a\n"
@@ -324,23 +327,10 @@
       [else (error 'notdone)]))
 
   (match st
+    [(state prg info os) #:when (list? prg)
+     (define nprgs (map (curryr sl (make-immutable-hash)) prg))
+     (run-next nprgs info st)]
     [(state prg info os)
      (define nprg (sl prg (make-immutable-hash)))
      (dpl "later-simplifications: \n~a\n" (pretty-format (pe nprg)))
      (run-next nprg info st)]))
-
-
-;; Converts body of functions to statements, if expressions
-(define (to-stmt m)
-  (define (mod-stmt m)
-    (define (fn-stmt f)
-      (define (expr->ret-stmt e)
-        (expr->stmt e (λ (e) (stmt-return e))))
-      (match f
-        [(expr-fun name args ret-type body)
-         (if (expr? body) (expr-fun name args ret-type (expr->ret-stmt body)) f)]))
-    (match m
-      [(expr-mod main fns)
-       (expr-mod (fn-stmt main)
-                 (map (λ (p) (cons (car p) (fn-stmt (cdr p)))) fns))]))
-  (mod-stmt m))
