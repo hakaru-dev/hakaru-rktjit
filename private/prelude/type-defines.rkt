@@ -111,7 +111,7 @@
                                  (sham:type:struct array-args (list type-nat-ref (get-sham-type-ref (car st))))))
        (cons ct (cons type-nat-def st))]
       [`(array ,t (size . ,s))
-       (define st (get-sham-type-define `(pointer ,(if-need-pointer t))))
+       (define st (get-sham-type-define (if-need-pointer t)))
        (cons
         (sham$def:type
          (get-type-sym tast)
