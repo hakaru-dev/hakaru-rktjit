@@ -8,6 +8,8 @@
 
 (define debug-flatten-anf (make-parameter #f))
 (define dpf (debug-printf debug-flatten-anf))
+(define debug-pull-indexes (make-parameter #f))
+(define dpi (debug-printf debug-pull-indexes))
 
 #|
  Does anf and let hoisting in single pass using sorting
@@ -74,6 +76,9 @@
   (define rl (reverse l))
   (rec `((,(car rl))) (cdr rl)))
 
+;; partitions loops into groups of same size while maintaining
+;;  their dependencies on each other.
+;; doesn't produce fully optimal groups though
 (define (partition-dependency dep-list)
   (define global-vars
     (set-subtract (apply set-union (map efv-fvars dep-list))
@@ -179,7 +184,7 @@
           args))
        (dpf "flatten: efvp moving across function boundry: ~a\n" (map print-efv (ufb-efvp nb)))
        (define nargs (append args (cons (expr-var '$ '$ '()) (map efv-var (ufb-efvp nb)))))
-       (ufb (expr-fun name args ret-type (combine-ufb nb)) (ufb-efvp nb))]
+       (ufb (expr-fun name nargs ret-type (ufb-expr nb)) (ufb-efvp nb))]
 
       [(expr-fun name args ret-type body)
        (define nb (get-ufb-without (uf body) args))
@@ -188,7 +193,7 @@
        (define nargs (append args (cons (expr-var '$ '$ '()) (map efv-var (ufb-efvp nb)))))
        ;; we could also store something in arg-info to do the same, meh too much effort
        ;; this should work for now, its easier to visualize and debug.
-       (ufb (expr-fun name args ret-type (ufb-expr nb)) (ufb-efvp nb))]
+       (ufb (expr-fun name nargs ret-type (ufb-expr nb)) (ufb-efvp nb))]
 
       [(expr-lets type vars vals (stmt-void) b)
        ;;most of the lets at this point should only have void stmts
@@ -258,7 +263,7 @@
      (run-next nprg info st)]))
 
 
-(define (pull-indexes expr)
+(define (pull-indexes st)
   (define combine-imaps append)
   (define (group-alpha-eq imps) ;;we know they all are index app so alpha eq is symbol eq
     (group-by (λ (im) (symbol-append (pe (first (expr-app-rands (cdr im))))
@@ -348,6 +353,11 @@
 
   (define (pull-expr expr) ;; -> (cons expr index-map)
     (match expr
+      [(expr-fun name args ret-type body)
+       (define expl (pull-expr body))
+       (match-define (cons nbody body-imap) (check&wrap-expr expl args))
+       (cons (expr-fun name args ret-type nbody) body-imap)]
+
       [(expr-lets types vars vals stmt expr)
        (match-define (cons (list ntypes nvars nvals) tvl-imap)
          (pull-index-tvl (map list types vars vals)))
@@ -375,8 +385,9 @@
       [(? expr-var?) (cons expr '())]
       [(? expr-val?) (cons expr '())]))
 
-
-  (match (expr-mod-main expr)
-    [(expr-fun name args ret-type body)
-     (match-define (cons nbody imp) (pull-expr body))
-     (expr-mod (expr-fun args ret-type (wrap-expr nbody imp)) '())]))
+  (match st
+    [(state prg info os)
+     (match-define (cons nprg im) (pull-expr prg))
+     (dpi "pull-indexes: ~a\n" (pretty-format (pe nprg)))
+     (unless (empty? im) (error "index map not empty at top level function, shouldn't happend\n"))
+     (run-next nprg info st)]))
