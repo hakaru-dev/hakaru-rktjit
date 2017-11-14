@@ -203,8 +203,7 @@
         (values (build-add-rator tresult trands)
                 (build-add tresult trands))]
 
-    ['* #:when (andmap (curry equal? tresult) trands)
-        (values (build-mul-rator tresult trands) (build-mul tresult trands))]
+    ['* (values (build-mul-rator tresult trands) (build-mul tresult trands))]
     ['+ #:when (andmap (curry equal? tresult) trands)
         (values (build-add-rator tresult trands) (build-add tresult trands))]
 
@@ -239,7 +238,7 @@
     ['root
      #:when (and (tprob? tresult)
                  (equal? (length trands) 2)
-                 (tprob? (first trands))
+                 ;(tprob? (first trands))
                  (tnat? (second trands)))
      (values (sham:rator:symbol 'root-prob-nat) (void))]
 
