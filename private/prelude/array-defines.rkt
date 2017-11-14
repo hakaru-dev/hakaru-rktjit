@@ -8,32 +8,39 @@
          "utils.rkt")
 
 (provide array-defs
+         const-array-defs
          array-rator?
          get-array-rator
          build-array-literal)
 
 (define (array-rator? sym)
-  (member sym '(empty index size set-index! array-literal)))
+  (or (member sym '(empty index size set-index! array-literal))
+      (const-size-array-rator? sym)))
+
+(define (const-size-array-rator? sym)
+  (member sym '(const-size-array-literal index)))
 
 (define (get-array-rator sym tresult trands)
-  (if (equal? sym 'array-literal)
-      (values (sham:rator:symbol (get-fun-symbol array-literal-fun-format (length trands) (get-type-string tresult)))
-              (build-array-literal (car trands) (length trands)))
-      (values
-       (sham:rator:symbol
-        (string->symbol
-         (call-with-values
-          (λ ()
-            (match sym
-              ['index (values get-index-fun-format (get-type-string (car trands)))]
-              ['set-index! (values set-index-fun-format (get-type-string (car trands)))]
-              ['size (values get-array-size-fun-format (get-type-string (car trands)))]
-              ['empty (values new-size-array-fun-format (get-type-string tresult))]
-              [else
-               (error "why is this array rator not done yet?" sym tresult trands)
-               (values "array?")]))
-          format)))
-       (void))))
+  (cond
+    [(equal? sym 'array-literal)
+     (values (sham:rator:symbol (get-fun-symbol array-literal-fun-format (length trands) (get-type-string tresult)))
+             (build-array-literal (car trands) (length trands)))]
+    [(const-size-array-rator? sym) (values (sham:rator:symbol sym) (void))]
+    [else (values
+           (sham:rator:symbol
+            (string->symbol
+             (call-with-values
+              (λ ()
+                (match sym
+                  ['index (values get-index-fun-format (get-type-string (car trands)))]
+                  ['set-index! (values set-index-fun-format (get-type-string (car trands)))]
+                  ['size (values get-array-size-fun-format (get-type-string (car trands)))]
+                  ['empty (values new-size-array-fun-format (get-type-string tresult))]
+                  [else
+                   (error "why is this array rator not done yet?" sym tresult trands)
+                   (values "array?")]))
+              format)))
+           (void))]))
 
 (define (get-array-data-type type)
   (match type
@@ -157,6 +164,77 @@
     (get-index)
     (set-index))))
 
+(define (const-array-defs tast)
+  (define (get-array-data-type at)
+    (match at
+      [(sham:type:array _ t _) t]))
+  (match-define `(array ,dtype (size . ,size)) tast)
+
+  (define-values (atdefs atdef at atref) (defs-def-t-tref tast))
+  (define-values (aptdefs aptdef apt aptref) (defs-def-t-tref `(pointer ,tast)))
+
+  (define adtref (get-array-data-type at))
+
+  (define adpt (sham:type:pointer adtref))
+  (define nat type-nat-ref)
+  (define nat* (sham:type:pointer nat))
+
+  (define arr-id (sham:def-id atdef))
+  (define (get-fun-name frmt)
+    (string->symbol (format frmt arr-id)))
+
+  (define (make-array)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name make-array-fun-format)
+     '() '() aptref
+     (sham:stmt:return (sham:expr:app (sham:rator:symbol (get-fun-name new-size-array-fun-format)) '()))))
+
+  (define (new-array)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name new-size-array-fun-format)
+     '() '() aptref
+     (sham:stmt:return (sham$app bitcast
+                                 (sham$app arr-malloc (sham:expr:type adtref) (sham:expr:ui-value size nat))
+                                 (sham:expr:type aptref)))))
+
+  (define (get-array-size)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name get-array-size-fun-format)
+     '(arr) (list aptref) nat
+     (sham:stmt:return (sham:expr:ui-value size nat))))
+
+  (define (get-index)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name get-index-fun-format)
+     '(arr ind) (list aptref nat) adtref
+     (sham:stmt:return (sham$app load (sham:expr:gep (sham$var 'arr) (list (sham:expr:ui-value 0 nat)
+                                                                           (sham$var ind)))))))
+  ;;TODO array literal, figure out if we remove the pointer's in sized array can we get more optimizations
+  (define (set-index)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name set-index-fun-format)
+     '(arr index v) (list aptref nat adtref) (sham:type:ref 'void)
+     (sham$block
+      (sham:stmt:expr
+       (sham$app store! (sham$var v) (sham:expr:gep (sham$var 'arr) (list (sham:expr:ui-value 0 nat)
+                                                                          (sham$var index)))))
+      (sham:stmt:return (sham:expr:void)))))
+
+  (append
+   (reverse atdefs)
+   (reverse aptdefs)
+   (list
+    (make-array)
+    (new-array)
+    (get-array-size)
+    (get-index)
+    (set-index))))
+
 (define (build-array-literal type len)
    (define type-sym (get-type-sym type))
   (define type-ref (sham:type:ref type-sym))
@@ -191,22 +269,25 @@
            "../../utils.rkt")
 
   (define defs
-    (apply append
-           (map array-defs
-                `((array nat)
-                  (array real)
-                  (array prob)
-                  (array (array nat))))))
+    (append (append-map const-array-defs
+                        `((array (array nat (size . 4)) (size . 10))))))
+            ;; (append-map array-defs
+            ;;             `((array nat)
+            ;;               (array real)
+            ;;               (array prob)
+            ;;               (array (array nat))))
+
 ;  (pretty-print (map sham-def->sexp defs))
   (define mod
     (sham:module
      (basic-mod-info) defs))
 
   (define cmod (compile-module mod))
-  ;(jit-dump-module cmod)
+  (jit-dump-module cmod)
   (optimize-module cmod)
 ;  (jit-dump-module cmod)
   (printf "verify after optimize: ~a\n" (jit-verify-module cmod))
+  (error 'stop)
   (initialize-jit! cmod)
   ;(pretty-print cmod)
   (define (get-t t) (jit-get-racket-type t cmod))
