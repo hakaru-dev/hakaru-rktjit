@@ -53,10 +53,14 @@
      (format pointer-format (get-type-string tp))]
     [`(array ,tar)
      (format array-format (get-type-string (if-need-pointer tar)))]
+    [`(array ,tar (size . ,s))
+     (format sized-array-format s (get-type-string tar))]
     [`(measure ,t) (get-type-string t)]
     [`(pair ,t1 ,t2) (format pair-format
                              (get-type-string (if-need-pointer t1))
                              (get-type-string (if-need-pointer t2)))]
+    [`(struct-type (,ts ...)) (format "struct<~a>" (string-join (map get-type-string ts) "."))]
+    [`(,t ,info) #:when (nrp? t) (symbol->string t)]
     [nrp? (symbol->string t)]
     [else (error "unknown type format" t)]))
 (define get-type-sym (compose string->symbol get-type-string))
@@ -69,14 +73,23 @@
 (define (if-need-pointer t)
   (match t
     [`(measure ,mt) (if-need-pointer mt)]
+    [`(t ,i) #:when (nrp? t) t]
     [tp #:when (nrp? t) tp]
     [else `(pointer ,t)]))
+
+(define (clean-type-info ti)
+  (match ti
+    [`(,t ,_) #:when (nrp? t) t]
+    [`(array ,t ,_) (clean-type-info t)]
+    [`(pair ,t1 ,t2) `(pair ,(clean-type-info t1)
+                            ,(clean-type-info t2))]
+    [`(measure ,t) (clean-type-info t)]
+    [else ti]))
+
 (define (pointer-type? t)
-  (printf "pointer-type?: ~a=~a\n" t
-          (and (pair? (if-need-pointer t))
-               (equal? (car (if-need-pointer t)) 'pointer)))
   (and (pair? (if-need-pointer t))
        (equal? (car (if-need-pointer t)) 'pointer)))
+
 (define (expand-type t)
   (define et expand-type)
   (match t
@@ -95,15 +108,32 @@
       [`(array ,t)
        (define st (get-sham-type-define `(pointer ,(if-need-pointer t))))
        (define ct (sham$def:type (get-type-sym tast)
-                   (sham:type:struct array-args (list type-nat-ref (get-sham-type-ref (car st))))))
+                                 (sham:type:struct array-args (list type-nat-ref (get-sham-type-ref (car st))))))
        (cons ct (cons type-nat-def st))]
+      [`(array ,t (size . ,s))
+       (define st (get-sham-type-define `(pointer ,(if-need-pointer t))))
+       (cons
+        (sham$def:type
+         (get-type-sym tast)
+         (sham:type:array (get-sham-type-ref (car st)) s))
+        st)]
+
+      [`(struct-type (,arg-types ...))
+       (printf "arg-types: ~a\n" arg-types)
+       (define arg-defs (map get-sham-type-define arg-types))
+       (define st (sham$def:type
+                   (get-type-sym tast)
+                   (sham:type:struct (build-list (length arg-types) values)
+                                     (list (map car arg-defs)))))
+       (cons st (apply append arg-defs))]
+
       [`(pair ,t1 ,t2)
        (define st1 (get-sham-type-define (if-need-pointer t1)))
        (define st2 (get-sham-type-define (if-need-pointer t2)))
        (define ct (sham$def:type (get-type-sym tast)
-                   (sham:type:struct (list pair-car-sym pair-cdr-sym)
-                                     (list (get-sham-type-ref (car st1))
-                                           (get-sham-type-ref (car st2))))))
+                                 (sham:type:struct (list pair-car-sym pair-cdr-sym)
+                                                   (list (get-sham-type-ref (car st1))
+                                                         (get-sham-type-ref (car st2))))))
        (cons ct (append st1 st2))]
       [`(measure ,t)
        (get-sham-type-define t)]
@@ -119,7 +149,9 @@
       ['bool  (list type-bool-def)]
       ['real (list type-real-def)]
       ['unit (list type-nat-def)]
-      ['void (list type-void-def)]))
+      ['void (list type-void-def)]
+      [`(nat ,info) (list type-nat-def)]
+      [`(prob ,info) (list type-prob-def)]))
   (define defs (hash-ref! sham-type-def-hash tast create-new!))
   (map (λ (d) (hash-set! type-hash (sham:def-id d) (sham:def:type-type d))) defs)
   defs)
