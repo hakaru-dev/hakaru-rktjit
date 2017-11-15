@@ -274,7 +274,10 @@
    `(libgsl . ("libgsl")))
   mod-info)
 
-(define (prelude-function-info) (fninfo-empty))
+(define (prelude-function-info)
+  (define fn-attrs (fninfo-add-attrs (fninfo-empty) 'alwaysinline))
+  fn-attrs
+  (fninfo-empty))
 
 (define (prog-fun-info arg-types ret-type fname)
   (define fn-attrs (fninfo-add-attrs (fninfo-empty) 'norecurse 'readonly 'argmemonly 'speculatable 'nounwind))
