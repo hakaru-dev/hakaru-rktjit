@@ -120,7 +120,7 @@
         st)]
 
       [`(struct-type ,arg-types)
-       (define arg-defs (map get-sham-type-define arg-types))
+       (define arg-defs (map (compose get-sham-type-define if-need-pointer) arg-types))
        (define st (sham$def:type
                    (get-type-sym tast)
                    (sham:type:struct (build-list (length arg-types) get-vi)
