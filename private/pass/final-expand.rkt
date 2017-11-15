@@ -9,7 +9,7 @@
          "../utils.rkt")
 
 (provide to-sham-lc)
-(define debug-to-sham (make-parameter #f))
+(define debug-to-sham (make-parameter #t))
 (define dts (debug-printf debug-to-sham))
 
 
@@ -50,8 +50,8 @@
        ;;   (for ([var vars]
        ;;         [type types]
        ;;         [st sham-types])))
-           ;; (printf "var: ~a : ~a, st: ~a\n"
-           ;;     (pe var) (typeof var) (print-sham-type  st))
+       ;; (printf "var: ~a : ~a, st: ~a\n"
+       ;;     (pe var) (typeof var) (print-sham-type  st))
 
        (sham:expr:let (map expr-var-sym vars)
                       sham-types
@@ -99,6 +99,10 @@
   (define (mod-fun-info) (void)) ;;TODO
   (define (mod-info) (void))
 
+  (define (get-debug-print-expr str)
+    (sham:expr:app (sham:rator:racket (gensym^ 'debug) (λ () (printf str))
+                                      (sham:type:function '() (sham:type:ref 'void)))
+                   '()))
   (define (expand-fun fp)
     (match fp
       [(expr-fun fname args ret-type b)
@@ -107,6 +111,15 @@
             fname (map expr-var-type nargs) ret-type
             (map print-sham-type (map (compose get&add-type expr-var-type) nargs))
             (print-sham-type (get&add-type ret-type)))
+       (define dprf (symbol-append 'debug-print- fname))
+       (define debug-fun
+         (sham:def:function
+          (make-hash)
+          dprf
+          '() '() (sham:type:ref 'void)
+          (sham:stmt:block
+           (list (sham:stmt:expr (get-debug-print-expr (format "entered: function: ~a" fname)))
+                 (sham:stmt:return (sham:expr:void))))))
        (sham:def:function
         (prog-fun-info  (map typeof nargs) ret-type fname)
         fname
@@ -114,11 +127,12 @@
         (get&add-type ret-type)
         (es b))]))
 
+
   (match st
     [(state prgs info passes)
-     (define new-prgs (for/list ([prg prgs]) (expand-fun prg)))
-;     (printf "defs: \n~a" (pretty-format (map print-sham-def new-prgs)))
-;     (printf "prelude: \n~a" (pretty-format (map print-sham-def (flatten (get-defs-prelude prl)))))
+     (define new-prgs (flatten (for/list ([prg prgs]) (expand-fun prg))))
+     (printf "defs: \n~a" (pretty-format (map print-sham-def new-prgs)))
+     ;; (printf "prelude: \n~a" (pretty-format (map print-sham-def (flatten (get-defs-prelude prl))))
      (run-next (append (cleanup-defs (flatten (get-defs-prelude prl))) new-prgs)
                info st)]))
 
