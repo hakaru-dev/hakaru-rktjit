@@ -172,14 +172,13 @@
        (sl b env)]
 
       [(expr-lets ts vars vals stmt body)
+
        (define bffv (set-union (find-free-variables body)
                                (find-free-variables stmt)
                                (apply set-union (cons (set) (map find-free-variables vals)))))
 
-       (dprintf (and  (not (empty? vars))
-                      (ormap (λ (var val) (not (equal? (typeof var) (typeof val)))) vars vals))
-                "simplifying-expr-lets: (types incorrect): ~a\n"
-                (pretty-format (map list (map pe vars) ts (map typeof vars) (map typeof vals))))
+       (dpl "simplifying-expr-lets: ~a\n"
+            (pretty-format (map list (map pe vars) ts (map typeof vars) (map typeof vals))))
 
        (define-values (nts nvars nvals ne)
          (for/fold ([nts '()] [nvars '()] [nvals '()] [e env])
@@ -187,17 +186,17 @@
            (define nv (sl val e))
            (cond
              [(not (set-member? bffv var))
-              (dtprintf "removing: ~a as fvars~a\n" (pe var) (map pe (set->list bffv)))
+              (dpl "removing: ~a as fvars~a\n" (pe var) (map pe (set->list bffv)))
               (values nts nvars nvals e)]
              [(and (expr-var? nv) (not (is-mutable-var? var)))
-              (dtprintf "replacing-immutable: ~a <- ~a\n" (pe var) (pe val))
+              (dpl "replacing-immutable: ~a <- ~a\n" (pe var) (pe val))
               (values nts nvars nvals (hash-set e var nv))]
              [else
-              ;; (dtprintf "expr-let-nothing: ~a, ffv?: ~a, var?: ~a, mv?: ~a\n"
+              ;; (dpl "expr-let-nothing: ~a, ffv?: ~a, var?: ~a, mv?: ~a\n"
               ;;           (pe var) (set-member? bffv var) (expr-var? nv) (is-mutable-var? var))
               (values (cons t nts) (cons var nvars) (cons nv nvals) e)])))
        (clean-expr-lets
-        (expr-lets nts nvars nvals (sl stmt ne) (sl body ne)))]
+        (expr-lets (reverse nts) (reverse nvars) (reverse nvals) (sl stmt ne) (sl body ne)))]
 
       [(expr-if t tst thn els)
        (expr-if t (sl tst env) (sl thn env) (sl els env))]
@@ -258,11 +257,12 @@
             (match (stmt-expr-expr se)
               [(expr-lets ts vs vls s (expr-val t 0)) (list ts vs vls s)]))
           stmts))
-       (dpl "tvls: ~a\n" tvls)
        (stmt-expr (stmt-void)
-                  (expr-lets (append-map first tvls) (append-map second tvls) (append-map third tvls)
-                             (stmt-block (map fourth tvls))
-                             (expr-val 'nat 0)))]
+                  (sl
+                   (expr-lets (append-map first tvls) (append-map second tvls) (append-map third tvls)
+                              (sl (stmt-block (map fourth tvls)) env)
+                              (expr-val 'nat 0))
+                   env))]
       [(stmt-block (list s)) s]
 
       [(stmt-block stmts)
@@ -298,9 +298,7 @@
       [(stmt-return v)
        (stmt-return v)]
       [v #:when (hash-has-key? env v)
-         (dpl (not (equal? (typeof v) (typeof (hash-ref env v))))
-              "\treplaced: ~a:~a with ~a:~a\n"
-              (print-expr v) (typeof v) (print-expr (hash-ref env v)) (typeof (hash-ref env v)))
+         (dpl "\treplaced: ~a:~a with ~a:~a\n" (print-expr v) (typeof v) (print-expr (hash-ref env v)) (typeof (hash-ref env v)))
          (hash-ref env v)]
       [v #:when (or (expr-var? v) (expr-val? v)) v]
 
