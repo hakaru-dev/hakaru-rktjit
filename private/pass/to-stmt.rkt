@@ -28,7 +28,7 @@
                [t (second (typeof (cdr rvp)))]
                [si (in-range (length (car rvp)))])
       (dps "okey check here: g: ~a, t: ~a\n" (map pe g) t)
-      (define sti (expr-app t (expr-intrf 'struct-index) (list carg (expr-val 'nat si))))
+      (define sti (expr-app t (expr-intrf (symbol-append 'struct-index. si)) (list carg)))
       (define stis (expr-var t (gensym^ 'sti) '()))
       (define tvl (map (λ (gi ii)
                          (list (get-type t ii (length g))
