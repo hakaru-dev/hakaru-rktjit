@@ -189,7 +189,7 @@
   (define (make-array)
     (sham:def:function
      (prelude-function-info)
-     (get-fun-name make-array-fun-format)
+     (get-fun-name new-size-array-fun-format)
      '() '() aptref
      (sham:stmt:return
       (sham$app bitcast
@@ -219,7 +219,7 @@
      (build-list size (const adtref)) aptref
      (sham:stmt:let
       '(arl) (list aptref)
-      (list (sham:expr:app (sham:rator:symbol (get-fun-name make-array-fun-format)) '()))
+      (list (sham:expr:app (sham:rator:symbol (get-fun-name new-size-array-fun-format)) '()))
       (sham:stmt:block
        (append (build-list size
                            (λ (i)
@@ -426,7 +426,7 @@
   (check ptr-equal? etib eti)
   (check-eq? (get-index-array-nat etib 3) 42)
 
-  (define make-array-10double (get-f 'make$array<10.real>))
+  (define make-array-10double (get-f 'new-sized$array<10.real>))
   (define set-index!-10double (get-f 'set-index!$array<10.real>))
   (define get-index-10double  (get-f 'get-index$array<10.real>))
   (define a (make-array-10double))
