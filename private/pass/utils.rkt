@@ -31,7 +31,12 @@
       (let ([av (assoc sym lst)])
         (if av (cdr av) #f))
       #f))
-
+(define (add-array-size-info t s)
+  (match t
+    [`(array ,tar) `(array ,tar (size . ,s))]
+    [`(array ,tar (size . ,sd))
+     #:when (not (equal? s sd))
+     (error "changing array size of a type")]))
 (define ((debug-printf param) . args)
   (when (param)
     (apply printf args)))

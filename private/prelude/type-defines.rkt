@@ -55,7 +55,7 @@
     [`(array ,tar)
      (format array-format (get-type-string (if-need-pointer tar)))]
     [`(array ,tar (size . ,s))
-     (format sized-array-format s (get-type-string tar))]
+     (format sized-array-format s (get-type-string (if-need-pointer tar)))]
     [`(measure ,t) (get-type-string t)]
     [`(pair ,t1 ,t2) (format pair-format
                              (get-type-string (if-need-pointer t1))
@@ -104,6 +104,7 @@
 ;; returns list of defines
 ;; first is for tast rest dependencies
 (define (get-sham-type-define tast)
+
   (define (create-new!)
     (match tast
       [`(array ,t)
@@ -112,12 +113,9 @@
                                  (sham:type:struct array-args (list type-nat-ref (get-sham-type-ref (car st))))))
        (cons ct (cons type-nat-def st))]
       [`(array ,t (size . ,s))
-       (define st (get-sham-type-define t))
-       (cons
-        (sham$def:type
-         (get-type-sym tast)
-         (sham:type:array (get-sham-type-ref (car st)) s))
-        st)]
+       (define st (get-sham-type-define (if-need-pointer t)))
+       (define def (sham$def:type (get-type-sym tast) (sham:type:array (get-sham-type-ref (car st)) s)))
+       (cons def st)]
 
       [`(struct-type ,arg-types)
        (define arg-defs (map (compose get-sham-type-define if-need-pointer) arg-types))

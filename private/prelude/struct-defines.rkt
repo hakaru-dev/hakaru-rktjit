@@ -38,7 +38,6 @@
 (define (get-struct-defs tast)
   (define-values
     (atdefs atdef at atref) (defs-def-t-tref tast))
-  (printf "got type: ~a\n" (print-sham-type at))
   (define-values
     (aptdefs aptdef apt aptref) (defs-def-t-tref `(pointer ,tast)))
   (define nat type-nat-ref)

@@ -19,6 +19,7 @@
 
 
 (define (get-array-rator sym tresult trands)
+;  (printf "getting array rator: ~a ~a ~a\n" sym tresult trands)
   (cond
     [(equal? sym 'array-literal)
      (values (sham:rator:symbol (get-fun-symbol array-literal-fun-format (length trands) (get-type-string tresult)))

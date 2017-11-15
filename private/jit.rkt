@@ -25,7 +25,6 @@
 
    to-stmt
    to-sham-lc
-
    compile-with-sham
    optimize&init-jit))
 
@@ -68,17 +67,23 @@
   (require disassemble)
   (define (dv mod-env)
     (when mod-env
-      (jit-dump-function  mod-env 'prog)))
-      ;(jit-verify-module mod-env)))
+      (jit-dump-module mod-env)
+      (jit-dump-function  mod-env 'categorical$array<3.prob>)
+
+      (jit-verify-module mod-env))
+    (void))
+
   (define (doct)
     (define nct 1000)
     (define ctinfo
       (list (list `(natinfo . ((constant . ,nct))))
             (list `(pairinfo . ((ainfo . ((arrayinfo . ((size . ,nct)))))
                                 (binfo . ((arrayinfo . ((size . ,nct))))))))))
+    (define ectinfo
+      (list (list) (list)))
 
     (define ct-module-env
-      (compile-file "../../testcode/hkrkt/ClinicalTrial.hkr" ctinfo))
+      (compile-file "../../testcode/hkrkt/ClinicalTrial.hkr" ectinfo))
     (define f (jit-get-function 'prog ct-module-env))
     (dv ct-module-env))
 
@@ -89,7 +94,8 @@
                     (list `(arrayinfo . ((size . ,nlr))) 'curry)
                     (list `(arrayinfo . ((size . ,nlr))))))
     (define lr-module-env (compile-file "../../testcode/hkrkt/LinearRegression.hkr" lrinfo))
-    (dv lr-module-env))
+    (define f (jit-get-function 'prog lr-module-env))
+   (dv lr-module-env))
 
   (define (dogg)
     (define classes 3)
@@ -101,9 +107,10 @@
                                           (typeinfo . ((natinfo . ((valuerange . (0 . ,(- classes 1))))))))))
                      (list `(arrayinfo . ((size . ,points))) 'curry)
                      (list `(natinfo . ((valuerange . (0 . ,(- points 1))))))))
-    (define gg-module-env(compile-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
+    (define gg-module-env (compile-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
+;    (define f (jit-get-function 'prog gg-module-env))
     (dv gg-module-env))
 
-;  (printf "pipeline ClinicalTrial\n")(doct)
-  (printf "\n\n\npipeline LinearRegression\n")  (dolr))
-;  (printf "\n\n\npipeline GmmGibbs\n")  (dogg))
+;  (printf "pipeline ClinicalTrial\n")(doct))
+;  (printf "\n\n\npipeline LinearRegression\n")  (dolr))
+  (printf "\n\n\npipeline GmmGibbs\n")  (dogg))

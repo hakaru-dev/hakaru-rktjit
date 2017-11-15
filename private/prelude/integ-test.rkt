@@ -78,5 +78,5 @@
 
 (printf "a10: ")
 (for ([i (in-range 10)])
-  (printf "~a, " (gi10 a10-s i)))
+  (printf "~a, " (gi10 a10 i)))
 (printf "\n")
