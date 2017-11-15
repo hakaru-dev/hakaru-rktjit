@@ -57,10 +57,12 @@
      ;; (dprintf #t "reducer-index: type: ~a\n \tresult: ~a, binds: ~a\n"
      ;;          `(array ,tar) (pe result) (map pe binds))
      (define arr-size (assign-binds binds n))
-     (define narrt (if (and (expr-val? arr-size) (equal? (expr-val-type arr-size) 'nat))
-                       (append t `((size . ,(expr-val-v arr-size))))
-                       t))
-     (define arr-init (expr-app narrt (expr-intrf 'empty) (list arr-size)))
+     (define is-constant-size (and (expr-val? arr-size) (equal? (expr-val-type arr-size) 'nat)))
+     (define narrt (if is-constant-size (append t `((size . ,(expr-val-v arr-size)))) t))
+     (dpc "is constant-size: ~a, val: ~a\n" is-constant-size (pe arr-size))
+     (define arr-init (if is-constant-size
+                          (expr-app narrt (expr-intrf 'empty) (list))
+                          (expr-app narrt (expr-intrf 'empty) (list arr-size))))
      (define arrn (expr-var narrt (gensym^ 'arri) '()))
      (define fori (expr-var 'nat (gensym^ 'fi) '_))
      (define new-result (expr-app tar (expr-intrf 'index) (list arrn fori)))
@@ -185,8 +187,9 @@
 
         (match body
           [(expr-bucket t start end reducer)
-           (dtprintf "bucket: ~a : ~a\n" (pe var) t)
+           (dpc "bucket: ~a : ~a\n" (pe var) t)
            (define-values (nt v l) (get-init '() var t reducer))
+           (dpc "nt ~a v ~a l ~a\n" nt v (map pe l))
            (values (append nt ntypes)
                    (append (map set-mutable-var v) nvars)
                    (append l nvals)
@@ -199,7 +202,10 @@
                    (cons (get-stmt-sp b i t '*) stmts))]
           [(expr-arr t i e b)
            (values (cons t ntypes) (cons var nvars)
-                   (cons (expr-app t (expr-intrf 'empty) (list e)) nvals)
+                   (cons (if (and (expr-val? e) (equal? (expr-val-type e) 'nat))
+                             (expr-app t (expr-intrf 'empty) (list))
+                             (expr-app t (expr-intrf 'empty) (list e)))
+                         nvals)
                    (cons (get-stmt-ar b i t) stmts))])))
 
     (wrap-expr ntypes nvars nvals
@@ -212,9 +218,8 @@
 (define (wrap-body-for-normals nvm body)
   (define-values (types vars vals)
     (values (map third nvm) (map first nvm) (map second nvm)))
-  (dprintf (not (empty? nvm))
-           "wrapping-normals: ~a\n"
-           (map list (map pe vars) (map pe vals) types (map typeof vars) (map typeof vals)))
+  (dpc "wrapping-normals: ~a\n"
+       (map list (map pe vars) (map pe vals) types (map typeof vars) (map typeof vals)))
   (wrap-expr types vars vals (stmt-void) body))
 
 (define (combine-loops st)
