@@ -208,9 +208,8 @@
                          nvals)
                    (cons (get-stmt-ar b i t) stmts))])))
 
-    (wrap-expr ntypes nvars nvals
-               (stmt-for index start end (stmt-block nstmts))
-               b)))
+    (define for-stmt (stmt-for index start end (stmt-block  nstmts)))
+    (wrap-expr ntypes nvars nvals for-stmt b)))
 
 (define (is-loop? expr)
   (or (expr-bucket? expr) (expr-sum? expr) (expr-prd? expr) (expr-arr? expr)))
