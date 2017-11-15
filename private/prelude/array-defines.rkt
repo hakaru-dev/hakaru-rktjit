@@ -102,7 +102,10 @@
                 (sham$app mul-nuw (sham$app intcast (sham:expr:sizeof nat) (sham$etype i64)) (sham$var 'size))
                 (sham$app intcast (nat-value 0) (sham$etype i32))
                 (sham$app intcast (nat-value 0) (sham$etype i1)))))
+
         (sham:stmt:return (sham$var 'apt)))))))
+
+
 
   (define (get-array-data)
     (sham:def:function ;get-array-data
@@ -131,7 +134,7 @@
      (sham:stmt:return
       (sham$app load
                 (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
-                              (list (sham$var 'index)))))))
+                               (list (sham$var 'index)))))))
   (define (set-index)
     (sham:def:function ;set-index
      (prelude-function-info)
@@ -141,8 +144,8 @@
      (sham$block
       (sham:stmt:expr
        (sham$app store! (sham$var 'v)
-                (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
-                              (list (sham$var 'index)))))
+                 (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
+                                (list (sham$var 'index)))))
       (sham:stmt:return (sham:expr:void)))))
   (define (empty-array)
     (sham:def:function ;empty-array
@@ -151,7 +154,7 @@
      '() '() aptref
      (sham:stmt:return
       (sham:expr:app (sham:rator:symbol (get-fun-name new-size-array-fun-format))
-                    (list (nat-value 0))))))
+                     (list (nat-value 0))))))
   (append
    (reverse atdefs)
    (reverse aptdefs)
@@ -286,6 +289,7 @@
                                            (list (sham$var 'arl) (nat-value i) (sham$var (get-vi i)))))))
              (list (sham:stmt:return (sham$var 'arl))))))))
 
+
 (module+ test
   (require rackunit
            sham/jit
@@ -293,9 +297,9 @@
            "../../utils.rkt")
 
   (define defs
-    (append (append-map const-array-defs
-                        `((array (array nat (size . 10)) (size . 10))
-                          (array real (size . 10))))
+    (append  (append-map const-array-defs
+                         `((array (array nat (size . 10)) (size . 10))
+                           (array real (size . 10))))
             (append-map array-defs
                         `((array nat)
                           (array real)
@@ -305,14 +309,14 @@
 
 
 
-;  (pretty-print (map sham-def->sexp defs))
+  (pretty-print (map print-sham-def defs))
   (define mod
     (sham:module
      (basic-mod-info) defs))
 
   (define cmod (compile-module mod))
-  (jit-dump-module cmod)
-  (optimize-module cmod)
+  ;; (jit-dump-module cmod)
+  ;; (optimize-module cmod)
   ;  (jit-dump-module cmod)
   (printf "verify after optimize: ~a\n" (jit-verify-module cmod))
   (initialize-jit! cmod)
