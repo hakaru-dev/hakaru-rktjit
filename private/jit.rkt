@@ -12,19 +12,21 @@
 
   (list
    clean-curry
+
    parse-sexp
-
    initial-simplifications
-   stop
-
-
    flatten-anf
    combine-loops
+
    later-simplifications
    pull-indexes
    later-simplifications
+   pull-indexes
+
    to-stmt
+
    to-sham-lc
+
    compile-with-sham
    optimize&init-jit))
 
@@ -49,8 +51,8 @@
 ;; (curryhere)
 
 (define (compile-src src arg-info)
-  (define final-state (run-pipeline src arg-info))
-  (state-prg final-state))
+  (run-pipeline src arg-info))
+
 
 (define (compile-file fname arg-info)
   (compile-src (file->value fname) arg-info))
@@ -73,8 +75,8 @@
     (define nct 10)
     (define ctinfo
       (list (list `(natinfo . ((constant . ,nct))))
-            (list `(pairinfo ((ainfo . (arrayinfo . ((size . ,nct))))
-                              (binfo . (arrayinfo . ((size . ,nct)))))))))
+            (list `(pairinfo . ((ainfo . ((arrayinfo . ((size . ,nct)))))
+                                (binfo . ((arrayinfo . ((size . ,nct))))))))))
 
     (define ct-module-env
       (compile-file "../../testcode/hkrkt/ClinicalTrial.hkr" ctinfo))
@@ -103,6 +105,6 @@
     (dv gg-module-env))
 
 
-  (printf "pipeline ClinicalTrial\n")  (doct)
-  (printf "\n\n\npipeline LinearRegression\n")  (dolr)
-  (printf "\n\n\npipeline GmmGibbs\n")  (dogg))
+  (printf "pipeline ClinicalTrial\n")  (doct))
+;  (printf "\n\n\npipeline LinearRegression\n")  (dolr))
+;  (printf "\n\n\npipeline GmmGibbs\n")  (dogg))
