@@ -9,7 +9,8 @@
 
 (provide get-struct-defs
          struct-rator?
-         get-struct-rator)
+         get-struct-rator
+         build-struct-index)
 
 (define (struct-rator? sym)
   (or (member sym '(make-struct struct-literal))
@@ -37,6 +38,7 @@
 (define (get-struct-defs tast)
   (define-values
     (atdefs atdef at atref) (defs-def-t-tref tast))
+  (printf "got type: ~a\n" (print-sham-type at))
   (define-values
     (aptdefs aptdef apt aptref) (defs-def-t-tref `(pointer ,tast)))
   (define nat type-nat-ref)
@@ -83,7 +85,6 @@
   (define-values (atdefs atdef at atref) (defs-def-t-tref (car trands)))
   (define-values (aptdefs aptdef apt aptref) (defs-def-t-tref `(pointer ,(car trands))))
   (define dts (get-struct-data-types at))
-  (define-values (dtdefs dtdef dt dtref) (defs-def-t-tref `(pointer ,tresult)))
   (define nat type-nat-ref)
   (define fn-sym (string->symbol (format (string-append struct-get-index-fun-format "." (number->string i))
                                          (sham:def-id atdef))))
@@ -101,10 +102,10 @@
            sham/jit
            ffi/unsafe
            "../../utils.rkt")
-  (define-values (rtr def) (build-struct-index 'index.1 '(array real) `((struct-type ((array real) real)))))
-  (define defs (append (get-struct-defs `(struct-type ((array real) real)))
-                       (list def)))
-
+  (define-values (rtr def) (build-struct-index 'index.1 'real `((struct-type ((array real) (array real))))))
+  (define-values (rtr0 def0) (build-struct-index 'index.0 'real `((struct-type ((array real) (array real))))))
+  (define defs (append (get-struct-defs `(struct-type ((array real) (array real))))
+                       (list def def0)))
 
   (pretty-print (map print-sham-def defs))
   (define mod
@@ -114,4 +115,7 @@
   (define cmod (compile-module mod))
   (jit-dump-module cmod)
   (jit-verify-module cmod)
-  (initialize-jit! cmod))
+  (initialize-jit! cmod)
+
+  (define ls (jit-get-function  'literal$struct<array<real>.array<real>> cmod))
+  (define s1 (jit-get-function  'index$struct<array<real>.array<real>>.1 cmod)))
