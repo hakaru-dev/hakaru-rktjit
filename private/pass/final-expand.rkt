@@ -9,7 +9,7 @@
          "../utils.rkt")
 
 (provide to-sham-lc)
-(define debug-to-sham (make-parameter #t))
+(define debug-to-sham (make-parameter #f))
 (define dts (debug-printf debug-to-sham))
 
 
@@ -131,7 +131,7 @@
   (match st
     [(state prgs info passes)
      (define new-prgs (flatten (for/list ([prg prgs]) (expand-fun prg))))
-     (printf "defs: \n~a" (pretty-format (map print-sham-def new-prgs)))
+     ;(printf "defs: \n~a" (pretty-format (map print-sham-def new-prgs)))
      ;; (printf "prelude: \n~a" (pretty-format (map print-sham-def (flatten (get-defs-prelude prl))))
      (run-next (append (cleanup-defs (flatten (get-defs-prelude prl))) new-prgs)
                info st)]))
