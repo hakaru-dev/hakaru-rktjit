@@ -14,18 +14,18 @@
          build-array-literal)
 
 (define (array-rator? sym)
-  (or (member sym '(empty index size set-index! array-literal))
-      (const-size-array-rator? sym)))
+   (member sym '(empty index size set-index! array-literal
+                       const-size-array-literal)))
 
-(define (const-size-array-rator? sym)
-  (member sym '(const-size-array-literal index)))
 
 (define (get-array-rator sym tresult trands)
   (cond
     [(equal? sym 'array-literal)
      (values (sham:rator:symbol (get-fun-symbol array-literal-fun-format (length trands) (get-type-string tresult)))
-             (build-array-literal (car trands) (length trands)))]
-    [(const-size-array-rator? sym) (values (sham:rator:symbol sym) (void))]
+             (build-array-literal tresult (length trands)))]
+    [(equal? sym 'const-size-array-literal)
+     (values (sham:rator:symbol (get-fun-symbol size-array-literal-fun-format (get-type-string tresult)))
+             (void))]
     [else (values
            (sham:rator:symbol
             (string->symbol
@@ -188,16 +188,10 @@
      (prelude-function-info)
      (get-fun-name make-array-fun-format)
      '() '() aptref
-     (sham:stmt:return (sham:expr:app (sham:rator:symbol (get-fun-name new-size-array-fun-format)) '()))))
-
-  (define (new-array)
-    (sham:def:function
-     (prelude-function-info)
-     (get-fun-name new-size-array-fun-format)
-     '() '() aptref
-     (sham:stmt:return (sham$app bitcast
-                                 (sham$app arr-malloc (sham:expr:type adtref) (sham:expr:ui-value size nat))
-                                 (sham:expr:type aptref)))))
+     (sham:stmt:return
+      (sham$app bitcast
+                (sham$app arr-malloc (sham:expr:type atref) (sham:expr:ui-value size nat))
+                (sham:expr:type aptref)))))
 
   (define (get-array-size)
     (sham:def:function
@@ -211,9 +205,8 @@
      (prelude-function-info)
      (get-fun-name get-index-fun-format)
      '(arr ind) (list aptref nat) adtref
-     (sham:stmt:return (sham$app load (sham:expr:gep (sham$var 'arr) (list (sham:expr:ui-value 0 nat)
-                                                                           (sham$var ind)))))))
-  ;;TODO array literal, figure out if we remove the pointer's in sized array can we get more optimizations
+      (sham:stmt:return (sham$app load
+                                  (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))))
 
   (define (build-array-literal)
     (sham:def:function
@@ -223,8 +216,7 @@
      (build-list size (const adtref)) aptref
      (sham:stmt:let
       '(arl) (list aptref)
-      (list (sham:expr:app
-             (sham:rator:symbol (get-fun-name new-size-array-fun-format)) '()))
+      (list (sham:expr:app (sham:rator:symbol (get-fun-name make-array-fun-format)) '()))
       (sham:stmt:block
        (append (build-list size
                            (λ (i)
@@ -236,26 +228,40 @@
     (sham:def:function
      (prelude-function-info)
      (get-fun-name set-index-fun-format)
-     '(arr index v) (list aptref nat adtref) (sham:type:ref 'void)
+     '(arr ind v) (list aptref nat adtref) (sham:type:ref 'void)
      (sham$block
-      (sham:stmt:expr
-       (sham$app store! (sham$var v) (sham:expr:gep (sham$var 'arr) (list (sham:expr:ui-value 0 nat)
-                                                                          (sham$var index)))))
-      (sham:stmt:return (sham:expr:void)))))
+       (sham:stmt:expr (sham$app store! (sham$var v) (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))
+       (sham:stmt:return (sham:expr:void)))))
+
+
+
 
   (append
    (reverse atdefs)
    (reverse aptdefs)
+   (list type-nat-def)
    (list
-    (build-array-literal)
     (make-array)
-    (new-array)
     (get-array-size)
     (get-index)
+    (build-array-literal)
     (set-index))))
 
 (define (build-array-literal type len)
-   (define type-sym (get-type-sym type))
+  (printf "building general array-literal: ~a\n" type)
+  (define tast type)
+  (define-values
+    (atdefs atdef at atref) (defs-def-t-tref tast))
+  (define-values
+    (aptdefs aptdef apt aptref) (defs-def-t-tref `(pointer ,tast)))
+  (define adtref (get-array-data-type at))
+  (define adpt (sham:type:pointer adtref))
+  (define adnptref (type-remove-pointer adtref))
+  (define nat type-nat-ref)
+  (define nat* (sham:type:pointer nat))
+  (define arr-id (sham:def-id atdef))
+
+  (define type-sym (get-type-sym type))
   (define type-ref (sham:type:ref type-sym))
   (define array-sym (get-type-sym `(array ,type)))
   (define array-ref (sham:type:ref array-sym))
@@ -264,20 +270,19 @@
 
   (sham:def:function
    (prelude-function-info)
-   (string->symbol (format array-literal-fun-format len array-sym))
+   (string->symbol (format array-literal-fun-format len arr-id))
    (build-list len get-vi)
-   (build-list len (const type-ref)) arrayp-ref
+   (build-list len (const adnptref)) aptref
    (sham:stmt:let
-    '(arl) (list arrayp-ref)
+    '(arl) (list aptref)
     (list (sham:expr:app
-           (sham:rator:symbol (string->symbol (format new-size-array-fun-format
-                                                      array-sym)))
+           (sham:rator:symbol (string->symbol (format new-size-array-fun-format arr-id)))
            (list (nat-value len))))
     (sham:stmt:block
      (append (build-list len
                          (λ (i)
                            (sham:stmt:expr
-                            (sham:expr:app (sham:rator:symbol (get-fun-symbol set-index-fun-format array-sym))
+                            (sham:expr:app (sham:rator:symbol (get-fun-symbol set-index-fun-format arr-id))
                                            (list (sham$var 'arl) (nat-value i) (sham$var (get-vi i)))))))
              (list (sham:stmt:return (sham$var 'arl))))))))
 
@@ -289,12 +294,16 @@
 
   (define defs
     (append (append-map const-array-defs
-                        `((array (array nat (size . 4)) (size . 10))))))
-            ;; (append-map array-defs
-            ;;             `((array nat)
-            ;;               (array real)
-            ;;               (array prob)
-            ;;               (array (array nat))))
+                        `((array (array nat (size . 10)) (size . 10))
+                          (array real (size . 10))))
+            (append-map array-defs
+                        `((array nat)
+                          (array real)
+                          (array prob)
+                          (array (array nat))))
+            (list (build-array-literal `(array real) 3))))
+
+
 
 ;  (pretty-print (map sham-def->sexp defs))
   (define mod
@@ -304,9 +313,8 @@
   (define cmod (compile-module mod))
   (jit-dump-module cmod)
   (optimize-module cmod)
-;  (jit-dump-module cmod)
+  ;  (jit-dump-module cmod)
   (printf "verify after optimize: ~a\n" (jit-verify-module cmod))
-  (error 'stop)
   (initialize-jit! cmod)
   ;(pretty-print cmod)
   (define (get-t t) (jit-get-racket-type t cmod))
@@ -412,4 +420,11 @@
   (set-index-array-array-nat etai 2 eti)
   (define etib (get-index-array-array-nat etai 2))
   (check ptr-equal? etib eti)
-  (check-eq? (get-index-array-nat etib 3) 42))
+  (check-eq? (get-index-array-nat etib 3) 42)
+
+  (define make-array-10double (get-f 'make$array<10.real>))
+  (define set-index!-10double (get-f 'set-index!$array<10.real>))
+  (define get-index-10double  (get-f 'get-index$array<10.real>))
+  (define a (make-array-10double))
+  (set-index!-10double a 4 42.0)
+  (check-= (get-index-10double a 4) 42.0 e))
