@@ -35,7 +35,7 @@
 ;struct
 (define struct-literal-fun-format (cft "literal" 1))
 (define struct-make-fun-format (cft "make" 1))
-(define struct-get-index-fun-format (cft "index" 2))
+(define struct-get-index-fun-format (cft "index" 1))
 
 ;;array-funs
 (define make-array-fun-format (cft "make" 1))
