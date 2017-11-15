@@ -9,7 +9,7 @@
          "../utils.rkt")
 
 (provide to-sham-lc)
-(define debug-to-sham (make-parameter #t))
+(define debug-to-sham (make-parameter #f))
 (define dts (debug-printf debug-to-sham))
 
 
@@ -45,8 +45,16 @@
       [(expr-var t sym _) (sham:expr:var sym)]
       [(expr-val t v) (get-value v t)]
       [(expr-lets types vars vals stmt body)
+       (define sham-types (map (compose get&add-type typeof) vars))
+       ;; (when vars
+       ;;   (for ([var vars]
+       ;;         [type types]
+       ;;         [st sham-types])))
+           ;; (printf "var: ~a : ~a, st: ~a\n"
+           ;;     (pe var) (typeof var) (print-sham-type  st))
+
        (sham:expr:let (map expr-var-sym vars)
-                      (map (compose get&add-type typeof) vars)
+                      sham-types
                       (map ee vals)
                       (es stmt)
                       (ee body))]
@@ -95,8 +103,10 @@
     (match fp
       [(expr-fun fname args ret-type b)
        (define nargs (map (λ (a) (if (expr-val? a) (expr-var (expr-val-type a) '_ '()) a)) args))
-       (dts "expanding-function: ~a\n\targ-types: ~a, ret-type: ~a\n"
-                 fname (map expr-var-type nargs) ret-type)
+       (dts "expanding-function: ~a\n\targ-types: ~a, ret-type: ~a\n\tsham-types: ~a -> ~a\n"
+            fname (map expr-var-type nargs) ret-type
+            (map print-sham-type (map (compose get&add-type expr-var-type) nargs))
+            (print-sham-type (get&add-type ret-type)))
        (sham:def:function
         (prog-fun-info  (map typeof nargs) ret-type fname)
         fname
@@ -107,10 +117,10 @@
   (match st
     [(state prgs info passes)
      (define new-prgs (for/list ([prg prgs]) (expand-fun prg)))
-
-     (printf "defs: \n~a" (pretty-format (map print-sham-def new-prgs)))
-     (printf "prelude: \n~a" (cleanup-defs (get-defs-prelude prl)))
-     (run-next new-prgs info st)]))
+;     (printf "defs: \n~a" (pretty-format (map print-sham-def new-prgs)))
+;     (printf "prelude: \n~a" (pretty-format (map print-sham-def (flatten (get-defs-prelude prl)))))
+     (run-next (append (cleanup-defs (flatten (get-defs-prelude prl))) new-prgs)
+               info st)]))
 
 
   ;; (sham:module
