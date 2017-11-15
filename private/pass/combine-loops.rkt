@@ -201,10 +201,15 @@
            (values (cons t ntypes) (cons var nvars) (cons (expr-val t 1) nvals)
                    (cons (get-stmt-sp b i t '*) stmts))]
           [(expr-arr t i e b)
-           (values (cons t ntypes) (cons var nvars)
+           (define nt (if (and (expr-val? e) (equal? (expr-val-type e) 'nat))
+                          (add-array-size-info t (expr-val-v e))
+                          t))
+           (unless (equal? t nt) (dpc "changing varinfo for var: ~a\n" (print-expr var)))
+           (set-expr-var-type! var nt)
+           (values (cons nt ntypes) (cons var nvars)
                    (cons (if (and (expr-val? e) (equal? (expr-val-type e) 'nat))
-                             (expr-app t (expr-intrf 'empty) (list))
-                             (expr-app t (expr-intrf 'empty) (list e)))
+                             (expr-app nt (expr-intrf 'empty) (list))
+                             (expr-app nt (expr-intrf 'empty) (list e)))
                          nvals)
                    (cons (get-stmt-ar b i t) stmts))])))
 
