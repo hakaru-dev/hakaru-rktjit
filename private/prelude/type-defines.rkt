@@ -2,7 +2,8 @@
 
 (require sham/ast
          (submod sham/ast utils))
-(require "template-format.rkt")
+(require "template-format.rkt"
+         "utils.rkt")
 
 (provide (all-defined-out))
 
@@ -73,7 +74,7 @@
 (define (if-need-pointer t)
   (match t
     [`(measure ,mt) (if-need-pointer mt)]
-    [`(t ,i) #:when (nrp? t) t]
+    [`(,t ,i) #:when (nrp? t) t]
     [tp #:when (nrp? t) tp]
     [else `(pointer ,t)]))
 
@@ -111,22 +112,20 @@
                                  (sham:type:struct array-args (list type-nat-ref (get-sham-type-ref (car st))))))
        (cons ct (cons type-nat-def st))]
       [`(array ,t (size . ,s))
-       (define st (get-sham-type-define (if-need-pointer t)))
+       (define st (get-sham-type-define t))
        (cons
         (sham$def:type
          (get-type-sym tast)
          (sham:type:array (get-sham-type-ref (car st)) s))
         st)]
 
-      [`(struct-type (,arg-types ...))
-       (printf "arg-types: ~a\n" arg-types)
+      [`(struct-type ,arg-types)
        (define arg-defs (map get-sham-type-define arg-types))
        (define st (sham$def:type
                    (get-type-sym tast)
-                   (sham:type:struct (build-list (length arg-types) values)
-                                     (list (map car arg-defs)))))
+                   (sham:type:struct (build-list (length arg-types) get-vi)
+                                     (map (compose get-sham-type-ref car) arg-defs))))
        (cons st (apply append arg-defs))]
-
       [`(pair ,t1 ,t2)
        (define st1 (get-sham-type-define (if-need-pointer t1)))
        (define st2 (get-sham-type-define (if-need-pointer t2)))
