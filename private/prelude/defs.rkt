@@ -92,14 +92,6 @@
     ['bool (sham:expr:ui-value v type-bool-ref)]
     [`(measure ,t) (get-value v t)]))
 
-(define (clean-type-info t)
-  (match t
-    [`(nat ,_) 'nat]
-    [`(real ,_) 'real]
-    [`(prob ,_) 'prob]
-    [`(int ,_) 'int]
-    [`(array ,t ,_) `(array ,t)]
-    [else t]))
 (module+ test
   (define-values
     (ref defs)

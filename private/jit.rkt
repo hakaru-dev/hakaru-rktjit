@@ -24,7 +24,6 @@
    pull-indexes
 
    to-stmt
-
    to-sham-lc
 
    compile-with-sham
@@ -69,10 +68,10 @@
   (require disassemble)
   (define (dv mod-env)
     (when mod-env
-      (jit-dump-module mod-env)
-      (jit-verify-module mod-env)))
+      (jit-dump-function  mod-env 'prog)))
+      ;(jit-verify-module mod-env)))
   (define (doct)
-    (define nct 10)
+    (define nct 1000)
     (define ctinfo
       (list (list `(natinfo . ((constant . ,nct))))
             (list `(pairinfo . ((ainfo . ((arrayinfo . ((size . ,nct)))))
@@ -80,6 +79,7 @@
 
     (define ct-module-env
       (compile-file "../../testcode/hkrkt/ClinicalTrial.hkr" ctinfo))
+    (define f (jit-get-function 'prog ct-module-env))
     (dv ct-module-env))
 
 
@@ -104,7 +104,6 @@
     (define gg-module-env(compile-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
     (dv gg-module-env))
 
-
-  (printf "pipeline ClinicalTrial\n")  (doct))
-;  (printf "\n\n\npipeline LinearRegression\n")  (dolr))
+;  (printf "pipeline ClinicalTrial\n")(doct)
+  (printf "\n\n\npipeline LinearRegression\n")  (dolr))
 ;  (printf "\n\n\npipeline GmmGibbs\n")  (dogg))
