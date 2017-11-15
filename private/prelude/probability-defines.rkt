@@ -69,8 +69,6 @@
 
     (sham$define
      (beta (prelude-function-info) (a tprob) (b tprob) tprob)
-     ;; (sham:stmt:expr (sham$app print-prob a))
-     ;; (sham:stmt:expr (sham$app print-prob b))
      (sham:stmt:return
       (sham:expr:app (sham:rator:symbol 'betafuncreal)
                      (list (sham:expr:app (sham:rator:symbol 'prob2real)
@@ -98,15 +96,20 @@
 
     (sham$define
      (gamma (prelude-function-info) (a tprob) (b tprob) tprob)
-     (sham:stmt:return
-      (sham:expr:app (sham:rator:symbol 'real2prob)
-                     (list
-                      (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_gamma treal)
-                                     (list (sham:expr:var 'gsl-rng)
-                                           (sham:expr:app (sham:rator:symbol 'prob2real)
-                                                          (list (sham$var 'a)))
-                                           (sham:expr:app (sham:rator:symbol 'prob2real)
-                                                          (list (sham$var 'b)))))))))
+     (sham$block
+      (sham:stmt:void)
+      ;; (sham:stmt:expr (sham$app print-prob a))
+      ;; (sham:stmt:expr (sham$app print-prob b))
+      (sham:stmt:return
+       (sham:expr:app (sham:rator:symbol 'real2prob)
+                      (list
+                       (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_gamma treal)
+                                      (list (sham:expr:var 'gsl-rng)
+                                            (sham:expr:app (sham:rator:symbol 'prob2real)
+                                                           (list (sham$var 'a)))
+                                            (sham:expr:app (sham:rator:symbol 'prob2real)
+                                                           (list (sham$var 'b))))))))))
+
     (sham$define
      (gammaFunc (prelude-function-info) (a tprob) tprob)
      (sham:stmt:return
@@ -271,6 +274,8 @@
   (init-rng)
   (define uniform (get-f 'uniform))
   (define normal (get-f 'normal))
+  (define gamma (get-f 'gamma))
+
   (define beta (get-f 'beta))
   (define categorical-2 (get-f 'categorical-2))
   (define categorical-real (get-f 'categorical-real))
