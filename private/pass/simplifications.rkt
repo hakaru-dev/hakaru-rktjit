@@ -110,10 +110,12 @@
               (expr-app ta (expr-intrf 'index)
                         (list (expr-app t (expr-intrf 'array-literal) aargs) iarg)))
             (if (< (length aargs) 5) (check-if-remove aargs iarg ab) ab)]
-           [(expr-app ta (expr-intrf 'size) (list (expr-var t sym info)))
-            #:when (constant-size-array? t)
-            (dpi "init-simple: got sized array: ~a\n" sym)
-            (expr-val ta (get-size-of-array t))]
+           [(expr-app ta (expr-intrf 'size) (list arg))
+            #:when (constant-size-array? (typeof arg))
+            (expr-val ta (get-size-of-array (typeof arg)))]
+
+           [(expr-app ta (expr-intrf 'index) (list (expr-app t (expr-intrf 'constant-value-array) cargs) ind))
+            (second cargs)]
 
            [(expr-match t tst brs)
             (if (eq? (typeof tst) 'bool) (toif t tst brs) (extract-pair t tst brs))]
@@ -200,6 +202,7 @@
 
       [(expr-if t tst thn els)
        (expr-if t (sl tst env) (sl thn env) (sl els env))]
+
 
       ;; removing redundant logfloatconversions
       [(expr-app 'prob (expr-intrf '+) args)
