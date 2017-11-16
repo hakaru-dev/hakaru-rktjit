@@ -143,11 +143,22 @@
 
 ;;returns (values start-val end-val) if loop else (values 0 0)
 (define (loop-ends e) ;; assuming every loop starts at 0
+  (values (get-start e) (get-end e)))
+
+(define (get-start e)
   (match e
-    [(expr-arr _ _ e _) (values (expr-val 'nat 0) e)]
-    [(expr-sum _ _ s e _) (values s e)]
-    [(expr-prd _ _ s e _) (values s e)]
-    [(expr-bucket _ s e _) (values s e)]))
+    [(expr-arr _ _ e _)    (expr-val 'nat 0)]
+    [(expr-sum _ _ s e _)  s]
+    [(expr-prd _ _ s e _)  s]
+    [(expr-bucket _ s e _) s]))
+
+(define (get-end e)
+  (match e
+    [(expr-arr _ _ e _)    e]
+    [(expr-sum _ _ s e _)  e]
+    [(expr-prd _ _ s e _)  e]
+    [(expr-bucket _ s e _) e]))
+
 
 ;; var-map is all loops and this groups them by start and end being same
 (define (group-same-size var-map)
