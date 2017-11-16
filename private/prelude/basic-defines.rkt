@@ -62,6 +62,11 @@
      (sham$app si->fp v (sham$etype real))))
 
    (sham$define
+    (testput int)
+    (sham$return (sham:expr:app (sham:rator:external 'libc 'putchar (sham:type:ref 'i32))
+                                (list (sham:expr:ui-value 42 (sham:type:ref 'i32))))))
+
+   (sham$define
     (prob2real (v prob) real)
     (sham$return (sham$app (llvm.exp.f64 prob) v)))
 
@@ -271,7 +276,8 @@
   (mod-info-add-ffi-libs
    mod-info
    `(libgslcblas . ("libgslcblas" #:global? #t))
-   `(libgsl . ("libgsl")))
+   `(libgsl . ("libgsl"))
+   `(libc . ("/usr/lib/libc" "6")))
   mod-info)
 
 (define (prelude-function-info)

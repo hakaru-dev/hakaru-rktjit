@@ -44,8 +44,15 @@
 (define empty-array-fun-format (cft "empty" 1))
 (define get-array-size-fun-format (cft "get-size" 1))
 (define get-array-data-fun-format (cft "get-data" 1))
+
 (define get-index-fun-format (cft "get-index" 1))
+(define get-index-error-fun-format (cft "get-index-error" 1))
+(define rkt-get-index-error-fun-format (cft "rkt-get-index-error" 1))
+
 (define set-index-fun-format (cft "set-index!" 1))
+(define set-index-error-fun-format (cft "set-index-error!" 1))
+(define rkt-set-index-error-fun-format (cft "rkt-set-index-error!" 1))
+
 (define array-literal-fun-format (cft "array-literal" 2))
 (define size-array-literal-fun-format (cft "literal" 1))
 

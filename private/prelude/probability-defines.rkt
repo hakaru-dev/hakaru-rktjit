@@ -31,14 +31,14 @@
                  (array-defs `(array real))
                  (array-defs `(array prob))))
   (define tvoid (sham:type:ref 'void))
-  (define tvoid* (sham:type:ref 'void*))
+  (define tvoid* (sham:type:pointer (sham:type:ref 'i8)))
   (define tnat (sham:type:ref 'nat))
   (define treal (sham:type:ref 'real))
   (define tprob (sham:type:ref 'prob))
   (append
    adefs
    (list
-    (sham:def:global (void) 'gsl-rng tvoid*)
+    (sham:def:global (void) 'gsl-rng t8*)
 
     (sham$define
      (init-rng (prelude-function-info) tvoid)

@@ -105,7 +105,8 @@
       [`(,s : ,type)
        #:when (symbol? s)
        (define s-info (hash-ref info s))
-       (get-constant-value s-info type)]))
+       (get-constant-value s-info type)]
+      [s (hash-ref env s)]))
 
   (define (get-constant-value sinfo t)
     (match t

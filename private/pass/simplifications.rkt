@@ -155,7 +155,8 @@
     (match e
       [(expr-app t (expr-intrf s) rands)
        (or (set-member? (list->set '(nat2prob real2prob)) s)
-           (and (equal? s 'betafunc) (andmap canbereal? rands)))]))
+           (and (equal? s 'betafunc) (andmap canbereal? rands)))]
+      [else #f]))
   (define (get-real e)
     (match e
       [(expr-app 'prob (expr-intrf 'nat2prob) rands)

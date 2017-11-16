@@ -22,15 +22,12 @@
 
    later-simplifications
 
-
-   pull-indexes
-   later-simplifications
-   pull-indexes
+   ;; pull-indexes ;;error here in naive bayes
+   ;; later-simplifications
+   ;; pull-indexes
 
    to-stmt
-
    to-sham-lc
-
    compile-with-sham
    optimize&init-jit))
 
@@ -96,7 +93,7 @@
   (define (dolr)
     (define nlr 10)
     (define lrinfo (list
-                    (list `(arrayinfo . ((size . ,nlr))) 'curry)
+                    (list `(arrayinfo . ((size . ,nlr))))
                     (list `(arrayinfo . ((size . ,nlr))))))
     (define lr-module-env
       (compile-file "../../testcode/hkrkt/LinearRegression.hkr" lrinfo))
@@ -146,9 +143,9 @@
                     (list)))
     (define nb-module-env
       (compile-file "../../testcode/hkrkt/NaiveBayesGibbs.hkr" nbinfo))
+
     (dv nb-module-env))
-
-
-  (printf "pipeline ClinicalTrial\n")(doct))
+  (donb))
+;  (printf "pipeline ClinicalTrial\n")(doct)
 ;  (printf "\n\n\npipeline LinearRegression\n")  (dolr))
 ;  (printf "\n\n\npipeline GmmGibbs\n")  (dogg))

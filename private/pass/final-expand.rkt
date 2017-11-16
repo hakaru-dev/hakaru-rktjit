@@ -46,17 +46,10 @@
       [(expr-val t v) (get-value v t)]
       [(expr-lets types vars vals stmt body)
        (define sham-types (map (compose get&add-type typeof) vars))
-       ;; (when vars
-       ;;   (for ([var vars]
-       ;;         [type types]
-       ;;         [st sham-types])))
-       ;; (printf "var: ~a : ~a, st: ~a\n"
-       ;;     (pe var) (typeof var) (print-sham-type  st))
-
        (sham:expr:let (map expr-var-sym vars)
                       sham-types
                       (map ee vals)
-                      (es stmt)
+                      (sham:stmt:block (list testput (es stmt)))
                       (ee body))]
       [(expr-if t tst thn els)
        (define v (gensym^ 'if))
@@ -75,11 +68,14 @@
       (sham:stmt:while
        (ee (expr-app 'i1 (expr-intrf '<) (list index end)))
        (sham:stmt:block
-        (list (es body)
-              (es (stmt-assign index (expr-app (typeof index) (expr-intrf '+)
-                                               (list index (expr-val (typeof index) 1))))))))
+        (list
+         testput
+         (es body)
+         (es (stmt-assign index (expr-app (typeof index) (expr-intrf '+)
+                                          (list index (expr-val (typeof index) 1))))))))
       (sham:expr:void))))
-
+  (define testput (sham:stmt:expr (sham:expr:app (sham:rator:external 'libc 'putchar (sham:type:ref 'i32))
+                                                 (list (sham:expr:ui-value 0 (sham:type:ref 'i32))))))
   (define (es stmt)
     (match stmt
       [(stmt-if tst thn els) (sham:stmt:if (ee tst) (es thn) (es els))]
@@ -107,25 +103,18 @@
     (match fp
       [(expr-fun fname args ret-type b)
        (define nargs (map (λ (a) (if (expr-val? a) (expr-var (expr-val-type a) '_ '()) a)) args))
-       (dts "expanding-function: ~a\n\targ-types: ~a, ret-type: ~a\n\tsham-types: ~a -> ~a\n"
-            fname (map expr-var-type nargs) ret-type
+       (dts "expanding-function: ~a ~a -> ~a\n"
+            fname; (map expr-var-type nargs) ret-type
             (map print-sham-type (map (compose get&add-type expr-var-type) nargs))
             (print-sham-type (get&add-type ret-type)))
        (define dprf (symbol-append 'debug-print- fname))
-       (define debug-fun
-         (sham:def:function
-          (make-hash)
-          dprf
-          '() '() (sham:type:ref 'void)
-          (sham:stmt:block
-           (list (sham:stmt:expr (get-debug-print-expr (format "entered: function: ~a" fname)))
-                 (sham:stmt:return (sham:expr:void))))))
        (sham:def:function
         (prog-fun-info  (map typeof nargs) ret-type fname)
         fname
         (map expr-var-sym nargs) (map (compose get&add-type expr-var-type) nargs)
         (get&add-type ret-type)
-        (es b))]))
+        (sham:stmt:block (list (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'testput) '()))
+                               (es b))))]))
 
 
   (match st

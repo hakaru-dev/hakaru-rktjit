@@ -57,23 +57,22 @@
      ;; (dprintf #t "reducer-index: type: ~a\n \tresult: ~a, binds: ~a\n"
      ;;          `(array ,tar) (pe result) (map pe binds))
      (define arr-size (assign-binds binds n))
-     (define is-constant-size (and (expr-val? arr-size) (equal? (expr-val-type arr-size) 'nat)))
-     (define narrt (if is-constant-size (append t `((size . ,(expr-val-v arr-size)))) t))
-     (dpc "is constant-size: ~a, val: ~a\n" is-constant-size (pe arr-size))
-     (define arr-init (if is-constant-size
-                          (expr-app narrt (expr-intrf 'empty) (list))
-                          (expr-app narrt (expr-intrf 'empty) (list arr-size))))
-     (define arrn (expr-var narrt (gensym^ 'arri) '()))
+     ;; (define is-constant-size (and (expr-val? arr-size) (equal? (expr-val-type arr-size) 'nat)))
+     ;; (define narrt (if is-constant-size (append t `((size . ,(expr-val-v arr-size)))) t))
+     ;; (dpc "is constant-size: ~a, val: ~a\n" is-constant-size (pe arr-size))
+     (define arr-init (expr-app t (expr-intrf 'empty) (list arr-size)))
+
+     (define arrn (expr-var t (gensym^ 'arri) '()))
      (define fori (expr-var 'nat (gensym^ 'fi) '_))
      (define new-result (expr-app tar (expr-intrf 'index) (list arrn fori)))
      (define-values (vrt vra vla) (get-init (cons fori binds) new-result tar ra))
-     (set-expr-var-type! result narrt)
-     (values (list narrt)
+     ;; (when (expr-var? result) (set-expr-var-type! result narrt))
+     (values (list t)
              (list result)
              (if (or (equal? tar 'real) (equal? tar 'nat))
                  (list arr-init)
                  (list (wrap-expr
-                        narrt arrn arr-init
+                        t arrn arr-init
                         (stmt-for
                          fori (expr-val 'nat 0) arr-size
                          (stmt-assign new-result (car vla)))

@@ -133,28 +133,85 @@
      '(array-ptr) (list aptref) nat
      (sham:stmt:return (sham$app load (get-size-ptr 'array-ptr)))))
 
+  (define (get-index-error)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name get-index-error-fun-format) (list 'a 'b) (list nat nat) (sham:type:ref 'void)
+     (sham:stmt:block
+      (list
+       (sham:stmt:expr
+        (sham:expr:app
+         (sham:rator:racket
+          (get-fun-name rkt-get-index-error-fun-format)
+          (λ (a b) (printf "wrong index while calling get-index: ~a ~a\n" a b))
+          (sham:type:function (list nat nat)
+                              (sham:type:ref 'void)))
+         (list (sham$var a) (sham$var b))))
+       (sham:stmt:return (sham:expr:void))))))
+
   (define (get-index)
     (sham:def:function ;get-index
      (prelude-function-info)
      (get-fun-name get-index-fun-format)
      '(array-ptr index)
      (list aptref nat ) adnptref
-     (sham:stmt:return
-      (sham$app load
-                (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
-                               (list (sham$var 'index)))))))
+     (sham:stmt:if
+      (sham$app icmp-uge index
+                (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format)) (list (sham$var array-ptr))))
+      (sham$block (sham:stmt:expr
+                   (sham:expr:app (sham:rator:symbol (get-fun-name get-index-error-fun-format))
+                                  (list (sham$var 'index)
+                                        (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format))
+                                                       (list (sham$var array-ptr))))))
+                  (sham:stmt:return (sham$app load
+                                              (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
+                                                             (list (sham:expr:ui-value 0 nat))))))
+      (sham$block
+       (sham:stmt:void)
+       (sham:stmt:return
+        (sham$app load
+                  (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
+                                 (list (sham$var 'index)))))))))
+
+  (define (set-index-error)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name set-index-error-fun-format) (list 'a 'b) (list nat nat) (sham:type:ref 'void)
+     (sham:stmt:block
+      (list
+       (sham:stmt:expr
+        (sham:expr:app
+         (sham:rator:racket
+          (get-fun-name rkt-set-index-error-fun-format)
+          (λ (a b) (printf "wrong index while calling set-index: ~a ~a\n" a b))
+          (sham:type:function (list nat nat)
+                              (sham:type:ref 'void)))
+         (list (sham$var a) (sham$var b))))
+       (sham:stmt:return (sham:expr:void))))))
+
+
+
   (define (set-index)
     (sham:def:function ;set-index
      (prelude-function-info)
      (get-fun-name set-index-fun-format)
      '(array-ptr index v)
      (list aptref nat adnptref) (sham:type:ref 'void)
-     (sham$block
-      (sham:stmt:expr
-       (sham$app store! (sham$var 'v)
-                 (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
-                                (list (sham$var 'index)))))
-      (sham:stmt:return (sham:expr:void)))))
+     (sham:stmt:if
+      (sham$app icmp-uge index
+                (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format)) (list (sham$var array-ptr))))
+      (sham$block (sham:stmt:expr
+                   (sham:expr:app (sham:rator:symbol (get-fun-name set-index-error-fun-format))
+                                  (list (sham$var 'index)
+                                        (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format))
+                                                       (list (sham$var array-ptr))))))
+                  (sham:stmt:return (sham:expr:void)))
+      (sham$block
+       (sham:stmt:expr
+        (sham$app store! (sham$var 'v)
+                  (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
+                                 (list (sham$var 'index)))))
+       (sham:stmt:return (sham:expr:void))))))
   (define (empty-array)
     (sham:def:function ;empty-array
      (prelude-function-info)
@@ -174,7 +231,9 @@
     (get-array-size)
     (get-array-data)
     (get-index)
-    (set-index))))
+    (get-index-error)
+    (set-index)
+    (set-index-error))))
 
 (define (const-array-defs tast)
   (define (get-array-data-type at)
@@ -225,8 +284,8 @@
      (prelude-function-info)
      (get-fun-name get-index-fun-format)
      '(arr ind) (list aptref nat) adtref
-      (sham:stmt:return (sham$app load
-                                  (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))))
+     (sham:stmt:return (sham$app load
+                                 (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))))
 
   (define (build-array-literal)
     (sham:def:function
@@ -244,14 +303,17 @@
                               (sham:expr:app (sham:rator:symbol (get-fun-name set-index-fun-format))
                                              (list (sham$var 'arl) (nat-value i) (sham$var (get-vi i)))))))
                (list (sham:stmt:return (sham$var 'arl))))))))
+
+
   (define (set-index)
     (sham:def:function
      (prelude-function-info)
      (get-fun-name set-index-fun-format)
      '(arr ind v) (list aptref nat adtref) (sham:type:ref 'void)
      (sham$block
-       (sham:stmt:expr (sham$app store! (sham$var v) (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))
-       (sham:stmt:return (sham:expr:void)))))
+      (sham:stmt:expr (sham$app store! (sham$var v) (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))
+      (sham:stmt:return (sham:expr:void)))))
+
 
   (append
    (reverse atdefs)
@@ -266,7 +328,6 @@
     (set-index))))
 
 (define (build-array-literal type len)
-  (printf "building general array-literal: ~a\n" type)
   (define tast type)
   (define-values
     (atdefs atdef at atref) (defs-def-t-tref tast))
@@ -327,7 +388,7 @@
   (pretty-print (map print-sham-def defs))
   (define mod
     (sham:module
-     (basic-mod-info) defs))
+     (basic-mod-info)  defs))
 
   (define cmod (compile-module mod))
   ;; (jit-dump-module cmod)
@@ -425,6 +486,8 @@
   (check-eq? (get-size-array-prob tparr) 5)
   (check-= (get-index-array-prob tparr 4) (real->prob 42.23) e)
   (set-index-array-prob tparr 3 23.42)
+  (set-index-array-prob tparr 100 23.42)
+  (get-index-array-prob tparr 100)
   (check-= (get-index-array-prob tparr 3) 23.42 e)
 
   (check-eq? (get-size-array-prob etp) 5)

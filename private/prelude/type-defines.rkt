@@ -21,6 +21,7 @@
 (define type-bool-ref (sham:type:ref 'bool))
 (define type-void-ref (sham:type:ref 'void))
 
+(define t8* (sham:type:pointer (sham:type:ref 'i8)))
 (define (treal? t)
   (equal? t 'real))
 (define (tprob? t)
