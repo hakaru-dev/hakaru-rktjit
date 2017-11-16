@@ -149,6 +149,6 @@
     (dv nb-module-env))
 
 
-;  (printf "pipeline ClinicalTrial\n")(doct))
+  (printf "pipeline ClinicalTrial\n")(doct))
 ;  (printf "\n\n\npipeline LinearRegression\n")  (dolr))
-  (printf "\n\n\npipeline GmmGibbs\n")  (dogg))
+;  (printf "\n\n\npipeline GmmGibbs\n")  (dogg))
