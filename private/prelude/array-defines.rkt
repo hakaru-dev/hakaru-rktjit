@@ -105,8 +105,15 @@
                 (sham$app intcast (nat-value 0) (sham$etype i1)))))
 
         (sham:stmt:return (sham$var 'apt)))))))
-
-
+  (define (free-size-array)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name free-size-array-fun-format)
+     '(ap*) (list aptref) (sham:type:ref 'void)
+     (sham$block
+      (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$app load (get-data-ptr 'ap*)))))
+      (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$var 'ap*))))
+      (sham:stmt:return (sham:expr:void)))))
 
   (define (get-array-data)
     (sham:def:function ;get-array-data
@@ -162,6 +169,7 @@
    (list
     (make-array)
     (new-size-array)
+    (free-size-array)
     (empty-array)
     (get-array-size)
     (get-array-data)
@@ -196,6 +204,14 @@
       (sham$app bitcast
                 (sham$app arr-malloc (sham:expr:type atref) (sham:expr:ui-value size nat))
                 (sham:expr:type aptref)))))
+  (define (free-array)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name free-size-array-fun-format)
+     '(arr) (list aptref) (sham:type:ref 'void)
+     (sham$block
+      (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$var 'arr))))
+      (sham:stmt:return (sham:expr:void)))))
 
   (define (get-array-size)
     (sham:def:function
@@ -237,15 +253,13 @@
        (sham:stmt:expr (sham$app store! (sham$var v) (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))
        (sham:stmt:return (sham:expr:void)))))
 
-
-
-
   (append
    (reverse atdefs)
    (reverse aptdefs)
    (list type-nat-def)
    (list
     (make-array)
+    (free-array)
     (get-array-size)
     (get-index)
     (build-array-literal)
@@ -345,15 +359,18 @@
 
   (define make-f (gf make-array-fun-format))
   (define new-size-f (gf new-size-array-fun-format))
+  (define free-f (gf free-size-array-fun-format))
   (define empty-f (gf empty-array-fun-format))
   (define size-f (gf get-array-size-fun-format))
   (define data-f (gf get-array-data-fun-format))
   (define index-f (gf get-index-fun-format))
   (define index!-f (gf set-index-fun-format))
 
+
   (define make-array-nat (make-f ans))
   (define new-sized-array-nat (new-size-f ans))
   (define empty-array-nat (empty-f ans))
+  (define free-array-nat (free-f ans))
   (define get-data-array-nat (data-f ans))
   (define get-size-array-nat (size-f ans))
   (define get-index-array-nat (index-f ans))
@@ -430,6 +447,8 @@
   (define make-array-10double (get-f 'new-sized$array<10.real>))
   (define set-index!-10double (get-f 'set-index!$array<10.real>))
   (define get-index-10double  (get-f 'get-index$array<10.real>))
+  (define free-array-10double (get-f 'free-sized$array<10.real>))
   (define a (make-array-10double))
   (set-index!-10double a 4 42.0)
-  (check-= (get-index-10double a 4) 42.0 e))
+  (check-= (get-index-10double a 4) 42.0 e)
+  (free-array-10double a))
