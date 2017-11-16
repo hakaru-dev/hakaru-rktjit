@@ -3,8 +3,10 @@
 (module+ test
   (require rackunit))
 
-(require "private/jit.rkt")
-(provide (all-from-out "private/jit.rkt"))
+(require "private/jit.rkt"
+         "utils.rkt")
+(provide (all-from-out "private/jit.rkt"
+                       "utils.rkt"))
 
 (module+ test
   ;; Tests to be run with raco test

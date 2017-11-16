@@ -12,13 +12,17 @@
 
   (list
    clean-curry
-
    parse-sexp
+
+
    initial-simplifications
    flatten-anf
    combine-loops
 
+
    later-simplifications
+
+
    pull-indexes
    later-simplifications
    pull-indexes
@@ -31,7 +35,7 @@
 (define (run-pipeline src arg-info)
   (define init-state
     (state src
-           (make-immutable-hash (list (cons prog-arg-info (list->vector arg-info))))
+           (make-immutable-hash (list (cons prog-arg-info arg-info)))
            passes))
   (run-state init-state))
 
@@ -77,8 +81,9 @@
     (define nct 1000)
     (define ctinfo
       (list (list `(natinfo . ((constant . ,nct))))
-            (list `(pairinfo . ((ainfo . ((arrayinfo . ((size . ,nct)))))
-                                (binfo . ((arrayinfo . ((size . ,nct))))))))))
+            (list `(pairinfo
+                    . ((ainfo . ((arrayinfo . ((size . ,nct)))))
+                       (binfo . ((arrayinfo . ((size . ,nct))))))))))
     (define ectinfo
       (list (list) (list)))
 
@@ -93,23 +98,46 @@
     (define lrinfo (list
                     (list `(arrayinfo . ((size . ,nlr))) 'curry)
                     (list `(arrayinfo . ((size . ,nlr))))))
-    (define lr-module-env (compile-file "../../testcode/hkrkt/LinearRegression.hkr" lrinfo))
+    (define lr-module-env
+      (compile-file "../../testcode/hkrkt/LinearRegression.hkr" lrinfo))
     (define f (jit-get-function 'prog lr-module-env))
    (dv lr-module-env))
 
   (define (dogg)
     (define classes 3)
     (define points 10)
-    (define gmminfo (list
-                     (list `(arrayinfo . ((size . ,classes)
-                                          (typeinfo . ((probinfo . ((valuerange . (1 . 1)))))))))
-                     (list `(arrayinfo . ((size . ,points)
-                                          (typeinfo . ((natinfo . ((valuerange . (0 . ,(- classes 1))))))))))
-                     (list `(arrayinfo . ((size . ,points))) 'curry)
-                     (list `(natinfo . ((valuerange . (0 . ,(- points 1))))))))
-    (define gg-module-env (compile-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
-;    (define f (jit-get-function 'prog gg-module-env))
+    (define gmminfo
+      (list
+       (list `(arrayinfo . ((size . ,classes)
+                            (typeinfo . ((probinfo . ((constant . 0)))))
+                            (constant . #t)))
+             `(fninfo . (remove)))
+       (list `(arrayinfo
+               . ((size . ,points)
+                  (typeinfo
+                   . ((natinfo
+                       . ((valuerange . (0 . ,(- classes 1)))))))))
+             `(fninfo . (movedown curry)))
+       (list `(arrayinfo . ((size . ,points))))
+       (list `(natinfo . ((valuerange . (0 . ,(- points 1))))))))
+    (define gg-module-env
+      (compile-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
+    ;    (define f (jit-get-function 'prog gg-module-env))
     (dv gg-module-env))
+
+  (define (donb)
+
+    (define nbinfo (list
+                    (list)
+                    (list)
+                    (list)
+                    (list)
+                    (list)
+                    (list)))
+    (define nb-module-env
+      (compile-file "../../testcode/hkrkt/NaiveBayesGibbs.hkr" nbinfo))
+    (dv nb-module-env))
+
 
 ;  (printf "pipeline ClinicalTrial\n")(doct))
 ;  (printf "\n\n\npipeline LinearRegression\n")  (dolr))
