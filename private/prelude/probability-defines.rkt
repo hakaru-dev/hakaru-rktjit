@@ -10,6 +10,7 @@
 
 (provide probability-defs
          probability-rator?
+         build-categorical
          get-probability-rator)
 
 (define (probability-rator? sym)
@@ -126,11 +127,14 @@
      'print-prob (list 'a) (list (sham:type:ref 'f64)) (sham:type:ref 'void)
      (sham:stmt:block
       (list
-       (sham:stmt:expr (sham:expr:app (sham:rator:racket 'rktprint
-                                                         (λ (a) (printf "printing: ~a\n" a))
-                                                         (sham:type:function (list (sham:type:ref 'f64))
-                                                                             (sham:type:ref 'void)))
-                                      (list (sham:expr:var 'a))))
+       (sham:stmt:expr
+        (sham:expr:app
+         (sham:rator:racket
+          'rkt-print
+          (λ (a) (printf "printing: ~a\n" a))
+          (sham:type:function (list (sham:type:ref 'f64))
+                              (sham:type:ref 'void)))
+         (list (sham$var a))))
        (sham:stmt:return (sham:expr:void)))))
 
     (sham$define
@@ -150,16 +154,17 @@
        '(arr i)
        (list (sham:type:ref 'real*) type-nat-ref)
        (list (sham$app arr-malloc (sham:expr:type type-real-ref) (sham$app get-size$array<prob> arp))
-             (nat32-value 0))
+             (sham:expr:ui-value 0 type-nat-ref))
        (sham$block
         (sham:stmt:while
-         (sham$app icmp-eq i (sham$app get-size$array<prob> arp))
+         (sham$app icmp-ule i (sham$app get-size$array<prob> arp))
          (sham$block
+          ;; (sham:stmt:expr (sham$app print-prob (sham$app prob2real (sham$app get-index$array<prob> arp i))))
           (sham:stmt:expr (sham$app store! (sham$app prob2real (sham$app get-index$array<prob> arp i))
                                     (sham:expr:gep (sham$var arr) (list (sham$var i)))))
           (sham:stmt:set! (sham$var 'i) (sham:expr:app (sham:rator:symbol 'add-nuw)
                                                        (list (sham$var 'i)
-                                                             (nat32-value 1))))))
+                                                             (sham:expr:ui-value  1 type-nat-ref))))))
         (sham$return (sham$app categorical-real arr (sham$app get-size$array<prob> arp))))
        (nat32-value 0)))))))
 
@@ -175,17 +180,32 @@
        (sham:rator:symbol fname)
        (match targ
          [`(array prob (size . ,s))
+          (define get-index (sham:rator:symbol (string->symbol (format "get-index$array<~a.prob>" s))))
           (sham:def:function
            (prelude-function-info) fname
-           (list 'arr) (list (sham:type:ref (string->symbol (format "array<~a.prob>*" s)))) type-nat-ref
-           (sham:stmt:return
-            (sham$app categorical
-                      (sham$app make$array<prob>
-                                (sham:expr:ui-value s type-nat-ref)
-                                (sham:expr:app (sham:rator:symbol 'bitcast)
-                                               (list (sham$var 'arr)
-                                                     (sham:expr:type (sham:type:pointer
-                                                                      (sham:type:ref 'prob)))))))))]))))
+           (list 'arrs) (list (sham:type:ref (string->symbol (format "array<~a.prob>*" s)))) type-nat-ref
+           (sham:stmt:expr
+            (sham:expr:let
+             '(arr i)
+             (list (sham:type:ref 'real*) type-nat-ref)
+             (list (sham$app arr-malloc (sham:expr:type type-real-ref) (sham:expr:ui-value s type-nat-ref))
+                   (sham:expr:ui-value 0 type-nat-ref))
+             (sham$block
+              (sham:stmt:while
+               (sham$app icmp-ule i (sham:expr:ui-value s type-nat-ref))
+               (sham$block
+                ;; (sham:stmt:expr (sham$app print-prob (sham$app prob2real (sham:expr:app get-index (list (sham$var arrs)
+                ;;                                                                                         (sham$var i))))))
+                (sham:stmt:expr (sham$app store! (sham$app prob2real (sham:expr:app get-index (list (sham$var arrs)
+                                                                                                    (sham$var i))))
+                                          (sham:expr:gep (sham$var arr) (list (sham$var i)))))
+                (sham:stmt:set! (sham$var 'i) (sham:expr:app (sham:rator:symbol 'add-nuw)
+                                                             (list (sham$var 'i)
+                                                                   (sham:expr:ui-value  1 type-nat-ref))))))
+              (sham$return (sham$app categorical-real arr (sham:expr:ui-value s type-nat-ref))))
+             (nat32-value 0))))]))))
+
+
 
 
 
@@ -261,11 +281,12 @@
   (define beta (get-f 'beta))
   (define categorical-2 (get-f 'categorical-2))
   (define categorical-real (get-f 'categorical-real))
-
+  (define categorical-prob (get-f 'categorical))
   (define betaFunc (get-f 'betafunc))
   (define betaFuncreal (get-f 'betafuncreal))
   (define realbetaFunc (get-f 'realbetafunc))
   (define ars '(array real))
+  (define arp '(array prob))
   (define ((gf frmt) tsym)
     (get-f (get-fun-symbol frmt (get-type-string tsym))))
   (define make-f (gf make-array-fun-format))
@@ -284,10 +305,27 @@
   (define get-index-array-real (index-f ars))
   (define set-index-array-real (index!-f ars))
 
+  (define make-array-prob (make-f arp))
+  (define new-sized-array-prob (new-size-f arp))
+  (define empty-array-prob (empty-f arp))
+  (define get-data-array-prob (data-f arp))
+  (define get-size-array-prob (size-f arp))
+  (define get-index-array-prob (index-f arp))
+  (define set-index-array-prob (index!-f arp))
+
   ;  (define t-real (get-t 'real))
   (define ta '(0.0 0.0 4.0))
   (define test-real-array (list->cblock ta t-real))
   (define test-arr (make-array-real (length ta) test-real-array))
+
+  (define tr (list (c-real2prob 0.034)
+                   (c-real2prob 0.039)
+                   (c-real2prob 0.038)
+                   (c-real2prob 0.035)))
+  (define test-prob (make-array-prob (length tr) (list->cblock tr t-prob)))
+
+  (printf "categorical-prob: ~a\n" (categorical-prob test-prob))
+
 
   (betaFunc (c-real2prob 4.0) (c-real2prob 4.0))
   ;; hkp logFromlogFloat $ betaFunc (prob_ 4.0) (prob_ 4.0)

@@ -9,7 +9,7 @@
          "../utils.rkt")
 
 (provide to-sham-lc)
-(define debug-to-sham (make-parameter #f))
+(define debug-to-sham (make-parameter #t))
 (define dts (debug-printf debug-to-sham))
 
 

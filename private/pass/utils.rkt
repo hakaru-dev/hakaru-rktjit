@@ -1,6 +1,7 @@
 #lang racket
 
-(require racket/splicing
+(require sham
+         racket/splicing
          "../utils.rkt"
          "ast.rkt")
 
@@ -122,6 +123,6 @@
   (match st
     [(state prg info os)
      (if (list? prg)
-         (printf "debug-printing multiple: \n~a\n" (map (compose pretty-format pe) prg))
+         (printf "debug-printing multiple: \n~a\n" (map (compose pretty-format print-sham-def) prg))
          (printf "debug-printing: \n~a\n" (pretty-format (pe prg))))
      (run-next prg info st)]))

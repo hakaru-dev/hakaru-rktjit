@@ -28,7 +28,9 @@
    pull-indexes
 
    to-stmt
+
    to-sham-lc
+
    compile-with-sham
    optimize&init-jit))
 
@@ -72,8 +74,6 @@
   (define (dv mod-env)
     (when mod-env
       (jit-dump-module mod-env)
-      (jit-dump-function  mod-env 'categorical$array<3.prob>)
-
       (jit-verify-module mod-env))
     (void))
 
@@ -117,16 +117,26 @@
                   (typeinfo
                    . ((natinfo
                        . ((valuerange . (0 . ,(- classes 1)))))))))
-             `(fninfo . (movedown curry)))
+             `(fninfo . (movedown)))
        (list `(arrayinfo . ((size . ,points))))
+       ;             `(fninfo . (curry)))
+
        (list `(natinfo . ((valuerange . (0 . ,(- points 1))))))))
     (define gg-module-env
       (compile-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
+    (jit-dump-function gg-module-env 'prog)
+    (jit-dump-function gg-module-env 'categorical$array<3.prob>)
+    (jit-dump-function gg-module-env 'categorical)
+    (jit-verify-module gg-module-env))
+
+;; getting stuck here
+;; final-state: 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+;; i: 10, nz: 2
+    ;(dv gg-module-env))
     ;    (define f (jit-get-function 'prog gg-module-env))
-    (dv gg-module-env))
+
 
   (define (donb)
-
     (define nbinfo (list
                     (list)
                     (list)
