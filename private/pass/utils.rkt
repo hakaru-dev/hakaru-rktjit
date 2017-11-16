@@ -26,11 +26,18 @@
     (hash-set! gensym-hash sym n)
     (string->symbol (string-append (symbol->string sym) sep (number->string n)))))
 
-(define (assocv sym lst)
+(define (assocv sym lst (default #f))
   (if lst
       (let ([av (assoc sym lst)])
-        (if av (cdr av) #f))
-      #f))
+        (if av (cdr av) default))
+      default))
+(define (assocvr sym lst)
+  (for/fold [(nlst '())]
+            [(p (reverse lst))]
+    (if (equal? (car p) sym)
+        nlst
+        (cons p nlst))))
+
 (define (add-array-size-info t s)
   (match t
     [`(array ,tar) `(array ,tar (size . ,s))]
@@ -72,11 +79,44 @@
   (match t
     [`(array ,_ ... (size . ,size)) #t]
     [else #f]))
+
 (define (get-size-of-array t)
   (match t
     [`(array ,_ ... (size . ,size)) size]
     [else (error "getting size of an array type whose size we don't know")]))
 
+
+(define (get-type-with-info var-type var-info)
+  (define (number-type)
+    (define infosym (symbol-append var-type 'info))
+    (define type-info (assocv infosym var-info))
+    (if type-info
+        (let ([constant (assocv 'constant type-info)]
+              [valuerange (assocv 'valuerange type-info)])
+          (cond
+            [constant `(,var-type (constant . ,constant))]
+            [valuerange `(,var-type (valuerange . ,valuerange))]))
+        var-type))
+  (match var-type
+    ['nat  (number-type)]
+    ['real (number-type)]
+    ['prob (number-type)]
+    ['bool (number-type)]
+    [`(pair ,at ,bt)
+     (define pair-info (assocv 'pairinfo var-info))
+     (if pair-info
+         (let ([ainfo (assocv 'ainfo pair-info)]
+               [binfo (assocv 'binfo pair-info)])
+           `(pair ,(get-type-with-info at ainfo)
+                  ,(get-type-with-info bt binfo)))
+         `(pair ,at ,bt))]
+    [`(array ,type)
+     (define array-info (assocv 'arrayinfo var-info))
+     (if array-info
+         (let ([size (assocv 'size array-info)]
+               [typeinfo (assocv 'typeinfo array-info)])
+           `(array ,(get-type-with-info type typeinfo) (size . ,size)))
+         `(array ,type))]))
 
 (define (debug-print st)
   (match st
