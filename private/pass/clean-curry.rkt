@@ -11,59 +11,64 @@
 (define (curry-at-stops src pos args args-info)
   (match src
     [`((fn ,var ,ret-type ,body) : ,fn-type)
+     (dp "\n\ndoing fn for var: ~a\n" var)
      (define pad (build-string (add1 pos) (const #\_)))
-     (define arg-info (vector-ref args-info pos))
+
+     (define arg-info (car args-info))
+     (dp "arg-info : ~a\n" arg-info)
+
      (define var-type (get-type-with-info (car fn-type) arg-info))
-     (dp "debug-curry: ~a ~a : ~a\n"  pad var var-type)
-     (define evar (expr-var var-type
-                            var (build-var-info arg-info)))
-     (if (member 'curry arg-info)
-         (begin (dp "debug-curry: ~a **curried-here**\n" pad)
-                (expr-fun (symbol-append 'prog (add1 pos))
-                          (append args (list evar))
-                          ret-type
-                          (curry-at-stops body (+ pos 1) '() args-info)))
-         (curry-at-stops body (add1 pos) (append args (list evar)) args-info))]
+     (define evar (expr-var var-type var (build-var-info arg-info)))
+
+     (define fninfo (assocv 'fninfo arg-info '()))
+     (define remove? (member 'remove fninfo))
+     (define movedown? (member 'movedown fninfo))
+     (define curry? (member 'curry fninfo))
+
+     (cond
+       [remove?
+        (define-values (nb neinfo)
+          (curry-at-stops body (add1 pos) args (cdr args-info)))
+        (define ninfo (hash-set neinfo var arg-info))
+        (values nb (hash-set ninfo 'removed-vars (cons var (hash-ref ninfo 'removed-vars '()))))]
+
+       [movedown?
+        (match-define `(,curr-type -> ,curr-rst) fn-type)
+        (dp "movedown?: t: ~a\n" fn-type)
+        (match body
+          [`((fn ,nvar ,nret-type ,nbody) : ,nfn-type)
+           (match-define `(,next-type -> ,next-rest) nfn-type)
+           (define new-curr-info (append (assocvr 'fninfo arg-info)
+                                         `((fninfo . ,(remove 'movedown fninfo)))))
+           (define new-info `(,(second args-info) ,new-curr-info ,@(cddr args-info)))
+           (define b `((fn ,var ,ret-type ,nbody) : (,curr-type -> ,next-rest)))
+           (curry-at-stops `((fn ,nvar ,nret-type ,b) : (,next-type -> (,curr-type -> ,next-rest)))
+                           pos args new-info)])]
+
+       [curry?
+        (dp "debug-curry: ~a **curried-here**\n" pad)
+        (define-values (nb ninfo)
+          (curry-at-stops body (+ pos 1) '() (cdr args-info)))
+        (values
+         (expr-fun (symbol-append 'prog (add1 pos))
+                   (append args (list evar)) ret-type nb)
+         (hash-set ninfo var arg-info))]
+
+       [else
+        (define-values (nb ninfo)
+          (curry-at-stops body (add1 pos) (append args (list evar)) (cdr args-info)))
+        (values nb (hash-set ninfo var arg-info))])]
     [`(,body : ,t)
-     (expr-fun (symbol-append 'prog pos) args t src)]))
+     (values (expr-fun (symbol-append 'prog pos) args t src) (make-immutable-hash))]))
+
 
 (define (clean-curry st)
   (match st
     [(state src info passes)
      (define pai (hash-ref info prog-arg-info))
-     (define new-src (curry-at-stops src 0 '() pai))
+     (dp "orig-arg-info: ~a\n" pai)
+     (define-values (new-src new-arg-info)
+       (curry-at-stops src 0 '() pai))
+     (dp "\n\nnew-arg-info: \n~a" (pretty-format new-arg-info))
      (dp "debug-curry: out \n~a\n" (pe new-src))
-     (run-next new-src info st)]))
-
-
-
-(define (get-type-with-info var-type var-info)
-  (define (number-type)
-    (define infosym (symbol-append var-type 'info))
-    (define type-info (assocv infosym var-info))
-    (if type-info
-        (let ([constant (assocv 'constant type-info)]
-              [valuerange (assocv 'valuerange type-info)])
-          (cond
-            [constant `(,var-type (constant . ,constant))]
-            [valuerange `(,var-type (valuerange . ,valuerange))]))
-        var-type))
-  (match var-type
-    ['nat  (number-type)]
-    ['real (number-type)]
-    ['prob (number-type)]
-    ['bool (number-type)]
-    [`(pair ,at ,bt)
-     (define pair-info (assocv 'pairinfo var-info))
-     (if pair-info
-         (let ([ainfo (assocv 'ainfo pair-info)]
-               [binfo (assocv 'binfo pair-info)])
-           `(pair ,(get-type-with-info at ainfo) ,(get-type-with-info bt binfo)))
-         `(pair ,at ,bt))]
-    [`(array ,type)
-     (define array-info (assocv 'arrayinfo var-info))
-     (if array-info
-         (let ([size (assocv 'size array-info)]
-               [typeinfo (assocv 'typeinfo array-info)])
-           `(array ,(get-type-with-info type typeinfo) (size . ,size)))
-         `(array ,type))]))
+     (run-next new-src new-arg-info st)]))
