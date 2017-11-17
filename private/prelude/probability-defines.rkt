@@ -152,7 +152,8 @@
        (sham:stmt:void)
        (sham:expr:let
         '(result) (list tnat)
-        (list (sham:expr:app (gsl-rator 'gsl_ran_discrete tnat) (list (sham:expr:var 'gsl-rng) (sham$var 'table))))
+        (list (sham:expr:app (gsl-rator 'gsl_ran_discrete tnat)
+                             (list (sham:expr:var 'gsl-rng) (sham$var 'table))))
         (sham$block
          (sham:stmt:expr (sham:expr:app (gsl-rator 'gsl_ran_discrete_free tvoid) (list (sham$var 'table))))
          (sham:stmt:return (sham$var 'result)))
@@ -164,28 +165,47 @@
      (categorical  (arp (sham:type:ref 'array<prob>*)) tnat)
      (sham:stmt:expr
       (sham:expr:let
-       '(arr i)
-       (list (sham:type:ref 'real*) type-nat-ref)
+       '(arr i mx)
+       (list (sham:type:ref 'real*) type-nat-ref type-prob-ref)
        (list (sham$app arr-malloc (sham:expr:type type-real-ref) (sham$app get-size$array<prob> arp))
-             (sham:expr:ui-value 0 type-nat-ref))
-       (sham:stmt:while
-        (sham$app icmp-ult i (sham$app get-size$array<prob> arp))
-        (sham$block
-         ;; (sham:stmt:expr (sham$app print-prob (sham$app prob2real (sham$app get-index$array<prob> arp i))))
-         (sham:stmt:expr (sham$app store! (sham$app prob2real (sham$app get-index$array<prob> arp i))
-                                   (sham:expr:gep (sham$var arr) (list (sham$var i)))))
-         (sham:stmt:set! (sham$var 'i) (sham:expr:app (sham:rator:symbol 'add-nuw)
-                                                      (list (sham$var 'i)
-                                                            (sham:expr:ui-value  1 type-nat-ref))))))
+             (sham:expr:ui-value 0 type-nat-ref) (sham$app get-index$array<prob> arp
+                                                           (sham:expr:ui-value 0 type-nat-ref)))
+
+       (sham$block
+        (sham:stmt:while
+         (sham$app icmp-ult i (sham$app get-size$array<prob> arp))
+         (sham$block
+          (sham:expr:let
+           '(c) (list sham:expr:type type-prob-ref)
+           (list (sham$app get-index$array<prob> arp (sham$var 'i)))
+           (sham:stmt:if (sham$app fcmp-uge (sham$var 'mx) (sham$var 'c))
+                         (sham:stmt:set! (sham$var 'mx) (sham$var 'c))
+                         (sham:stmt:void)))
+          (sham:stmt:set! (sham$var 'i)
+                          (sham:expr:app (sham:rator:symbol 'add-nuw)
+                                         (list (sham$var 'i)
+                                               (sham:expr:ui-value 1 type-nat-ref))))
+          (sham:expr:void)))
+
+        (sham:stmt:set! (sham$var 'i) (sham:expr:ui-value 0 type-nat-ref))
+
+        (sham:stmt:while
+         (sham$app icmp-ult i (sham$app get-size$array<prob> arp))
+         (sham$block
+          (sham:stmt:expr (sham$app store! (sham$app prob2real
+                                                     (sham$app fsub
+                                                               (sham$app get-index$array<prob> arp i)
+                                                               (sham$var 'mx)))
+                                    (sham:expr:gep (sham$var arr) (list (sham$var i)))))
+          (sham:stmt:set! (sham$var 'i) (sham:expr:app (sham:rator:symbol 'add-nuw)
+                                                       (list (sham$var 'i)
+                                                             (sham:expr:ui-value  1 type-nat-ref)))))))
        (sham:expr:let
         '(result) (list tnat) (list (sham$app categorical-real arr (sham$app get-size$array<prob> arp)))
         (sham$block
          (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$var arr))))
          (sham:stmt:return (sham$var result)))
         (sham:expr:void))))))))
-
-
-
 
 (define (gsl-rator sym type)
   (sham:rator:external 'libgsl sym type))
@@ -335,13 +355,14 @@
   (define test-real-array (list->cblock ta t-real))
   (define test-arr (make-array-real (length ta) test-real-array))
 
-  (define tr (list (c-real2prob 0.034)
-                   (c-real2prob 0.039)
-                   (c-real2prob 0.038)
-                   (c-real2prob 0.035)))
-  (define test-prob (make-array-prob (length tr) (list->cblock tr t-prob)))
 
-  (printf "categorical-prob: ~a\n" (categorical-prob test-prob))
+  (for ((i (in-range 10)))
+    (define tr (list (c-real2prob 0.9)
+                     (c-real2prob 0.1)))
+    (define test-prob (make-array-prob (length tr) (list->cblock tr t-prob)))
+    (printf "~a\n"
+            (apply + (for/list ([i (in-range 500)])
+                       (categorical-prob test-prob)))))
 
 
   (betaFunc (c-real2prob 4.0) (c-real2prob 4.0))

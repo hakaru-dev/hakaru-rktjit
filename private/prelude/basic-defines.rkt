@@ -282,8 +282,7 @@
   (mod-info-add-ffi-libs
    mod-info
    `(libgslcblas . ("libgslcblas" #:global? #t))
-   `(libgsl . ("libgsl"))
-   `(libc . ("/usr/lib/libc" "6")))
+   `(libgsl . ("libgsl")))
   (mod-info-add-passes
    mod-info
    'AlwaysInliner)
