@@ -2,6 +2,7 @@
 
 (require sham
          (submod sham/ast utils))
+(require ffi/unsafe)
 (require "template-format.rkt"
          "type-defines.rkt"
          "basic-defines.rkt"
@@ -136,17 +137,19 @@
   (define (get-index-error)
     (sham:def:function
      (prelude-function-info)
-     (get-fun-name get-index-error-fun-format) (list 'a 'b) (list nat nat) (sham:type:ref 'void)
+     (get-fun-name get-index-error-fun-format) (list 'a 'b 'c) (list nat nat aptref)
+     (sham:type:ref 'void)
      (sham:stmt:block
       (list
        (sham:stmt:expr
         (sham:expr:app
          (sham:rator:racket
           (get-fun-name rkt-get-index-error-fun-format)
-          (λ (a b) (printf "wrong index while calling get-index: ~a ~a\n" a b))
-          (sham:type:function (list nat nat)
+          (λ (a b c) (printf "wrong index while calling get-index~a: ~a ~a, ~a\n"
+                             tast a b (map exp (cblock->list c _double 20))))
+          (sham:type:function (list nat nat (sham:type:pointer (sham:type:ref 'i8)))
                               (sham:type:ref 'void)))
-         (list (sham$var a) (sham$var b))))
+         (list (sham$var a) (sham$var b) (sham$var c))))
        (sham:stmt:return (sham:expr:void))))))
 
   (define (get-index)
@@ -157,12 +160,16 @@
      (list aptref nat ) adnptref
      (sham:stmt:if
       (sham$app icmp-uge index
-                (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format)) (list (sham$var array-ptr))))
+                (sham:expr:app
+                 (sham:rator:symbol (get-fun-name get-array-size-fun-format))
+                 (list (sham$var 'array-ptr))))
       (sham$block (sham:stmt:expr
                    (sham:expr:app (sham:rator:symbol (get-fun-name get-index-error-fun-format))
                                   (list (sham$var 'index)
-                                        (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format))
-                                                       (list (sham$var array-ptr))))))
+                                        (sham:expr:app
+                                         (sham:rator:symbol (get-fun-name get-array-size-fun-format))
+                                         (list (sham$var 'array-ptr)))
+                                        (sham$app load (get-data-ptr 'array-ptr)))))
                   (sham:stmt:return (sham$app load
                                               (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
                                                              (list (sham:expr:ui-value 0 nat))))))
@@ -199,12 +206,13 @@
      (list aptref nat adnptref) (sham:type:ref 'void)
      (sham:stmt:if
       (sham$app icmp-uge index
-                (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format)) (list (sham$var array-ptr))))
+                (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format))
+                               (list (sham$var 'array-ptr))))
       (sham$block (sham:stmt:expr
                    (sham:expr:app (sham:rator:symbol (get-fun-name set-index-error-fun-format))
                                   (list (sham$var 'index)
                                         (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format))
-                                                       (list (sham$var array-ptr))))))
+                                                       (list (sham$var 'array-ptr))))))
                   (sham:stmt:return (sham:expr:void)))
       (sham$block
        (sham:stmt:expr
@@ -284,25 +292,12 @@
      (prelude-function-info)
      (get-fun-name get-index-fun-format)
      '(arr ind) (list aptref nat) adtref
-     (sham:stmt:return (sham$app load
-                                 (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))))
+     (sham:stmt:return
+      (sham$app load
+                (sham:expr:gep (sham$var 'arr)
+                               (list (nat32-value 0) (sham$var ind)))))))
 
-  (define (build-array-literal)
-    (sham:def:function
-     (prelude-function-info)
-     (get-fun-name size-array-literal-fun-format)
-     (build-list size get-vi)
-     (build-list size (const adtref)) aptref
-     (sham:stmt:let
-      '(arl) (list aptref)
-      (list (sham:expr:app (sham:rator:symbol (get-fun-name new-size-array-fun-format)) '()))
-      (sham:stmt:block
-       (append (build-list size
-                           (λ (i)
-                             (sham:stmt:expr
-                              (sham:expr:app (sham:rator:symbol (get-fun-name set-index-fun-format))
-                                             (list (sham$var 'arl) (nat-value i) (sham$var (get-vi i)))))))
-               (list (sham:stmt:return (sham$var 'arl))))))))
+  
 
 
   (define (set-index)
@@ -313,8 +308,6 @@
      (sham$block
       (sham:stmt:expr (sham$app store! (sham$var v) (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))
       (sham:stmt:return (sham:expr:void)))))
-
-
   (append
    (reverse atdefs)
    (reverse aptdefs)
@@ -324,9 +317,26 @@
     (free-array)
     (get-array-size)
     (get-index)
-    (build-array-literal)
     (set-index))))
 
+;; (define (build-array-literal)
+;;     (sham:def:function
+;;      (prelude-function-info)
+;;      (get-fun-name size-array-literal-fun-format)
+;;      (build-list size get-vi)
+;;      (build-list size (const adtref)) aptref
+;;      (sham:stmt:let
+;;       '(arl) (list aptref)
+;;       (list (sham:expr:app (sham:rator:symbol (get-fun-name new-size-array-fun-format)) '()))
+;;       (sham:stmt:block
+;;        (append (build-list size
+;;                            (λ (i)
+;;                              (sham:stmt:expr
+;;                               (sham:expr:app (sham:rator:symbol (get-fun-name set-index-fun-format))
+;;                                              (list (sham$var 'arl) (nat-value i) (sham$var (get-vi i)))))))
+;;                (list (sham:stmt:return (sham$var 'arl))))))))
+
+;;only build array-literals when called an nowhere else
 (define (build-array-literal type len)
   (define tast type)
   (define-values

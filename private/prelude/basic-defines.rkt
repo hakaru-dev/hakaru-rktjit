@@ -30,88 +30,91 @@
    (sham$def:type real* (sham:type:pointer type-real-ref))
    (sham$def:type prob* (sham:type:pointer type-prob-ref))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (nat2prob (v nat) prob)
     (sham$return
      (sham$app real2prob
                (sham$app ui->fp
                          v (sham$etype real)))))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (nat2real (v nat) real)
     (sham$return
      (sham$app ui->fp v (sham$etype real))))
 
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (nat2int (v nat) int)
     ;;NOTE: I think going from signed to unsigned is easy because of 2's complement
     ;; and we are using 64 bit so if the nat is bigger than 2^32 then we have to worry
     ;; but for hakaru I think we don't need to worry as nat's and int's don't go that big
     (sham$return (sham$var v)))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     ;; as in logfloatprelude of haskell this is implemented as id and is unsafe
     ;; the same is done here assuming the int is never going to be negative.
     (int2nat (v int) nat)
     (sham$return (sham$var v)))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (int2real (v int) real)
     (sham$return
      (sham$app si->fp v (sham$etype real))))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (testput int)
     (sham$return (sham:expr:app (sham:rator:external 'libc 'putchar (sham:type:ref 'i32))
                                 (list (sham:expr:ui-value 42 (sham:type:ref 'i32))))))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (prob2real (v prob) real)
     (sham$return (sham$app (llvm.exp.f64 prob) v)))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (real2prob (v real) prob)
     (sham$return (sham$app (llvm.log.f64 prob) v)))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (recip-nat (v nat) real)
     (sham$return (sham$app fdiv (real-value 1.0)
                            (sham$app ui->fp v
                                      (sham$etype real)))))
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (recip-real (v real) real)
     (sham$return (sham$app fdiv (real-value 1.0)  v)))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (recip-prob (v real) real)
     (sham$return (sham$app fmul (real-value -1.0)  v)))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (root-prob-nat (v prob) (v2 nat) prob)
     (sham$return (sham$app fmul v (sham$app recip-nat v2))))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (exp-real2prob (v real) prob)
     (sham$return (sham$var v)))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (fdiv-nat (v1 nat) (v2 nat) real)
     (sham$return (sham$app fdiv
                            (sham$app ui->fp v1 (sham$etype real))
                            (sham$app ui->fp v2 (sham$etype real)))))
 
-   (sham$define
+   (sham$define #:info  (prelude-function-info)
     (natpow (v real) (p nat) real)
-    (sham$return (sham$app (llvm.powi.f64 real) v (sham$app intcast p (sham$etype i32)))))))
+    (sham$return (sham$app (llvm.powi.f64 real) v (sham$app intcast p (sham$etype i32)))))
+   (sham$define #:info  (prelude-function-info)
+    (natpow-prob (v prob) (p nat) prob)
+    (sham$return (sham$app fmul v (sham$app nat2real p))))))
 
 
-(define simple-rators '(natpow nat2prob nat2real prob2real real2prob int2real nat2int int2nat))
+(define simple-rators '(nat2prob nat2real prob2real real2prob int2real nat2int int2nat))
 (define simple-rator? (curryr member simple-rators))
 
 (define basic-rators
   (append simple-rators
-          '(+ * < > / == - exp and not recip root reject)))
+          '(+ * < > / == - exp and not recip root reject natpow)))
 
 (define basic-rator? (curryr member basic-rators))
 
@@ -237,6 +240,9 @@
           (values (sham:rator:symbol 'not) (void))]
 
     ['natpow
+     #:when (and (tprob? tresult) (tprob? (first trands)) (tnat? (second trands)))
+     (values (sham:rator:symbol 'natpow-prob) (void))]
+    ['natpow
      #:when (and (treal? tresult) (treal? (first trands)) (tnat? (second trands)))
      (values (sham:rator:intrinsic 'llvm.powi.f64 (sham:type:ref 'real)) (void))]
 
@@ -278,12 +284,14 @@
    `(libgslcblas . ("libgslcblas" #:global? #t))
    `(libgsl . ("libgsl"))
    `(libc . ("/usr/lib/libc" "6")))
+  (mod-info-add-passes
+   mod-info
+   'AlwaysInliner)
   mod-info)
 
 (define (prelude-function-info)
   (define fn-attrs (fninfo-add-attrs (fninfo-empty) 'alwaysinline))
-  fn-attrs
-  (fninfo-empty))
+  fn-attrs)
 
 (define (prog-fun-info arg-types ret-type fname)
   (define fn-attrs (fninfo-add-attrs (fninfo-empty) 'norecurse 'readonly 'argmemonly 'speculatable 'nounwind))

@@ -5,7 +5,7 @@
 
 (provide combine-loops)
 
-(define debug-combine-loops (make-parameter #f))
+(define debug-combine-loops (make-parameter #t))
 (define dpc (debug-printf debug-combine-loops))
 
 (define (expr-sym-append var sym t)

@@ -18,6 +18,7 @@
      (dp "arg-info : ~a\n" arg-info)
 
      (define var-type (get-type-with-info (car fn-type) arg-info))
+     (dp "var-type: ~a\n" var-type)
      (define evar (expr-var var-type var (build-var-info arg-info)))
 
      (define fninfo (assocv 'fninfo arg-info '()))

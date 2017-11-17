@@ -379,6 +379,14 @@
      `(,(pe rator) ,@(map pe rands))]
     ;; [(expr-let type var val body)
     ;;  `(elet (,(pe var) ,(pe val)) ,(pe body))]
+    [(expr-lets '() '() '() s (expr-val t 0))
+     (ps s)]
+    [(expr-lets '() '() '() (stmt-void) e)
+     (pe e)]
+    [(expr-lets types vars vals stmt (expr-val t 0))
+     `(lets (,@(for/list ( [var vars] [val vals])
+                  `(,(pe var) ,(pe val))))
+             ,(ps stmt))]
     [(expr-lets types vars vals stmt body)
      `(elets (,@(for/list ( [var vars] [val vals])
                   `(,(pe var) ,(pe val))))
@@ -416,9 +424,11 @@
     ;; [(stmt-elets vars vals stmt) `(elet-stmt (,@(for/list ([var vars] [val vals]) `(,(pe var) ,(pe val)))) ,(ps stmt))]
     [(stmt-if tst thn els) `(if-stmt ,(pe tst) ,(ps thn) ,(ps els))]
     [(stmt-for i start end body) `(for-stmt (,(pe i) ,(pe start) ,(pe end)) ,(ps body))]
-    [(stmt-block stmts) `(block-stmt ,@(map ps stmts))]
+    [(stmt-block stmts) `($ ,@(map ps stmts))]
     [(stmt-assign var val) `(set! ,(pe var) ,(pe val))]
     [(stmt-return val) `(return ,(pe val))]
+    [(stmt-expr (stmt-void) e)
+     (pe e)]
     [(stmt-expr s e) `(se ,(ps s) ,(pe e))]
     [(stmt-void) '<svoid>]
     [else `(unknown-stmt ,stmt)]))

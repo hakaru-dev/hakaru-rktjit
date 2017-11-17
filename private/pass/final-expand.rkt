@@ -49,7 +49,7 @@
        (sham:expr:let (map expr-var-sym vars)
                       sham-types
                       (map ee vals)
-                      (sham:stmt:block (list testput (es stmt)))
+                      (es stmt)
                       (ee body))]
       [(expr-if t tst thn els)
        (define v (gensym^ 'if))
@@ -69,13 +69,20 @@
        (ee (expr-app 'i1 (expr-intrf '<) (list index end)))
        (sham:stmt:block
         (list
-         testput
+         ;; (sham:stmt:expr
+         ;;           (sham:expr:app (sham:rator:racket
+         ;;                           (gensym^ 'for)
+         ;;                           (λ (i) (printf "for-index var: ~a, i ~a\n" (expr-var-sym index) i))
+         ;;                           (sham:type:function (list (sham:type:ref 'nat))
+         ;;                                               (sham:type:ref 'void)))
+         ;;                          (list (sham:expr:var (expr-var-sym index)))))
          (es body)
          (es (stmt-assign index (expr-app (typeof index) (expr-intrf '+)
                                           (list index (expr-val (typeof index) 1))))))))
       (sham:expr:void))))
-  (define testput (sham:stmt:expr (sham:expr:app (sham:rator:external 'libc 'putchar (sham:type:ref 'i32))
-                                                 (list (sham:expr:ui-value 0 (sham:type:ref 'i32))))))
+  (define testput (sham:stmt:expr
+                   (sham:expr:app (sham:rator:external 'libc 'putchar (sham:type:ref 'i32))
+                                  (list (sham:expr:ui-value 0 (sham:type:ref 'i32))))))
   (define (es stmt)
     (match stmt
       [(stmt-if tst thn els) (sham:stmt:if (ee tst) (es thn) (es els))]
@@ -113,8 +120,7 @@
         fname
         (map expr-var-sym nargs) (map (compose get&add-type expr-var-type) nargs)
         (get&add-type ret-type)
-        (sham:stmt:block (list (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'testput) '()))
-                               (es b))))]))
+        (es b))]))
 
 
   (match st

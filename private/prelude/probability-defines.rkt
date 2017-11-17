@@ -40,8 +40,8 @@
    (list
     (sham:def:global (void) 'gsl-rng t8*)
 
-    (sham$define
-     (init-rng (prelude-function-info) tvoid)
+    (sham$define #:info (prelude-function-info)
+     (init-rng tvoid)
      (sham:stmt:block
       (list
        (sham:stmt:set!
@@ -50,15 +50,15 @@
                        (list (sham:expr:external 'libgsl 'gsl_rng_taus tvoid*))))
        (sham:stmt:return (sham:expr:void)))))
 
-    (sham$define
-     (uniform (prelude-function-info) (v1 treal) (v2 treal) treal)
+    (sham$define #:info (prelude-function-info)
+     (uniform  (v1 treal) (v2 treal) treal)
      (sham:stmt:return
       (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_flat treal)
                      (list (sham:expr:var 'gsl-rng)
                            (sham$var 'v1) (sham$var 'v2)))))
 
-    (sham$define
-     (normal (prelude-function-info) (mean treal) (sigma tprob) treal)
+    (sham$define #:info (prelude-function-info)
+     (normal  (mean treal) (sigma tprob) treal)
      (sham:stmt:return
       (sham:expr:app (sham:rator:symbol 'fadd)
                      (list
@@ -69,8 +69,8 @@
                              (sham:expr:app (sham:rator:symbol 'prob2real)
                                             (list (sham$var 'sigma)))))))))
 
-    (sham$define
-     (beta (prelude-function-info) (a tprob) (b tprob) tprob)
+    (sham$define #:info (prelude-function-info)
+     (beta  (a tprob) (b tprob) tprob)
      (sham:stmt:return
       (sham:expr:app (sham:rator:symbol 'betafuncreal)
                      (list (sham:expr:app (sham:rator:symbol 'prob2real)
@@ -79,25 +79,25 @@
                                           (list (sham$var 'b)))))))
 
 
-    (sham$define
-     (realbetafunc (prelude-function-info) (a treal) (b treal) treal)
+    (sham$define #:info (prelude-function-info)
+     (realbetafunc  (a treal) (b treal) treal)
      (sham:stmt:return
       (sham:expr:app (sham:rator:symbol 'prob2real)
                      (list (sham:expr:app (sham:rator:symbol 'betafuncreal) (list (sham$var a) (sham$var  b)))))))
 
-    (sham$define
-     (betafuncreal (prelude-function-info) (a treal) (b treal) tprob)
+    (sham$define #:info (prelude-function-info)
+     (betafuncreal  (a treal) (b treal) tprob)
      (sham:stmt:return (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_lnbeta treal)
                                       (list (sham$var a) (sham$var  b)))))
 
-    (sham$define
-     (betafunc (prelude-function-info) (a tprob) (b tprob) tprob)
+    (sham$define #:info (prelude-function-info)
+     (betafunc  (a tprob) (b tprob) tprob)
      (sham:stmt:return
       (sham:expr:app (sham$rator betafuncreal)
                      (list (sham$app prob2real a) (sham$app prob2real b)))))
 
-    (sham$define
-     (gamma (prelude-function-info) (a tprob) (b tprob) tprob)
+    (sham$define #:info (prelude-function-info)
+     (gamma  (a tprob) (b tprob) tprob)
      (sham$block
       (sham:stmt:void)
       ;; (sham:stmt:expr (sham$app print-prob a))
@@ -112,8 +112,8 @@
                                             (sham:expr:app (sham:rator:symbol 'prob2real)
                                                            (list (sham$var 'b))))))))))
 
-    (sham$define
-     (gammaFunc (prelude-function-info) (a tprob) tprob)
+    (sham$define #:info (prelude-function-info)
+     (gammaFunc  (a tprob) tprob)
      (sham:stmt:return
       (sham:expr:app (sham:rator:symbol 'real2prob)
                      (list
@@ -138,8 +138,9 @@
        (sham:stmt:return (sham:expr:void)))))
 
     (sham$define
+      #:info (prelude-function-info)
      (categorical-real
-      (prelude-function-info)
+
       (arr (sham:type:ref 'real*)) (size (sham:type:ref 'nat)) tnat)
      (sham:stmt:expr
       (sham:expr:let
@@ -158,8 +159,9 @@
         (sham:expr:void)))))
 
 
-    (sham$define ;;change this to only malloc real* array and send to categorical real
-     (categorical (prelude-function-info) (arp (sham:type:ref 'array<prob>*)) tnat)
+    (sham$define
+     #:info (prelude-function-info)
+     (categorical  (arp (sham:type:ref 'array<prob>*)) tnat)
      (sham:stmt:expr
       (sham:expr:let
        '(arr i)
@@ -167,7 +169,7 @@
        (list (sham$app arr-malloc (sham:expr:type type-real-ref) (sham$app get-size$array<prob> arp))
              (sham:expr:ui-value 0 type-nat-ref))
        (sham:stmt:while
-        (sham$app icmp-ule i (sham$app get-size$array<prob> arp))
+        (sham$app icmp-ult i (sham$app get-size$array<prob> arp))
         (sham$block
          ;; (sham:stmt:expr (sham$app print-prob (sham$app prob2real (sham$app get-index$array<prob> arp i))))
          (sham:stmt:expr (sham$app store! (sham$app prob2real (sham$app get-index$array<prob> arp i))

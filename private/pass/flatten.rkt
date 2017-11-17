@@ -170,6 +170,8 @@
       ;; the args by using a dummy var '$
       ;; The reason being, later alpha equivalence removes a bunch of variables,
       ;; and that should replace then in fun args after $
+      [(expr-fun name args ret-type body)
+       (ufb (expr-fun name args ret-type (combine-ufb (uf body))) '())]
       [(expr-fun name args ret-type (expr-if t tst thn els))
        ;; ignoring immediate if
        (dpf "flatten: function with immediate if\n")

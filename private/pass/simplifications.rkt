@@ -6,10 +6,10 @@
 (provide initial-simplifications
          later-simplifications)
 
-(define debug-init-simplifications (make-parameter #f))
+(define debug-init-simplifications (make-parameter #t))
 (define dpi (debug-printf debug-init-simplifications))
 
-(define debug-later-simplifications (make-parameter #f))
+(define debug-later-simplifications (make-parameter #t))
 (define dpl (debug-printf debug-later-simplifications))
 
 
@@ -302,7 +302,8 @@
       [(stmt-return v)
        (stmt-return v)]
       [v #:when (hash-has-key? env v)
-         (dpl "\treplaced: ~a:~a with ~a:~a\n" (print-expr v) (typeof v) (print-expr (hash-ref env v)) (typeof (hash-ref env v)))
+         (dpl "\treplaced: ~a:~a with ~a:~a\n"
+              (print-expr v) (typeof v) (print-expr (hash-ref env v)) (typeof (hash-ref env v)))
          (hash-ref env v)]
       [v #:when (or (expr-var? v) (expr-val? v)) v]
 

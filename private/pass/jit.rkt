@@ -26,6 +26,6 @@
 (define (optimize&init-jit st)
   (match st
     [(state mod-env info os)
-     (optimize-module mod-env)
-     (initialize-jit! mod-env #:opt-level 3)
+     ;; (optimize-module mod-env)
+     ;; (initialize-jit! mod-env #:opt-level 3)
      mod-env]))
