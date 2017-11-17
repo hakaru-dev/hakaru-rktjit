@@ -175,17 +175,18 @@
         (sham:stmt:while
          (sham$app icmp-ult i (sham$app get-size$array<prob> arp))
          (sham$block
-          (sham:expr:let
-           '(c) (list sham:expr:type type-prob-ref)
-           (list (sham$app get-index$array<prob> arp (sham$var 'i)))
-           (sham:stmt:if (sham$app fcmp-uge (sham$var 'mx) (sham$var 'c))
-                         (sham:stmt:set! (sham$var 'mx) (sham$var 'c))
-                         (sham:stmt:void)))
+          (sham:stmt:expr
+           (sham:expr:let
+            '(c) (list type-prob-ref)
+            (list (sham$app get-index$array<prob> arp (sham$var 'i)))
+            (sham:stmt:if (sham$app fcmp-uge (sham$var 'mx) (sham$var 'c))
+                          (sham:stmt:set! (sham$var 'mx) (sham$var 'c))
+                          (sham:stmt:void))
+            (sham:expr:void)))
           (sham:stmt:set! (sham$var 'i)
                           (sham:expr:app (sham:rator:symbol 'add-nuw)
                                          (list (sham$var 'i)
-                                               (sham:expr:ui-value 1 type-nat-ref))))
-          (sham:expr:void)))
+                                               (sham:expr:ui-value 1 type-nat-ref))))))
 
         (sham:stmt:set! (sham$var 'i) (sham:expr:ui-value 0 type-nat-ref))
 

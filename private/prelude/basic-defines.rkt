@@ -62,11 +62,6 @@
      (sham$app si->fp v (sham$etype real))))
 
    (sham$define #:info  (prelude-function-info)
-    (testput int)
-    (sham$return (sham:expr:app (sham:rator:external 'libc 'putchar (sham:type:ref 'i32))
-                                (list (sham:expr:ui-value 42 (sham:type:ref 'i32))))))
-
-   (sham$define #:info  (prelude-function-info)
     (prob2real (v prob) real)
     (sham$return (sham$app (llvm.exp.f64 prob) v)))
 
