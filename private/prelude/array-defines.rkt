@@ -71,7 +71,7 @@
      (sham:stmt:let
       '(ap* ap-size* ap-data*)
       (list aptref nat* adpt)
-      (list (sham$app malloc (sham:expr:type atref))
+      (list (sham$app 'malloc (sham:expr:type atref))
             (get-size-ptr 'ap*)
             (get-data-ptr 'ap*))
       (sham$block
@@ -98,7 +98,7 @@
         (sham:stmt:expr
          (sham:expr:app
           (sham:rator:intrinsic 'llvm.memset.p0i8.i64 (sham:type:ref 'void))
-          (list (sham$app ptrcast (sham$app load (get-data-ptr 'apt)) (sham:expr:type (sham:type:pointer
+          (list (sham$app ptrcast (sham$app 'load (get-data-ptr 'apt)) (sham:expr:type (sham:type:pointer
                                                                                        (sham:type:ref 'i8))))
                 (sham$app intcast (nat-value 0) (sham:expr:type (sham:type:ref 'i8)))
                 (sham$app mul-nuw (sham$app intcast (sham:expr:sizeof nat) (sham$etype i64)) (sham$var 'size))
@@ -112,7 +112,7 @@
      (get-fun-name free-size-array-fun-format)
      '(ap*) (list aptref) (sham:type:ref 'void)
      (sham$block
-      (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$app load (get-data-ptr 'ap*)))))
+      (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$app 'load (get-data-ptr 'ap*)))))
       (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$var 'ap*))))
       (sham:stmt:return (sham:expr:void)))))
 
@@ -125,14 +125,14 @@
       '(adt*)
       (list adpt)
       (list (get-data-ptr 'ap*))
-      (sham:stmt:return (sham$app load (sham$var 'adt*))))))
+      (sham:stmt:return (sham$app 'load (sham$var 'adt*))))))
 
   (define (get-array-size)
     (sham:def:function ;get-array-size
      (prelude-function-info)
      (get-fun-name get-array-size-fun-format)
      '(array-ptr) (list aptref) nat
-     (sham:stmt:return (sham$app load (get-size-ptr 'array-ptr)))))
+     (sham:stmt:return (sham$app 'load (get-size-ptr 'array-ptr)))))
 
   (define (get-index-error)
     (sham:def:function
@@ -169,15 +169,15 @@
                                         (sham:expr:app
                                          (sham:rator:symbol (get-fun-name get-array-size-fun-format))
                                          (list (sham$var 'array-ptr)))
-                                        (sham$app load (get-data-ptr 'array-ptr)))))
-                  (sham:stmt:return (sham$app load
-                                              (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
+                                        (sham$app 'load (get-data-ptr 'array-ptr)))))
+                  (sham:stmt:return (sham$app 'load
+                                              (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
                                                              (list (sham:expr:ui-value 0 nat))))))
       (sham$block
        (sham:stmt:void)
        (sham:stmt:return
-        (sham$app load
-                  (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
+        (sham$app 'load
+                  (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
                                  (list (sham$var 'index)))))))))
 
   (define (set-index-error)
@@ -217,7 +217,7 @@
       (sham$block
        (sham:stmt:expr
         (sham$app store! (sham$var 'v)
-                  (sham:expr:gep (sham$app load (get-data-ptr 'array-ptr))
+                  (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
                                  (list (sham$var 'index)))))
        (sham:stmt:return (sham:expr:void))))))
   (define (empty-array)
@@ -293,11 +293,11 @@
      (get-fun-name get-index-fun-format)
      '(arr ind) (list aptref nat) adtref
      (sham:stmt:return
-      (sham$app load
+      (sham$app 'load
                 (sham:expr:gep (sham$var 'arr)
                                (list (nat32-value 0) (sham$var ind)))))))
 
-  
+
 
 
   (define (set-index)

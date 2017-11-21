@@ -262,11 +262,10 @@
          ['prob 'recip-prob]))
      (values (sham:rator:symbol (get-recip tresult)) (void))]
     ['reject
-     (define tr (if-need-pointer tresult))
-     (values (sham:rator:symbol (get-fun-symbol reject-fun-format tr))
+     (values (sham:rator:symbol (get-fun-symbol reject-fun-format tresult))
              (sham:def:function (prelude-function-info)
-                                (get-fun-symbol reject-fun-format tr) '() '() (sham:type:ref tresult)
-                                (sham$return (sham$uiv 0 (sham$tref tr)))))]
+                                (get-fun-symbol reject-fun-format tresult) '() '() (get-sham-type-ref-ast tresult)
+                                (sham$return (sham$uiv 0 (get-sham-type-ref-ast tresult)))))]
 
     [else (error "why is this basic-rator not figured out?"
                  sym tresult trands trslt trnds)]))
