@@ -6,10 +6,10 @@
 (provide initial-simplifications
          later-simplifications)
 
-(define debug-init-simplifications (make-parameter #t))
+(define debug-init-simplifications (make-parameter #f))
 (define dpi (debug-printf debug-init-simplifications))
 
-(define debug-later-simplifications (make-parameter #t))
+(define debug-later-simplifications (make-parameter #f))
 (define dpl (debug-printf debug-later-simplifications))
 
 

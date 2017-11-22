@@ -14,7 +14,7 @@
      defs))
   (define mod-env (compile-module sham-module))
   ;; (jit-dump-module mod-env)
-  ;; (jit-verify-module mod-env)
+  (jit-verify-module mod-env)
   mod-env)
 
 (define (compile-with-sham st)
@@ -26,6 +26,6 @@
 (define (optimize&init-jit st)
   (match st
     [(state mod-env info os)
-     ;; (optimize-module mod-env)
-     ;; (initialize-jit! mod-env #:opt-level 3)
+     (optimize-module mod-env #:opt-level 3)
+     (initialize-jit! mod-env #:opt-level 3)
      mod-env]))

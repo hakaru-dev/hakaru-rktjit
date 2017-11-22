@@ -507,3 +507,33 @@
     [(stmt-return v) (ffv^ v)]
     [(stmt-assign to val)
      (set-union (ffv^ to) (ffv^ val))]))
+
+(define (find-mutated-variables expr)
+  (define fmv find-mutated-variables)
+  (match expr
+    [(expr-fun name args ret-type b)
+     (define bfree (fmv b))
+     (set-subtract bfree (apply set args))]
+    [(expr-lets ts vars vals s b)
+     (define total-mvars
+       (set-union (fmv s) (fmv b)))
+     (set-subtract total-mvars (apply set vars))]
+    [(expr-if t tst thn els) (set-union (fmv tst) (fmv thn) (fmv els))]
+    [(expr-app t (expr-intrf 'set-index!) rands)
+     (find-free-variables (car rands))]
+    [(expr-app t rator rands)
+     (apply set-union (cons (fmv rator) (map fmv rands)))]
+    [(expr-val t v) (set)]
+    [(expr-intrf sym) (set)]
+    [(expr-var t s o) (set)]
+    [(stmt-if tst thn els) (set-union (fmv tst) (fmv thn) (fmv els))]
+    [(stmt-for i start end body)
+     (set-union (fmv start) (fmv end) (set-remove (fmv body) i))]
+    [(stmt-block stmts)
+     (apply set-union (cons (set) (map fmv stmts)))]
+    [(stmt-expr s e)
+     (set-union (fmv s) (fmv e))]
+    [(stmt-void) (set)]
+    [(stmt-return v) (fmv v)]
+    [(stmt-assign to val)
+     (find-free-variables to)]))

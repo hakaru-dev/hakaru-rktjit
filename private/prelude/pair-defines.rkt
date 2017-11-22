@@ -67,14 +67,14 @@
      (prelude-function-info)
      (get-fun-name pair-car-fun-format) ;;car
      '(p) (list ptp) atref
-     (sham:stmt:return (sham$app load (get-struct-field 'p 0)))))
+     (sham:stmt:return (sham$app 'load (get-struct-field 'p 0)))))
 
   (define (get-cdr)
     (sham:def:function
      (prelude-function-info)
      (get-fun-name pair-cdr-fun-format)
      '(p) (list ptp) btref
-     (sham:stmt:return (sham$app load (get-struct-field 'p 1)))))
+     (sham:stmt:return (sham$app 'load (get-struct-field 'p 1)))))
 
   (define (set-car)
     (sham:def:function

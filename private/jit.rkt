@@ -14,19 +14,21 @@
    clean-curry
 
    parse-sexp
-   
+
    initial-simplifications
    flatten-anf
    combine-loops
 
-   debug-print
-
    later-simplifications
 
-;   pull-indexes ;;error here in naive bayes
-;   later-simplifications
+   pull-indexes ;;error here in naive bayes
+   debug-print
+   later-simplifications
+   debug-print
+   ;; stop
+
    to-stmt
-   
+
    to-sham-lc
    compile-with-sham
    optimize&init-jit))
@@ -54,7 +56,6 @@
 (define (compile-src src arg-info)
   (run-pipeline src arg-info))
 
-
 (define (compile-file fname arg-info)
   (compile-src (file->value fname) arg-info))
 
@@ -74,7 +75,7 @@
       (jit-verify-module mod-env))
     (void))
   (define (cf fname inf)
-    (parameterize [(debug-curry #t)]
+    (parameterize [(debug-curry #f)]
       (compile-file fname inf)))
 
   (define (doct)
@@ -126,17 +127,8 @@
     (define gg-module-env
       (cf "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
     (jit-dump-function gg-module-env 'prog)
-    (jit-dump-function gg-module-env 'categorical$array<3.prob>)
-    (jit-dump-function gg-module-env 'categorical)
     (jit-verify-module gg-module-env))
-
-;; getting stuck here
-;; final-state: 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
-;; i: 10, nz: 2
-    ;(dv gg-module-env))
-    ;    (define f (jit-get-function 'prog gg-module-env))
-
-
+  (dogg)
 
   (define (donb)
     (define nbinfo (list '() '() '() '() '() '()))
@@ -156,15 +148,10 @@
     ;;  (list `(arrayinfo . ((size . ,word-size))))
     ;;  (list `(arrayinfo . ((size . ,docs-size))))
     ;;  (list `(natinfo . ((valuerange . (0 . ,(- num-docs 1))))))))
-    
+
     (define nb-module-env
       (cf "../../testcode/hkrkt/NaiveBayesGibbs.hkr" nbinfo))
-    0
-  ;;   (dv nb-module-env))
-;;  (donb)
-;  (printf "\n\n\npipeline GmmGibbs\n")  (dogg)
-    )
-  (donb))
-
-;  (printf "pipeline ClinicalTrial\n")(doct)
-;  (printf "\n\n\npipeline LinearRegression\n")  (dolr))
+    (jit-dump-function nb-module-env 'prog)
+    (jit-verify-module nb-module-env))
+  ;; (donb)
+  )

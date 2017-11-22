@@ -106,6 +106,7 @@
                 (sham$app intcast (nat-value 0) (sham$etype i1)))))
 
         (sham:stmt:return (sham$var 'apt)))))))
+
   (define (free-size-array)
     (sham:def:function
      (prelude-function-info)
@@ -269,7 +270,8 @@
      '() '() aptref
      (sham:stmt:return
       (sham$app bitcast
-                (sham$app arr-malloc (sham:expr:type atref) (sham:expr:ui-value size nat))
+                (sham$app arr-malloc
+                          (sham:expr:type atref) (sham:expr:ui-value size nat))
                 (sham:expr:type aptref)))))
   (define (free-array)
     (sham:def:function
@@ -277,7 +279,8 @@
      (get-fun-name free-size-array-fun-format)
      '(arr) (list aptref) (sham:type:ref 'void)
      (sham$block
-      (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$var 'arr))))
+      (sham:stmt:expr
+       (sham:expr:app (sham:rator:symbol 'free) (list (sham$var 'arr))))
       (sham:stmt:return (sham:expr:void)))))
 
   (define (get-array-size)
@@ -296,9 +299,6 @@
       (sham$app 'load
                 (sham:expr:gep (sham$var 'arr)
                                (list (nat32-value 0) (sham$var ind)))))))
-
-
-
 
   (define (set-index)
     (sham:def:function
