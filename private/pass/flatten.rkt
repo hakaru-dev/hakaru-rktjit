@@ -267,40 +267,55 @@
 
 (define (pull-indexes st)
   (define combine-imaps append)
-  (define (group-alpha-eq imps) ;;we know they all are index app so alpha eq is symbol eq
+  (define (group-alpha-eq imps)
+    ;;we know they all are index app so alpha eq is symbol eq
     (group-by (λ (im) (symbol-append (pe (first (expr-app-rands (cdr im))))
                                      (pe (second (expr-app-rands (cdr im))))))
               imps))
+  (define (print-imp imp)
+    (printf "imp: ~a-~a\n" (print-expr (car imp)) (print-expr (cdr imp))))
   (define (clean imps)
     (define aleq (group-alpha-eq imps))
     (define uniq (map first aleq))
     (append uniq
             (apply append
-             (for/list ([u uniq]
-                        [rs (map cdr aleq)])
-               (for/list ([r rs])
-                 (cons (car r) (car u)))))))
+                   (for/list ([u uniq]
+                              [rs (map cdr aleq)])
+                     (for/list ([r rs])
+                       (cons (car r) (car u)))))))
   (define (wrap s e imps)
-    (define ci (clean imps))
-    (define tvls (map (λ (i) (list (typeof (cdr i)) (car i) (cdr i))) ci))
-    (expr-lets (map first tvls) (map second tvls) (map third tvls) s e))
+    (define aleq (group-alpha-eq imps))
+    (define uniq (map first aleq))
+    (define dupl (apply append
+                        (for/list ([u uniq]
+                                   [rs (map cdr aleq)])
+                          (for/list ([r rs])
+                            (cons (car r) (car u))))))
+    (define utvls (map (λ (i) (list (typeof (cdr i)) (car i) (cdr i))) uniq))
+    (define dtvls (map (λ (i) (list (typeof (cdr i)) (car i) (cdr i))) dupl))
+    (expr-lets (map first utvls) (map second utvls) (map third utvls)
+               (stmt-void)
+               (expr-lets
+                (map first dtvls) (map second dtvls) (map third dtvls)
+                s e)))
 
   (define (wrap-expr e imps)
     (wrap (stmt-void) e imps))
   (define (wrap-stmt s imps)
     (stmt-expr (stmt-void) (wrap s (expr-val 'nat 0) imps)))
 
-  (define (cant-can imap vars)
+  (define (cant-can es imap vars)
+    (define ffv (apply set-union (cons (set) (map (compose find-free-variables cdr) imap))))
     (for/fold ([cant '()]
                [can '()])
               ([im imap])
       (define ffv (find-free-variables (cdr im)))
-      (if (ormap (curry set-member? ffv) vars)
+      (if (ormap (curry set-member? ffv) (append (map car imap) vars))
           (values (cons im cant) can)
           (values cant (cons im can)))))
   (define (check&wrap-f es-i vars f)
     (match-define (cons es imap) es-i)
-    (define-values (cant can) (cant-can imap vars))
+    (define-values (cant can) (cant-can es imap vars))
     (cons (f es cant) can))
 
   (define (check&wrap-expr e-i vars)
@@ -312,10 +327,14 @@
   (define (pull-stmt stmt) ;; -> (cons stmt index-map)
     (match stmt
       [(stmt-block stmts)
-       (define stmtsl (map pull-stmt stmts))
-       (define nstmts (map car stmtsl))
-       (define stmts-imap (append-map cdr stmtsl))
-       (cons (stmt-block nstmts) stmts-imap)]
+       (define (dostmt prv nxt)
+         (if (empty? nxt) '()
+             (let ([mvars (apply set-union (cons (set) (map find-mutated-variables prv)))]
+                   [stmtl (pull-stmt (car nxt))])
+               (cons (check&wrap-stmt stmtl (set->list mvars)) (dostmt (cons (car nxt) prv)
+                                                           (cdr nxt))))))
+       (define ds (dostmt '() stmts))
+       (cons (stmt-block (map car ds)) (append-map cdr ds))]
       [(stmt-if tst thn els)
        (match-define (cons ntst tst-imap) (pull-expr tst))
        (match-define (cons nthn thn-imap) (pull-stmt thn))
@@ -339,6 +358,7 @@
 
   (define (pull-index-tvl tvls)
     (define all-vars (map second tvls))
+    (define var-pulls (map pull-expr (map last tvls)))
     (define-values (typs vars vals imap)
       (for/fold ([typs '()]
                  [vars '()]
@@ -363,10 +383,14 @@
       [(expr-lets types vars vals stmt expr)
        (match-define (cons (list ntypes nvars nvals) tvl-imap)
          (pull-index-tvl (map list types vars vals)))
-       (match-define (cons nstmt stmt-imap) (check&wrap-stmt (pull-stmt stmt) nvars))
+
+       (define stmtl (pull-stmt stmt))
        (define expl (pull-expr expr))
-       (match-define (cons nbody body-imap) (check&wrap-expr expl nvars))
+       (match-define (cons nstmt stmt-imap) (check&wrap-stmt (pull-stmt stmt) nvars))
+
+       (match-define (cons nbody body-imap) (check&wrap-expr expl (append nvars (set->list (find-free-variables nstmt)))))
        (cons (expr-lets ntypes nvars nvals nstmt nbody) (combine-imaps tvl-imap stmt-imap body-imap))]
+
       [(expr-if t tst thn els)
        (match-define (cons ntst tst-imap) (pull-expr tst))
        (match-define (cons nthn thn-imap) (pull-expr thn))
