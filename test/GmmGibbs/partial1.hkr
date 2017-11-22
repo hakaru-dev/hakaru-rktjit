@@ -1,0 +1,434 @@
+((fn
+     s
+   ((array prob) -> ((array nat) -> ((array real) -> (nat -> (array prob)))))
+   ((fn
+        as
+      ((array nat) -> ((array real) -> (nat -> (array prob))))
+      ((fn
+           z
+         ((array real) -> (nat -> (array prob)))
+         ((fn
+              t
+            (nat -> (array prob))
+            ((fn
+                 docUpdate
+               (array prob)
+               ((array
+                 (zNewd ((size (as : (array prob))) : nat))
+                 ((*
+                   ((real2prob
+                     ((*
+                       ((prob2real
+                         ((recip
+                           ((root
+                             ((real2prob
+                               ((product
+                                 (_b
+                                  ((nat_ 0) : nat)
+                                  ((size (as : (array prob))) : nat))
+                                 ((+
+                                   ((*
+                                     ((int2real
+                                       ((let (summary
+                                              (array nat)
+                                              ((bucket
+                                                ((nat_ 0) : nat)
+                                                ((size (t : (array real)))
+                                                 :
+                                                 nat)
+                                                (r_index
+                                                 ((size (as : (array prob)))
+                                                  :
+                                                  nat)
+                                                 (bind
+                                                  _a
+                                                  ((index
+                                                    (z : (array nat))
+                                                    (_a : nat))
+                                                   :
+                                                   nat))
+                                                 (r_add
+                                                  (bind
+                                                   _a
+                                                   (bind
+                                                    _b
+                                                    ((nat_ 1) : nat))))))
+                                               :
+                                               (array nat)))
+                                          ((+
+                                            ((nat2int
+                                              ((match
+                                                   ((==
+                                                     (_b : nat)
+                                                     (zNewd : nat))
+                                                    :
+                                                    bool)
+                                                 ((pdatum
+                                                   true
+                                                   (pc_inl (ps_done)))
+                                                  ((nat_ 1) : nat))
+                                                 ((pdatum
+                                                   false
+                                                   (pc_inr
+                                                    (pc_inl (ps_done))))
+                                                  ((nat_ 0) : nat)))
+                                               :
+                                               nat))
+                                             :
+                                             int)
+                                            ((*
+                                              ((nat2int
+                                                ((match
+                                                     ((==
+                                                       (_b : nat)
+                                                       ((index
+                                                         (z : (array nat))
+                                                         (docUpdate : nat))
+                                                        :
+                                                        nat))
+                                                      :
+                                                      bool)
+                                                   ((pdatum
+                                                     true
+                                                     (pc_inl (ps_done)))
+                                                    ((nat_ 1) : nat))
+                                                   ((pdatum
+                                                     false
+                                                     (pc_inr
+                                                      (pc_inl (ps_done))))
+                                                    ((nat_ 0) : nat)))
+                                                 :
+                                                 nat))
+                                               :
+                                               int)
+                                              ((int_ -1) : int))
+                                             :
+                                             int)
+                                            ((nat2int
+                                              ((index
+                                                (summary : (array nat))
+                                                (_b : nat))
+                                               :
+                                               nat))
+                                             :
+                                             int))
+                                           :
+                                           int))
+                                        :
+                                        int))
+                                      :
+                                      real)
+                                     ((prob2real
+                                       ((natpow (s : prob) ((nat_ 2) : nat))
+                                        :
+                                        prob))
+                                      :
+                                      real))
+                                    :
+                                    real)
+                                   ((real_ 1 % 1) : real))
+                                  :
+                                  real))
+                                :
+                                real))
+                              :
+                              prob)
+                             ((nat_ 2) : nat))
+                            :
+                            prob))
+                          :
+                          prob))
+                        :
+                        real)
+                       ((+
+                         ((int2real
+                           ((let (summary
+                                  (array nat)
+                                  ((bucket
+                                    ((nat_ 0) : nat)
+                                    ((size (t : (array real))) : nat)
+                                    (r_index
+                                     ((size (as : (array prob))) : nat)
+                                     (bind
+                                      _a
+                                      ((index (z : (array nat)) (_a : nat))
+                                       :
+                                       nat))
+                                     (r_add
+                                      (bind
+                                       _a
+                                       (bind zNewd ((nat_ 1) : nat))))))
+                                   :
+                                   (array nat)))
+                              ((+
+                                ((*
+                                  ((nat2int
+                                    ((match
+                                         ((==
+                                           (zNewd : nat)
+                                           ((index
+                                             (z : (array nat))
+                                             (docUpdate : nat))
+                                            :
+                                            nat))
+                                          :
+                                          bool)
+                                       ((pdatum true (pc_inl (ps_done)))
+                                        ((nat_ 1) : nat))
+                                       ((pdatum
+                                         false
+                                         (pc_inr (pc_inl (ps_done))))
+                                        ((nat_ 0) : nat)))
+                                     :
+                                     nat))
+                                   :
+                                   int)
+                                  ((int_ -1) : int))
+                                 :
+                                 int)
+                                ((nat2int
+                                  ((index
+                                    (summary : (array nat))
+                                    (zNewd : nat))
+                                   :
+                                   nat))
+                                 :
+                                 int))
+                               :
+                               int))
+                            :
+                            int))
+                          :
+                          real)
+                         ((prob2real
+                           ((index (as : (array prob)) (zNewd : nat))
+                            :
+                            prob))
+                          :
+                          real))
+                        :
+                        real))
+                      :
+                      real))
+                    :
+                    prob)
+                   ((exp
+                     ((*
+                       ((summate
+                         (_a
+                          ((nat_ 0) : nat)
+                          ((size (as : (array prob))) : nat))
+                         ((*
+                           ((natpow
+                             ((let (summary
+                                    (array real)
+                                    ((bucket
+                                      ((nat_ 0) : nat)
+                                      ((size (t : (array real))) : nat)
+                                      (r_index
+                                       ((size (as : (array prob))) : nat)
+                                       (bind
+                                        i
+                                        ((index (z : (array nat)) (i : nat))
+                                         :
+                                         nat))
+                                       (r_add
+                                        (bind
+                                         i
+                                         (bind
+                                          _a
+                                          ((index
+                                            (t : (array real))
+                                            (i : nat))
+                                           :
+                                           real))))))
+                                     :
+                                     (array real)))
+                                ((+
+                                  ((match
+                                       ((== (_a : nat) (zNewd : nat)) : bool)
+                                     ((pdatum true (pc_inl (ps_done)))
+                                      ((index
+                                        (t : (array real))
+                                        (docUpdate : nat))
+                                       :
+                                       real))
+                                     ((pdatum
+                                       false
+                                       (pc_inr (pc_inl (ps_done))))
+                                      ((real_ 0 % 1) : real)))
+                                   :
+                                   real)
+                                  ((*
+                                    ((match
+                                         ((==
+                                           (_a : nat)
+                                           ((index
+                                             (z : (array nat))
+                                             (docUpdate : nat))
+                                            :
+                                            nat))
+                                          :
+                                          bool)
+                                       ((pdatum true (pc_inl (ps_done)))
+                                        ((index
+                                          (t : (array real))
+                                          (docUpdate : nat))
+                                         :
+                                         real))
+                                       ((pdatum
+                                         false
+                                         (pc_inr (pc_inl (ps_done))))
+                                        ((real_ 0 % 1) : real)))
+                                     :
+                                     real)
+                                    ((real_ (-1) % 1) : real))
+                                   :
+                                   real)
+                                  ((index
+                                    (summary : (array real))
+                                    (_a : nat))
+                                   :
+                                   real))
+                                 :
+                                 real))
+                              :
+                              real)
+                             ((nat_ 2) : nat))
+                            :
+                            real)
+                           ((recip
+                             ((+
+                               ((*
+                                 ((int2real
+                                   ((let (summary
+                                          (array nat)
+                                          ((bucket
+                                            ((nat_ 0) : nat)
+                                            ((size (t : (array real)))
+                                             :
+                                             nat)
+                                            (r_index
+                                             ((size (as : (array prob)))
+                                              :
+                                              nat)
+                                             (bind
+                                              i
+                                              ((index
+                                                (z : (array nat))
+                                                (i : nat))
+                                               :
+                                               nat))
+                                             (r_add
+                                              (bind
+                                               i
+                                               (bind
+                                                _a
+                                                ((nat_ 1) : nat))))))
+                                           :
+                                           (array nat)))
+                                      ((+
+                                        ((nat2int
+                                          ((match
+                                               ((== (_a : nat) (zNewd : nat))
+                                                :
+                                                bool)
+                                             ((pdatum
+                                               true
+                                               (pc_inl (ps_done)))
+                                              ((nat_ 1) : nat))
+                                             ((pdatum
+                                               false
+                                               (pc_inr (pc_inl (ps_done))))
+                                              ((nat_ 0) : nat)))
+                                           :
+                                           nat))
+                                         :
+                                         int)
+                                        ((*
+                                          ((nat2int
+                                            ((match
+                                                 ((==
+                                                   (_a : nat)
+                                                   ((index
+                                                     (z : (array nat))
+                                                     (docUpdate : nat))
+                                                    :
+                                                    nat))
+                                                  :
+                                                  bool)
+                                               ((pdatum
+                                                 true
+                                                 (pc_inl (ps_done)))
+                                                ((nat_ 1) : nat))
+                                               ((pdatum
+                                                 false
+                                                 (pc_inr (pc_inl (ps_done))))
+                                                ((nat_ 0) : nat)))
+                                             :
+                                             nat))
+                                           :
+                                           int)
+                                          ((int_ -1) : int))
+                                         :
+                                         int)
+                                        ((nat2int
+                                          ((index
+                                            (summary : (array nat))
+                                            (_a : nat))
+                                           :
+                                           nat))
+                                         :
+                                         int))
+                                       :
+                                       int))
+                                    :
+                                    int))
+                                  :
+                                  real)
+                                 ((prob2real
+                                   ((natpow (s : prob) ((nat_ 2) : nat))
+                                    :
+                                    prob))
+                                  :
+                                  real))
+                                :
+                                real)
+                               ((real_ 1 % 1) : real))
+                              :
+                              real))
+                            :
+                            real))
+                          :
+                          real))
+                        :
+                        real)
+                       ((prob2real
+                         ((natpow (s : prob) ((nat_ 2) : nat)) : prob))
+                        :
+                        real)
+                       ((real_ 1 % 2) : real))
+                      :
+                      real))
+                    :
+                    prob))
+                  :
+                  prob))
+                :
+                (array prob)))
+             :
+             (nat -> (array prob))))
+          :
+          ((array real) -> (nat -> (array prob)))))
+       :
+       ((array nat) -> ((array real) -> (nat -> (array prob))))))
+    :
+    ((array prob)
+     ->
+     ((array nat) -> ((array real) -> (nat -> (array prob)))))))
+ :
+ (prob
+  ->
+  ((array prob)
+   ->
+   ((array nat) -> ((array real) -> (nat -> (array prob)))))))
