@@ -57,6 +57,7 @@
 
 
   (define real2prob (jit-get-function (string->symbol "real2prob") module-env))
+  (define prob2real (jit-get-function (string->symbol "prob2real") module-env))
 
   (define stdev (real2prob 14.0))
 
@@ -84,7 +85,10 @@
 
   (define output-c (prog stdev as zs ts doc))
   (define output-list
-    (for/list ([i (get-size-prob-array test-output)])
-      (get-index-prob-array test-output i)))
-  )
+    (for/list ([i (get-size-prob-array output-c)])
+      (prob2real (get-index-prob-array output-c i))))
+  (printf "output from prog: ~a\n" output-list)
+  (define output-hs (list 322.48561494234417  190.89773000645684 2345.667007610382))
+  (printf "output from haskell: ~a\n" output-hs))
+
 (run-test partial1-env input-3-10 '())
