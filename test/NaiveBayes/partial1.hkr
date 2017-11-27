@@ -1,20 +1,14 @@
-((fn
-     topic_prior
+((fn topic_prior
    ((array prob) -> ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array prob))))))
-   ((fn
-        word_prior
+   ((fn word_prior
       ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array prob)))))
-      ((fn
-           z
+      ((fn z
          ((array nat) -> ((array nat) -> (nat -> (array prob))))
-         ((fn
-              w
+         ((fn w
             ((array nat) -> (nat -> (array prob)))
-            ((fn
-                 doc
+            ((fn doc
                (nat -> (array prob))
-               ((fn
-                    docUpdate
+               ((fn docUpdate
                   (array prob)
                   ((array
                     (zNewf ((size (topic_prior : (array prob))) : nat))

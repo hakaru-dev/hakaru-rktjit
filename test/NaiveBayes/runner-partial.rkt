@@ -97,7 +97,7 @@
 (run-test partial1-env vs-topics vs-words vs-docs '(9.999999999999998 4.0 1.0))
 
 (printf "partial2:\n")
-(run-test partial2-env vs-topics vs-words vs-docs '(9.999999999999998 4.0 1.0))
+(run-test partial2-env vs-topics vs-words vs-docs '(4.0 3.0000000000000004 2.0))
 
 (printf "partial3:\n")
-(run-test partial3-env vs-topics vs-words vs-docs '(9.999999999999998 4.0 1.0))
+(run-test partial3-env vs-topics vs-words vs-docs '(5.494505494505496e-3  1.1111111111111112e-2  3.333333333333335e-2))
