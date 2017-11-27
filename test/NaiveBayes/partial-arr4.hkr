@@ -1,0 +1,42 @@
+((fn
+   topic_prior
+   ((array prob) -> ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array (array nat)))))))
+   ((fn
+     word_prior
+     ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array prob)))))
+     ((fn
+       z
+       ((array nat) -> ((array nat) -> (nat -> (array prob))))
+       ((fn
+         w
+         ((array nat) -> (nat -> (array prob)))
+         ((fn
+           doc
+           (nat -> (array (array nat)))
+           ((fn
+             docUpdate
+             (array prob)
+             ((bucket
+               ((nat_ 0) : nat)
+               ((size (w : (array nat))) : nat)
+               (r_index
+                 ((size (word_prior : (array prob))) : nat)
+                 (bind iF ((index (w : (array nat)) (iF : nat)) : nat))
+                 (r_index
+                  (bind (nat_ 0) ((size (topic_prior : (array prob))) : nat))
+                  (bind iF (bind (nat_ 0) ((index (z : (array nat)) ((index (doc : (array nat)) (iF : nat)) : nat)) : nat)))
+                  (r_add (bind iF (bind i (bind (nat_ 0) ((nat_ 1) : nat))))))))
+              :
+              (array (array nat))))
+            :
+            (nat -> (array (array nat)))))
+          :
+          ((array nat) -> (nat -> (array prob)))))
+        :
+        ((array nat) -> ((array nat) -> (nat -> (array prob))))))
+      :
+      ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array prob)))))))
+    :
+    ((array prob) -> ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array prob))))))))
+  :
+  ((array prob) -> ((array prob) -> ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array (array nat)))))))))

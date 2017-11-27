@@ -1,0 +1,114 @@
+((fn
+   topic_prior
+   ((array prob) -> ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array prob))))))
+   ((fn
+     word_prior
+     ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array prob)))))
+     ((fn
+       z
+       ((array nat) -> ((array nat) -> (nat -> (array prob))))
+       ((fn
+         w
+         ((array nat) -> (nat -> (array prob)))
+         ((fn
+           doc
+           (nat -> (array prob))
+           ((fn
+             docUpdate
+             (array prob)
+             ((array
+               (zNewf ((size (topic_prior : (array prob))) : nat))
+               ((product
+                 (j
+                  ((nat_ 0) : nat)
+                  ((let (summary
+                         (pair (array (array nat)) unit)
+                         ((bucket
+                           ((nat_ 0) : nat)
+                           ((size (w : (array nat))) : nat)
+                           (r_fanout
+                            (r_index
+                             ((size (z : (array nat))) : nat)
+                             (bind iF ((index (doc : (array nat)) (iF : nat)) : nat))
+                             (r_index
+                              (bind docUpdate ((size (word_prior : (array prob))) : nat))
+                              (bind iF (bind docUpdate ((index (w : (array nat)) (iF : nat)) : nat)))
+                              (r_add (bind iF (bind (nat_ 0) (bind docUpdate ((nat_ 1) : nat)))))))
+                            r_nop))
+                          :
+                          (pair (array (array nat)) unit)))
+                     ((match
+                          ((== ((nat_ 0) : nat) (zNewf : nat)) : bool)
+                        ((pdatum true (pc_inl (ps_done)))
+                         ((index
+                           ((index
+                             ((match (summary : (pair (array (array nat)) unit))
+                                ((pdatum pair (pc_inl (ps_et (pf_konst var) (ps_et (pf_konst var) (ps_done))))) (bind y (bind z y))))
+                              :
+                              (array (array nat)))
+                             (docUpdate : nat))
+                            :
+                            (array nat))
+                           ((nat_ 0) : nat))
+                          :
+                          nat))
+                        ((pdatum false (pc_inr (pc_inl (ps_done)))) ((nat_ 0) : nat)))
+                      :
+                      nat))
+                   :
+                   nat))
+                 ((+
+                   ((nat2prob
+                     ((let (summary
+                            (pair unit (array (array nat)))
+                            ((bucket
+                              ((nat_ 0) : nat)
+                              ((size (w : (array nat))) : nat)
+                              (r_split
+                               (bind iF ((== ((index (doc : (array nat)) (iF : nat)) : nat) (docUpdate : nat)) : bool))
+                               r_nop
+                               (r_index
+                                ((size (word_prior : (array prob))) : nat)
+                                (bind iF ((index (w : (array nat)) (iF : nat)) : nat))
+                                (r_index
+                                 (bind (nat_ 0) ((size (topic_prior : (array prob))) : nat))
+                                 (bind iF (bind (nat_ 0) ((index (z : (array nat)) ((index (doc : (array nat)) (iF : nat)) : nat)) : nat)))
+                                 (r_add (bind iF (bind i (bind (nat_ 0) ((nat_ 1) : nat)))))))))
+                             :
+                             (pair unit (array (array nat)))))
+                        ((index
+                          ((index
+                            ((match (summary : (pair unit (array (array nat))))
+                               ((pdatum pair (pc_inl (ps_et (pf_konst var) (ps_et (pf_konst var) (ps_done))))) (bind y (bind z z))))
+                             :
+                             (array (array nat)))
+                            ((nat_ 0) : nat))
+                           :
+                           (array nat))
+                          ((nat_ 0) : nat))
+                         :
+                         nat))
+                      :
+                      nat))
+                    :
+                    prob)
+                   ((nat2prob (j : nat)) : prob)
+                   ((index (word_prior : (array prob)) ((nat_ 0) : nat)) : prob))
+                  :
+                  prob))
+                :
+                prob))
+              :
+              (array prob)))
+            :
+            (nat -> (array prob))))
+          :
+          ((array nat) -> (nat -> (array prob)))))
+        :
+        ((array nat) -> ((array nat) -> (nat -> (array prob))))))
+      :
+      ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array prob)))))))
+    :
+    ((array prob) -> ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array prob))))))))
+  :
+  ((array prob) -> ((array prob) -> ((array nat) -> ((array nat) -> ((array nat) -> (nat -> (array prob))))))))
