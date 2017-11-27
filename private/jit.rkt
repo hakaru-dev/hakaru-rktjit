@@ -21,15 +21,15 @@
 
    later-simplifications
 
-   pull-indexes ;;error here in naive bayes
-   debug-print
+   pull-indexes
    later-simplifications
-   debug-print
-   ;; stop
 
    to-stmt
+   debug-print
 
    to-sham-lc
+   debug-print
+
    compile-with-sham
    optimize&init-jit))
 
@@ -92,8 +92,6 @@
       (cf "../../testcode/hkrkt/ClinicalTrial.hkr" ectinfo))
     (define f (jit-get-function 'prog ct-module-env))
     (dv ct-module-env))
-
-
   (define (dolr)
     (define nlr 10)
     (define lrinfo (list
@@ -102,8 +100,30 @@
     (define lr-module-env
       (cf "../../testcode/hkrkt/LinearRegression.hkr" lrinfo))
     (define f (jit-get-function 'prog lr-module-env))
-   (dv lr-module-env))
+    (dv lr-module-env))
+  (define (donb num-topics num-words num-docs words-size docs-size)
+    (define empty-info (list '() '() '() '() '() '()))
+    (define full-info
+    (list
+     (list `(arrayinfo . ((size . ,num-topics)
+                          (typeinfo . ((probinfo . ((constant . 0)))))
+                          (constant . #t)))
+           `(fninfo . (remove)))
+     (list `(arrayinfo . ((size . ,num-words)
+                          (typeinfo . ((probinfo . ((constant . 0)))))
+                          (constant . #t)))
+           `(fninfo . (remove)))
+     (list `(arrayinfo . ((size . ,num-docs)
+                          (typeinfo . ((probinfo . ((constant . 0)))))
+                          (constant . #t))))
+     (list `(arrayinfo . ((size . ,words-size))))
+     (list `(arrayinfo . ((size . ,docs-size))))
+     (list `(natinfo . ((valuerange . (0 . ,(- num-docs 1))))))))
 
+    (define nb-module-env
+      (cf "../../testcode/hkrkt/NaiveBayesGibbs.hkr" empty-info))
+    (jit-dump-function nb-module-env 'prog)
+    (jit-verify-module nb-module-env))
   (define (dogg)
     (define classes 3)
     (define points 10)
@@ -128,30 +148,14 @@
       (cf "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
     (jit-dump-function gg-module-env 'prog)
     (jit-verify-module gg-module-env))
-  (dogg)
 
-  (define (donb)
-    (define nbinfo (list '() '() '() '() '() '()))
-    ;; (define nbinfo
-    ;; (list
-    ;;  (list `(arrayinfo . ((size . ,num-topics)
-    ;;                       (typeinfo . ((probinfo . ((constant . 0)))))
-    ;;                       (constant . #t)))
-    ;;        `(fninfo . (remove)))
-    ;;  (list `(arrayinfo . ((size . ,num-words)
-    ;;                       (typeinfo . ((probinfo . ((constant . 0)))))
-    ;;                       (constant . #t)))
-    ;;        `(fninfo . (remove)))
-    ;;  (list `(arrayinfo . ((size . ,num-docs)
-    ;;                       (typeinfo . ((probinfo . ((constant . 0)))))
-    ;;                       (constant . #t))))
-    ;;  (list `(arrayinfo . ((size . ,word-size))))
-    ;;  (list `(arrayinfo . ((size . ,docs-size))))
-    ;;  (list `(natinfo . ((valuerange . (0 . ,(- num-docs 1))))))))
-
-    (define nb-module-env
-      (cf "../../testcode/hkrkt/NaiveBayesGibbs.hkr" nbinfo))
-    (jit-dump-function nb-module-env 'prog)
-    (jit-verify-module nb-module-env))
+  ;; (dogg)
   ;; (donb)
+  (define zp-info (list '()))
+  (define zp-env (compile-file "../test/zero-product.hkr" zp-info ))
+  (define real2prob (jit-get-function (string->symbol "real2prob") zp-env))
+  (define prob2real (jit-get-function (string->symbol "prob2real") zp-env))
+  (define zp-prog (jit-get-function 'prog zp-env))
+  (prob2real (zp-prog 0.0))
+
   )
