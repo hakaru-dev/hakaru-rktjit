@@ -205,8 +205,8 @@
         (values (sham:rator:symbol (add-prob-sym (length trands)))
                 (build-add-prob (length trands)))]
     ['* #:when (and (andmap tprob? trands) (tprob? tresult))
-        (values (build-add-rator tresult trands)
-                (build-add tresult trands))]
+        (values (build-add-rator 'real trands)
+                (build-add 'real trands))]
     ['* (values (build-mul-rator tresult trands) (build-mul tresult trands))]
     ['+ #:when (andmap (curry equal? tresult) trands)
         (values (build-add-rator tresult trands) (build-add tresult trands))]
