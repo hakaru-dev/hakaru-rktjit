@@ -90,6 +90,14 @@
   (printf "output from hskl: ~a\n" output-hs))
 
 (define env1 (compile-file (build-path current-dir "partial3-1.hkr") empty-nbinfo))
+(define env3 (compile-file (build-path current-dir "partial3-3.hkr") empty-nbinfo))
+(define env4 (compile-file (build-path current-dir "partial3-4.hkr") empty-nbinfo))
 
-(printf "partial3-1:\n")
-(run-test env1 vs-topics vs-words vs-docs '(181.99999999999997 90.0 29.99999999999999))
+;; (printf "partial3-1:\n")
+;; (run-test env1 vs-topics vs-words vs-docs '(181.99999999999997 90.0 29.99999999999999))
+
+;; (printf "partial3-3:\n")
+;; (run-test env3 vs-topics vs-words vs-docs '(13.0 14.000000000000004))
+
+(printf "partial3-4:\n")
+(run-test env4 vs-topics vs-words vs-docs '(13.0 14.000000000000004))

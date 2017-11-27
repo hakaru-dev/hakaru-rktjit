@@ -83,21 +83,10 @@
   (define doc 0)
 
   (define output-c (prog topic-prior word-prior zs c-words c-docs doc ))
-  (define output-list
-    (for/list ([i (in-range (get-size-prob-array output-c))])
-      (prob2real (get-index-prob-array output-c i))))
-  (printf "output from prog: ~a\n" output-list)
+  (printf "output from prog: ~a\n" (prob2real output-c))
   (printf "output from hskl: ~a\n" output-hs))
 
-(define partial1-env (compile-file (build-path current-dir "partial1.hkr") empty-nbinfo))
-(define partial2-env (compile-file (build-path current-dir "partial2.hkr") empty-nbinfo))
-(define partial3-env (compile-file (build-path current-dir "partial3.hkr") empty-nbinfo))
+(define env4 (compile-file (build-path current-dir "partial3-4.hkr") empty-nbinfo))
 
-(printf "partial1:\n")
-(run-test partial1-env vs-topics vs-words vs-docs '(9.999999999999998 4.0 1.0))
-
-(printf "partial2:\n")
-(run-test partial2-env vs-topics vs-words vs-docs '(9.999999999999998 4.0 1.0))
-
-(printf "partial3:\n")
-(run-test partial3-env vs-topics vs-words vs-docs '(0.005494505494505496 0.011111111111111112 0.03333333333333335))
+(printf "partial3-4:\n")
+(run-test env4 vs-topics vs-words vs-docs 181.99999999999997)
