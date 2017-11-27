@@ -124,10 +124,12 @@
    (sham:stmt:return
     (sham:expr:app
      (sham:rator:symbol 'real2prob)
-     (list (sham:expr:app (sham:rator:symbol 'fadd)
-            (build-list len (λ (vi)
-                              (sham:expr:app (sham:rator:symbol 'prob2real)
-                                            (list (sham$var (get-vi vi))))))))))))
+     (list
+      (for/fold ([body (sham:expr:app (sham:rator:symbol 'prob2real) (list (sham$var (get-vi 0))))])
+                ([i (in-range 1 len)])
+        (sham:expr:app (sham:rator:symbol 'fadd)
+                       (list (sham:expr:app (sham:rator:symbol 'prob2real) (list (sham$var (get-vi i))))
+                             body))))))))
 
 (define (build-recip-nat->prob)
   (sham:def:function
@@ -205,7 +207,6 @@
     ['* #:when (and (andmap tprob? trands) (tprob? tresult))
         (values (build-add-rator tresult trands)
                 (build-add tresult trands))]
-
     ['* (values (build-mul-rator tresult trands) (build-mul tresult trands))]
     ['+ #:when (andmap (curry equal? tresult) trands)
         (values (build-add-rator tresult trands) (build-add tresult trands))]
@@ -331,6 +332,7 @@
 
   (define add3prob (get-f 'add$3&prob))
   (define add4prob (get-f 'add$4&prob))
+
   ;; (define add-2-nat (get-f 'add-2-nat))
   ;; (define add-2-real (get-f 'add-2-real))
   ;; (define add-3-real (get-f 'add-3-real))
@@ -349,7 +351,8 @@
   (check-= (recip-nat 2) 0.5 e)
   (check-= (recip-real 5.2345) (/ 1.0 5.2345) e)
   (check-= (recip-prob (c-real2prob 5.2345)) (real->prob (/ 1.0 5.2345)) e)
-  (check-= (recip-prob 14.124515) (real->prob (/ 1.0 (prob->real 14.124515))) e))
+  (check-= (recip-prob 14.124515) (real->prob (/ 1.0 (prob->real 14.124515))) e)
+  (check-= (prob->real (add3prob (c-nat2prob 4) (c-nat2prob 0) (c-nat2prob 1))) 5.0 e)
 
   ;; (check-eq? (add-2-nat 3 4) 7)
   ;; (check-= (add-2-real 1.234 543.1234) (+ 1.234 543.1234) e)
@@ -357,6 +360,7 @@
   ;; (check-= (add-2-prob 1.234 543.1234)
   ;;          (real->prob (+ (prob->real 1.234) (prob->real 543.1234)))
   ;;          e)
+  )
   ;; (check-= (add-3-prob 5.324 543.2432 89.43241)
   ;;          (logspace-add 5.324 543.2432 89.43241)
   ;;          e)
