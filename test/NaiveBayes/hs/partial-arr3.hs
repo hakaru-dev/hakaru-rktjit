@@ -36,39 +36,37 @@ prog =
         [branch ptrue
                 ((array (size topic_prior60) $
                                            \ zNewf93 ->
-                                             (nat2prob (nat_ 0)-- (let_ (bucket (nat_ 0)
-                                                       --                    (size w63)
-                                                       --                    ((r_split (\ (iF104,()) ->
-                                                       --                               doc64
-                                                       --                               ! iF104
-                                                       --                               == docUpdate65)
-                                                       --                              r_nop
-                                                       --                              (r_index (\ () ->
-                                                       --                                        size word_prior61)
-                                                       --                                       (\ (iF104,()) ->
-                                                       --                                        w63
-                                                       --                                        ! iF104)
-                                                       --                                       (r_index (\ (iB105,()) ->
-                                                       --                                                 size topic_prior60)
-                                                       --                                                (\ (iF104,(iB105,())) ->
-                                                       --                                                 z62
-                                                       --                                                 ! (doc64
-                                                       --                                                    ! iF104))
-                                                       --                                                (r_add (\ (iF104,(i106,(iB105,()))) ->
-                                                       --                                                        nat_ 1))))))) $ \ summary103 ->
-                                                       --       case_ summary103
-                                                       --             [branch (ppair PVar
-                                                       --                            PVar)
-                                                       --                     (\ y107
-                                                       --                        z108 ->
-                                                       --                      z108)]
-                                                       --       ! (nat_ 0)
-                                                       --       ! (nat_ 0))
-                                              +
-                                                   -- nat2prob (nat_ 0) +
+                                             (nat2prob (let_ (bucket (nat_ 0)
+                                                                          (size w63)
+                                                                          ((r_split (\ (iF104,()) ->
+                                                                                     doc64
+                                                                                     ! iF104
+                                                                                     == docUpdate65)
+                                                                                    r_nop
+                                                                                    (r_index (\ () ->
+                                                                                              size word_prior61)
+                                                                                             (\ (iF104,()) ->
+                                                                                              w63
+                                                                                              ! iF104)
+                                                                                             (r_index (\ (iB105,()) ->
+                                                                                                       size topic_prior60)
+                                                                                                      (\ (iF104,(iB105,())) ->
+                                                                                                       z62
+                                                                                                       ! (doc64
+                                                                                                          ! iF104))
+                                                                                                      (r_add (\ (iF104,(i106,(iB105,()))) ->
+                                                                                                              nat_ 1))))))) $ \ summary103 ->
+                                                             case_ summary103
+                                                                   [branch (ppair PVar
+                                                                                  PVar)
+                                                                           (\ y107
+                                                                              z108 ->
+                                                                            z108)]
+                                                             ! (nat_ 0)
+                                                             ! (nat_ 0)) +
+                                                   nat2prob (nat_ 0) +
                                                    word_prior61
-                                                   ! (nat_ 0)
-                                             ))),
+                                                   ! (nat_ 0)))),
          branch pfalse (UV.empty)]
 
 main :: IO ()
@@ -81,8 +79,8 @@ main = do
   let numTopics = UV.maximum topics + 1
   let numWords = UV.maximum words + 1
 
-  let topic_prior = array numTopics (const 1.0) -- UV.map LF.logFloat $ UV.replicate numTopics 1.0
-  let word_prior = array numWords (const 1.0) -- UV.map LF.logFloat  $ UV.replicate numWords 1.0
+  let topic_prior = array numTopics (const 1.0)
+  let word_prior = array numWords (const 1.0)
 
   let docUpdate = 4
   let zs = topics

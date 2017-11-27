@@ -112,7 +112,7 @@ main = do
   let topic_prior = UV.map LF.logFloat $ UV.replicate numTopics 1.0
   let word_prior = UV.map LF.logFloat  $ UV.replicate numWords 1.0
 
-  let docUpdate = 4
+  let docUpdate = 0
   let zs = topics
 
   let result = (prog topic_prior word_prior zs words docs docUpdate)

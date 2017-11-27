@@ -15,7 +15,7 @@
 
 
 
-;; (jit-dump-module partial1-env)
+
 
 (define (run-test module-env topics words docs output-hs)
   ;; (printf "running naive bayes:\n\t topics: ~a\n\t words: ~a\n\t docs: ~a\n" topics words docs)
@@ -37,6 +37,8 @@
   (define get-index-nat-array (jit-get-function (string->symbol (format "get-index$array<nat>")) module-env))
   (define get-size-nat-array (jit-get-function (string->symbol (format "get-size$array<nat>")) module-env))
 
+  (define get-size-nat-array-array  (jit-get-function (string->symbol (format "get-size$array<array<nat>*>")) module-env))
+  (define get-index-nat-array-array (jit-get-function (string->symbol (format "get-index$array<array<nat>*>")) module-env))
 
   (define make-real-array      (jit-get-function (string->symbol (format "make$array<real>")) module-env))
   (define new-sized-real-array (jit-get-function (string->symbol (format "new-sized$array<real>")) module-env))
@@ -44,7 +46,6 @@
   (define set-index-real-array (jit-get-function (string->symbol (format "set-index!$array<real>")) module-env))
   (define get-index-real-array (jit-get-function (string->symbol (format "get-index$array<real>")) module-env))
   (define get-size-real-array  (jit-get-function (string->symbol (format "get-size$array<real>")) module-env))
-
 
   (define real2prob (jit-get-function (string->symbol "real2prob") module-env))
   (define prob2real (jit-get-function (string->symbol "prob2real") module-env))
@@ -83,25 +84,15 @@
   (define doc 0)
 
   (define output-c (prog topic-prior word-prior zs c-words c-docs doc ))
-  (define output-list
-    (for/list ([i (in-range (get-size-prob-array output-c))])
-      (prob2real (get-index-prob-array output-c i))))
-  (printf "output from prog: ~a\n" output-list)
-  (printf "output from hskl: ~a\n" output-hs))
+  ;; (define output-list
+  ;;   (for/list ([i (in-range (get-size-nat-array-array output-c))])
+  ;;     (define as (get-index-nat-array-array output-c i))
+  ;;     (for/list ([j (in-range (get-size-nat-array as))])
+  ;;       (get-index-nat-array as j))))
 
-(define partial1-env (compile-file (build-path current-dir "partial1.hkr") empty-nbinfo))
-(define partial-arr1-env (compile-file (build-path current-dir "partial-arr1.hkr") empty-nbinfo))
-(define partial-arr2-env (compile-file (build-path current-dir "partial-arr2.hkr") empty-nbinfo))
-(define partial-arr3-env (compile-file (build-path current-dir "partial-arr3.hkr") empty-nbinfo))
+  (printf "output from prog: ~a\n" output-c)
+  (printf "output from haskell: ~a\n" output-hs))
 
-(printf "partial1:\n")
-(run-test partial1-env vs-topics vs-words vs-docs '(0.1318681318681319 0.21428571428571422 0.3214285714285713))
+(define env (compile-file (build-path current-dir "partial-arr22.hkr") empty-nbinfo))
 
-(printf "partial-arr1:\n")
-(run-test partial-arr1-env vs-topics vs-words vs-docs '(9.999999999999998 4.0 1.0))
-
-(printf "partial-arr2:\n")
-(run-test partial-arr2-env vs-topics vs-words vs-docs '(4.999999999999999 1.0 1.0))
-
-(printf "partial-arr3:\n")
-(run-test partial-arr3-env vs-topics vs-words vs-docs '(4.999999999999999 4.999999999999999 4.999999999999999))
+(run-test env vs-topics vs-words vs-docs 0)

@@ -96,4 +96,5 @@
 (define partial-arr21-env (compile-file (build-path current-dir "partial-arr21.hkr") empty-nbinfo))
 ;; (jit-dump-module partial-arr4-env)
 
+;; [[1,0,0,1],[0,1,1,1],[1,1,1,0],[0,0,1,0],[0,0,0,2],[2,0,0,1],[1,1,1,0]]
 (run-test partial-arr21-env vs-topics vs-words vs-docs '((1 0 0 1) (0 1 1 1) (1 1 1 0) (0 0 1 0) (0 0 0 2) (2 0 0 1) (1 1 1 0)))

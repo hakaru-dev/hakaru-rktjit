@@ -1,0 +1,14 @@
+((fn
+   z
+   prob
+   ((product
+                 (j
+                  ((nat_ 0) : nat)
+                  ((nat_ 0) : nat))
+                 ((prob_ 0 % 1)
+                  :
+                  prob))
+                :
+                prob))
+  :
+  (prob -> prob))

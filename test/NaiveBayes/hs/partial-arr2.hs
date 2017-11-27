@@ -26,9 +26,7 @@ prog =
   lam $ \ w63 ->
   lam $ \ doc64 ->
   lam $ \ docUpdate65 ->
-  case_ (docUpdate65 < size z62)
-        [branch ptrue
-                ((array (size topic_prior60) $
+          (array (size topic_prior60) $
                                            \ zNewf93 ->
                                              product (nat_ 0)
                                                   (let_ (bucket (nat_ 0)
@@ -90,8 +88,7 @@ prog =
                                                              ! (nat_ 0)) +
                                                    nat2prob j96 +
                                                    word_prior61
-                                                   ! (nat_ 0)))),
-         branch pfalse (UV.empty)]
+                                                   ! (nat_ 0)))
 
 main :: IO ()
 main = do
@@ -106,7 +103,7 @@ main = do
   let topic_prior = UV.map LF.logFloat $ UV.replicate numTopics 1.0
   let word_prior = UV.map LF.logFloat  $ UV.replicate numWords 1.0
 
-  let docUpdate = 4
+  let docUpdate = 0
   let zs = topics
 
   let result = (prog topic_prior word_prior zs words docs docUpdate)
