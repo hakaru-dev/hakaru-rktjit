@@ -40,7 +40,7 @@
 (define (nat32-value v)
   (sham:expr:ui-value v (sham:type:ref 'i32)))
 (define (prob-value v)
-  (sham:expr:fl-value (exact->inexact v) type-prob-ref))
+  (sham:expr:app (sham:rator:symbol 'real2prob) (list  (sham:expr:fl-value (exact->inexact v) type-prob-ref))))
 
 (define (get-struct-field sym . indexs)
   (sham:expr:gep (sham$var sym) (cons (nat32-value 0) (map nat32-value indexs))))
