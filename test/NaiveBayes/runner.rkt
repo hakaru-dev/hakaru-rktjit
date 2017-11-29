@@ -13,10 +13,7 @@
 
 (define-runtime-path current-dir "./")
 
-
-
 ;; (jit-dump-module partial1-env)
-
 (define (run-test module-env topics words docs output-hs)
   ;; (printf "running naive bayes:\n\t topics: ~a\n\t words: ~a\n\t docs: ~a\n" topics words docs)
 
@@ -89,15 +86,7 @@
   (printf "output from prog: ~a\n" output-list)
   (printf "output from hskl: ~a\n" output-hs))
 
-(define partial1-env (compile-file (build-path current-dir "partial1.hkr") empty-nbinfo))
-(define partial2-env (compile-file (build-path current-dir "partial2.hkr") empty-nbinfo))
-(define partial3-env (compile-file (build-path current-dir "partial3.hkr") empty-nbinfo))
+(define env (compile-file (build-path current-dir "fullstateless.hkr") empty-nbinfo))
 
-(printf "partial1:\n")
-(run-test partial1-env vs-topics vs-words vs-docs '(9.999999999999998 4.0 1.0))
-
-(printf "partial2:\n")
-(run-test partial2-env vs-topics vs-words vs-docs '(9.999999999999998 4.0 1.0))
-
-(printf "partial3:\n")
-(run-test partial3-env vs-topics vs-words vs-docs '(0.005494505494505496 0.011111111111111112 0.03333333333333335))
+(printf "fullstateless:\n")
+(run-test env vs-topics vs-words vs-docs '(0.005494505494505496 0.011111111111111112 0.03333333333333335))
