@@ -69,13 +69,8 @@
   (run-test (compile-file fname empty-nbinfo)
             full-topics full-words full-docs type hs-output))
 
-;; (run-vs-test "./partial1.hkr" '(array prob) '(9.999999999999998 4.0 1.0))
-;; (run-vs-test "./partial2.hkr" '(array prob) '(4.0 3.0000000000000004 2.0))
-;; (run-vs-test "./partial3.hkr" '(array prob) '(0.005494505494505496 0.011111111111111112 0.03333333333333335))
-
-
-;; (run-full-test "./NaiveBayesGibbs.hkr" 'nat '(9.999999999999998 4.0 1.0))
-(run-full-test "./newpartial.hkr" '(array prob) '(9.999999999999998 4.0 1.0))
+;; (run-full-test "./NaiveBayesGibbs.hkr" 'nat 0)
+(run-full-test "./partial.hkr" '(array prob) '()
 
 ;; our output
 ;; (-8659.371903184969 -9473.645355602857 -10152.497937672513 -9648.673918539253 -9606.471606723844 -9624.352183391919 -9468.153948867177 -9580.84298557636 -9559.369326621867 -9634.407671463578 -9701.445215668668 -9415.152206831754 -9512.77374914908 -9368.555288242453 -9336.744521041664 -9013.401662454584 -9349.721224754028 -9294.489616315383 -9260.335989131163 -8977.788497207486)
