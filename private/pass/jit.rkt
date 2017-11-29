@@ -13,14 +13,16 @@
      (basic-mod-info)
      defs))
   (define mod-env (compile-module sham-module))
+
+  ;; (jit-verify-module mod-env)
   ;; (jit-dump-module mod-env)
-  (jit-verify-module mod-env)
   mod-env)
 
 (define (compile-with-sham st)
   (match st
     [(state defs info os)
-     (run-next (create-module defs) info st)]))
+     (define mod-env (create-module defs))
+     (run-next mod-env info st)]))
 
 
 (define (optimize&init-jit st)
