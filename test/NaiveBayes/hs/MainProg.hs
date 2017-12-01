@@ -300,19 +300,24 @@ main = do
   let numTopics = UV.maximum topics + 1
   let numWords = UV.maximum words + 1
 
-  let topic_prior = UV.map LF.logFloat $ UV.replicate numTopics 1.0
-  let word_prior = UV.map LF.logFloat  $ UV.replicate numWords 1.0
+  topic_prior <- return $! UV.map LF.logFloat $ UV.replicate numTopics 1.0
+  word_prior <- return $! UV.map LF.logFloat  $ UV.replicate numWords 1.0
   let docUpdate = 0
   let zs = topics
   g <- MWC.createSystemRandom
 
+  print $ UV.length topics
+  print $ UV.length words
+  print $ UV.length docs
+
+  result0 <- unMeasure (prog topic_prior word_prior zs words docs 2) g
+
   print "starting main"
-  start_time <- C.getCurrentTime
-  result <- unMeasure (prog topic_prior word_prior zs words docs docUpdate) g
-  end_time <- C.getCurrentTime
 
-  print "result:"
-  print result
-  print "time:"
-
-  print $ C.diffUTCTime end_time start_time
+  forM_ [0..10] $ \i -> do
+    start_time <- C.getCurrentTime
+    result <- unMeasure (prog topic_prior word_prior zs words docs i) g
+    print result
+    end_time <- C.getCurrentTime
+    print "time:"
+    print $ C.diffUTCTime end_time start_time
