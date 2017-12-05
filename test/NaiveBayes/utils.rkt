@@ -9,6 +9,8 @@
 (require (for-syntax racket/syntax))
 (provide get-function
          jit->rkt
+         get-time
+         elasp-time
          rkt->jit)
 
 (define (get-array-function-sym f t)
@@ -81,3 +83,9 @@
      (jit->rkt module-env t val)]
     ['prob ((jit-get-function 'prob2real module-env) val)]
     [else val]))
+
+(define _clock (get-ffi-obj "clock" #f (_fun -> _slong)))
+(define (get-time)
+  (/ (_clock) 1000000.0))
+(define (elasp-time from)
+  (- (get-time) from))
