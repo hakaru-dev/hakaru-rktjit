@@ -18,11 +18,9 @@
   ;(dtprintf "get-init: result: ~a, t: ~a\n" (pe result) t)
   ;; (printf "\t binds: \n")(pretty-display (map pe binds))(newline)
   ;; (printf "\t reducer: \n")(pretty-display (pr reducer))(newline)
-  (match* (t reducer)
-    [('nat (reducer-add _))
-     (values (list 'nat) (list result) (list (expr-val 'nat 0)))]
-    [('real (reducer-add _))
-     (values (list 'real) (list result) (list (expr-val 'real 0)))]
+  (match* (reducer t)
+    [((reducer-add _) t)
+     (values (list t) (list result) (list (expr-val t 0)))]
     ;; [(`(pair ,ta ,tb) (reducer-split _ ra rb))
     ;;  #:when (expr-var? result)
     ;;  (define-values (tra vra vla)
@@ -30,7 +28,7 @@
     ;;  (define-values (trb vrb vlb)
     ;;    (get-init binds (expr-sym-append result 'b tb) tb rb))
     ;;  (values (append tra trb) (append vra vrb) (append vla vlb))]
-    [(`(pair ,ta ,tb) (reducer-split _ ra rb))
+    [((reducer-split _ ra rb) `(pair ,ta ,tb))
      (define-values (tra vra vla)
        (get-init binds result ta ra));;result should be car and cdr for next
      (define-values (trb vrb vlb)
@@ -38,7 +36,7 @@
      (values (list t)
              (list result)
              (list (expr-app t (expr-intrf 'cons) (list (car vla) (car vlb)))))]
-    [(`(pair ,ta ,tb) (reducer-fanout ra rb))
+    [((reducer-fanout ra rb) `(pair ,ta ,tb))
      (define-values (tra vra vla)
        (get-init binds result ta ra));;result should be car and cdr for next
      (define-values (trb vrb vlb)
@@ -53,7 +51,7 @@
     ;;  (define-values (trb vrb vlb)
     ;;    (get-init binds (expr-sym-append result 'b tb) tb rb))
     ;;  (values (append tra trb) (append vra vrb) (append vla vlb))]
-    [(`(array ,tar) (reducer-index n _ ra))
+    [((reducer-index n _ ra) `(array ,tar))
      ;; (dprintf #t "reducer-index: type: ~a\n \tresult: ~a, binds: ~a\n"
      ;;          `(array ,tar) (pe result) (map pe binds))
      (define arr-size (assign-binds binds n))
@@ -61,7 +59,6 @@
      ;; (define narrt (if is-constant-size (append t `((size . ,(expr-val-v arr-size)))) t))
      ;; (dpc "is constant-size: ~a, val: ~a\n" is-constant-size (pe arr-size))
      (define arr-init (expr-app t (expr-intrf 'empty) (list arr-size)))
-
      (define arrn (expr-var t (gensym^ 'arri) '()))
      (define fori (expr-var 'nat (gensym^ 'fi) '_))
      (define new-result (expr-app tar (expr-intrf 'index) (list arrn fori)))
@@ -78,8 +75,8 @@
                          (stmt-assign new-result (car vla)))
                         arrn))))]
 
-    [('unit (reducer-nop)) (values '(unit) (list result) (list (expr-val 'unit 0)))]
-    [(a b) (error (format "get-init for bucket: t: ~a, result: ~a, reducer: ~a\n"
+    [((reducer-nop) 'unit) (values '(unit) (list result) (list (expr-val 'unit 0)))]
+    [(_ _) (error (format "get-init for bucket: t: ~a, result: ~a, reducer: ~a\n"
                           t (pe result) (pr reducer)))]))
 
 (define (get-accum i binds result t reducer)
