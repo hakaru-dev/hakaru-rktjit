@@ -30,4 +30,4 @@
     [(state mod-env info os)
      (optimize-module mod-env #:opt-level 3)
      (initialize-jit! mod-env #:opt-level 3)
-     mod-env]))
+     (run-next mod-env info st)]))

@@ -14,20 +14,16 @@
    clean-curry
 
    parse-sexp
-
    initial-simplifications
    flatten-anf
+
    combine-loops
-
    later-simplifications
-
    pull-indexes
    later-simplifications
 
    to-stmt
-
    to-sham-lc
-
    compile-with-sham
    optimize&init-jit
    ))
@@ -37,7 +33,8 @@
     (state src
            (make-immutable-hash (list (cons prog-arg-info arg-info)))
            passes))
-  (run-state init-state))
+  (define-values (env info) (run-state init-state))
+  env)
 
 ;; this arginfo for now only talks about the prog function,
 ;; as for hakaru we only take one function
@@ -146,10 +143,15 @@
     (define nb-module-env
       (cf "../../testcode/hkrkt/NaiveBayesGibbsT.hkr" empty-info))
     (jit-dump-function nb-module-env 'prog)
-    (jit-verify-module nb-module-env)
-    (optimize-module nb-module-env #:opt-level 3)
-    (initialize-jit! nb-module-env #:opt-level 3)
-    (jit-get-function 'prog nb-module-env)
+    (optimize-module nb-module-env)
+    ;; (basic-optimize-module nb-module-env #:opt-level 1)
+    (jit-dump-function nb-module-env 'prog)
+
+    ;; (jit-verify-module nb-module-env)
+    ;; (jit-write-module nb-module-env "nb.ll")
+    ;; (jit-get-function 'prog nb-module-env)
+    (disassemble-ffi-function (jit-get-function-ptr 'prog nb-module-env)
+                              #:size 1000)
     )
 
   ;; (dogg)
