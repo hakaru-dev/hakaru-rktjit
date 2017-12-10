@@ -114,6 +114,6 @@
   ;;      (expr-mod (fn-stmt main)
   ;;                (map (λ (p) (cons (car p) (fn-stmt (cdr p)))) fns))]))
   (match st
-    [(state prg info os)
-     (define funs (expand-function prg '()))
+    [(state prgs info os)
+     (define funs (append* (map (curryr expand-function '()) prgs)))
      (run-next funs info st)]))

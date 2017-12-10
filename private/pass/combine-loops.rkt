@@ -234,21 +234,28 @@
   (wrap-expr types vars vals (stmt-void) body))
 
 (define (combine-loops st)
-  (define pass
-    (create-rpass
-     (expr
+  (define (combine-lets l)
+    (match l
       [(expr-lets types vars vals (stmt-void) body)
        (define-values (loop-var-map normal-var-map)
          (partition (λ (p) (is-loop? (second p))) (map list vars vals types)))
        (define loop-groups (group-same-size loop-var-map))
        (dprint normal-var-map loop-var-map loop-groups)
-       (wrap-body-for-normals normal-var-map (wrap-body-for-groups loop-groups body))])
+       (wrap-body-for-normals normal-var-map (wrap-body-for-groups loop-groups body))]))
+  (define pass
+    (create-rpass
+     (expr
+      [(expr-lets types vars vals (stmt-void) body)
+       (combine-lets (expr-lets types vars vals (stmt-void) body))]
+      [e #:when (ormap (λ (f) (f e)) (list expr-prd? expr-arr? expr-sum? expr-bucket?))
+         (define v (expr-var (typeof e) (gensym^ 'lp) '_))
+         (combine-lets (expr-lets (list (typeof e)) (list v) (list e) (stmt-void) v))])
      (reducer) (stmt) (pat)))
   (match st
-    [(state prg info os)
-     (define nprg (pass prg))
-     (dpc "combine loops:\n~a\n" (pretty-format (pe nprg)))
-     (run-next nprg info st)]))
+    [(state prgs info os)
+     (define nprgs (map pass prgs))
+     (dpc "combine loops:\n~a\n" (map (compose  pretty-format pe) nprgs))
+     (run-next nprgs info st)]))
 
 (define (dprint normal-var-map loop-var-map loop-groups)
   (when (not (empty? normal-var-map))

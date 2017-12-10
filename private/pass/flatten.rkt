@@ -240,10 +240,10 @@
       [else (ufb body '())]))
 
   (match st
-    [(state prg info os)
-     (define nprg (combine-ufb (uf prg)))
-     (dpf "flatten-anf:\n~a\n" (pretty-format (pe nprg)))
-     (run-next nprg info st)]))
+    [(state prgs info os)
+     (define nprgs (map (compose combine-ufb uf) prgs))
+     (dpf "flatten-anf:\n~a\n" (map (compose pretty-format pe) nprgs))
+     (run-next nprgs info st)]))
 
 ;; **************************************************************** ;;
 (define (pull-indexes st)
