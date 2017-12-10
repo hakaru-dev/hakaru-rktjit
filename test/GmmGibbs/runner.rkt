@@ -25,10 +25,9 @@
 
 ;; (jit-dump-module partial1-env)
 
-(define (run-test module-env input output)
+(define (run-module module-env input)
   (define points (length (car input)))
   (define classes (add1 (apply max (cdr input))))
-  (printf "running test p: ~a, c: ~a\n" points classes)
 
   (define prog (jit-get-function 'prog module-env))
 
@@ -87,8 +86,10 @@
   (define output-list
     (for/list ([i (get-size-prob-array output-c)])
       (prob2real (get-index-prob-array output-c i))))
-  (printf "output from prog: ~a\n" output-list)
-  (define output-hs (list 322.48561494234417  190.89773000645684 2345.667007610382))
-  (printf "output from haskell: ~a\n" output-hs))
+  output-list)
 
-(run-test partial1-env input-3-10 '())
+(module+ test
+  (require rackunit)
+  (define our-out (run-module partial1-env input-3-10))
+  (define _ (map (curryr check-= 0.0000000001) our-out
+                 (list 322.48561494234417  190.89773000645684 2345.667007610382))))
