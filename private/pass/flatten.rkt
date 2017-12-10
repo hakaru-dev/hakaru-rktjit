@@ -4,12 +4,15 @@
 (require "utils.rkt")
 (require racket/trace)
 (provide flatten-anf
-         pull-indexes)
+         pull-indexes
+         debug-flatten-anf
+         debug-pull-indexes)
 
 (define debug-flatten-anf (make-parameter #f))
 (define dpf (debug-printf debug-flatten-anf))
 (define debug-pull-indexes (make-parameter #f))
 (define dpi (debug-printf debug-pull-indexes))
+(define hakrit-loop-hoist? (make-parameter #t))
 
 #|
  Does anf and let hoisting in single pass using sorting
@@ -32,24 +35,24 @@
 ;; fvars: (seteqv <var>)
 (define-struct efv (var expr fvars) #:prefab)
 ;; efvp ::= (list? efv)
-(define (print-efv e)
+(define (pretty-efv e)
   (cons (print-expr (efv-var e)) (list (map print-expr (set->list (efv-fvars e))))))
-
+(define pp pretty-print)
 
 ;; ufb: pair of expression and a list of required let bindings
 ;;  expr: expression,
 ;;  efvp: list of bindings needed by expr
 (define-struct ufb (expr efvp) #:prefab)
-
-(define hakrit-loop-hoist? (make-parameter #t))
+(define (pretty-ufb u)
+  (cons (print-expr (ufb-expr u)) (pretty-efvp (ufb-efvp u))))
+(define (pretty-efvp efvp)
+  (map pretty-efv efvp))
 ;;forces to form a let for `efv`'s having `var` as a free variable
 (define (get-ufb-without uf vars)
+  (define vset (list->set vars))
   (define sefvp (sort-efvp (ufb-efvp uf)))
-  (define-values (free bind)
-    (splitf-at sefvp
-               (λ (ef)
-                 (not (ormap (λ (v) (set-member? (efv-fvars ef) v)) vars)))))
-
+  (define-values (bind free)
+    (partition (λ (ef) (set-empty? (set-subtract vset (efv-fvars ef)))) sefvp))
   (if (hakrit-loop-hoist?)
       (ufb (combine-expr (ufb-expr uf) bind) free)
       (ufb (combine-expr (ufb-expr uf) sefvp) '())))
@@ -166,43 +169,13 @@
   ;expr -> ufb
   (define (uf body)
     (match body
-      ;; a hack to store hoisted variables over a curried function in
-      ;; the args by using a dummy var '$
-      ;; The reason being, later alpha equivalence removes a bunch of variables,
-      ;; and that should replace then in fun args after $
       [(expr-fun name args ret-type body)
        (ufb (expr-fun name args ret-type (combine-ufb (uf body))) '())]
-      [(expr-fun name args ret-type (expr-if t tst thn els))
-       ;; ignoring immediate if
-       (dpf "flatten: function with immediate if\n")
-       (dpf "flatten: function args: ~a\n" (map pe args))
-       (define tst-ub (uf tst))
-       (define thn-ub (uf thn))
-       (define els-ub (uf els))
-       (define nb
-         (get-ufb-without
-          (ufb (expr-if t (ufb-expr tst-ub) (ufb-expr thn-ub) (ufb-expr els-ub))
-               (append (ufb-efvp tst-ub) (ufb-efvp thn-ub) (ufb-efvp els-ub)))
-          args))
-       (dpf "flatten: efvp moving across function boundry: ~a\n" (map print-efv (ufb-efvp nb)))
-       (define nargs (append args (cons (expr-var '$ '$ '()) (map efv-var (ufb-efvp nb)))))
-       (ufb (expr-fun name nargs ret-type (ufb-expr nb)) (ufb-efvp nb))]
-
-      [(expr-fun name args ret-type body)
-       (define nb (get-ufb-without (uf body) args))
-       (dpf "flatten: function args: ~a\n" (map pe args))
-       (dpf "flatten: efvp for function: ~a\n" (map print-efv (ufb-efvp nb)))
-       (define nargs (append args (cons (expr-var '$ '$ '()) (map efv-var (ufb-efvp nb)))))
-       ;; we could also store something in arg-info to do the same, meh too much effort
-       ;; this should work for now, its easier to visualize and debug.
-       (ufb (expr-fun name nargs ret-type (ufb-expr nb)) (ufb-efvp nb))]
 
       [(expr-lets type vars vals (stmt-void) b)
-       ;;most of the lets at this point should only have void stmts
+       ;;all of the lets at this point should only have void stmts
        (define nb (get-ufb-without (uf b) vars))
        ;; we hoist all the complex values, like loops and leave the rest alone
-       ;;  but index applications are hoisted later; due to alpha equivalence
-       ;;  changing the variables
        (define-values (nvals nefvp)
          (for/fold ([nvals '()]
                     [efv (ufb-efvp nb)])
@@ -229,7 +202,8 @@
 
       [(expr-arr t i end b)
        (define es (new-var t (gensym^ 'ar)))
-       (define nb (get-ufb-without (uf b) (list i)))
+       (define ub (uf b))
+       (define nb (get-ufb-without ub (list i)))
        (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
        (define ns (expr-arr t i nend (ufb-expr nb)))
        (define nefv (cons (efv es ns (ffv ns)) nefvp))
@@ -264,7 +238,7 @@
      (dpf "flatten-anf:\n~a\n" (pretty-format (pe nprg)))
      (run-next nprg info st)]))
 
-
+;; **************************************************************** ;;
 (define (pull-indexes st)
   (define combine-imaps append)
   (define (group-alpha-eq imps)
@@ -388,8 +362,10 @@
        (define expl (pull-expr expr))
        (match-define (cons nstmt stmt-imap) (check&wrap-stmt (pull-stmt stmt) nvars))
 
-       (match-define (cons nbody body-imap) (check&wrap-expr expl (append nvars (set->list (find-free-variables nstmt)))))
-       (cons (expr-lets ntypes nvars nvals nstmt nbody) (combine-imaps tvl-imap stmt-imap body-imap))]
+       (match-define (cons nbody body-imap)
+         (check&wrap-expr expl (append nvars (set->list (find-free-variables nstmt)))))
+       (cons (expr-lets ntypes nvars nvals nstmt nbody)
+             (combine-imaps tvl-imap stmt-imap body-imap))]
 
       [(expr-if t tst thn els)
        (match-define (cons ntst tst-imap) (pull-expr tst))
@@ -402,7 +378,8 @@
        (define rdsl (map pull-expr rds))
        (define nrds (map car rdsl))
        (define rds-imps (append-map cdr rdsl))
-       (cons nivar (combine-imaps (list (cons nivar (expr-app t (expr-intrf 'index) nrds))) rds-imps))]
+       (cons nivar
+             (combine-imaps (list (cons nivar (expr-app t (expr-intrf 'index) nrds))) rds-imps))]
       [(expr-app t rtr rds)
        (define rdsl (map pull-expr rds))
        (define nrds (map car rdsl))
