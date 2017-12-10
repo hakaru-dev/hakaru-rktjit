@@ -379,7 +379,9 @@
        (define nrds (map car rdsl))
        (define rds-imps (append-map cdr rdsl))
        (cons nivar
-             (combine-imaps (list (cons nivar (expr-app t (expr-intrf 'index) nrds))) rds-imps))]
+             (combine-imaps (list (cons nivar
+                                        (expr-app t (expr-intrf 'index) nrds)))
+                            rds-imps))]
       [(expr-app t rtr rds)
        (define rdsl (map pull-expr rds))
        (define nrds (map car rdsl))
@@ -389,8 +391,13 @@
       [(? expr-val?) (cons expr '())]))
 
   (match st
-    [(state prg info os)
-     (match-define (cons nprg im) (pull-expr prg))
-     (dpi "pull-indexes: ~a\n" (pretty-format (pe nprg)))
-     (unless (empty? im) (error "index map not empty at top level function, shouldn't happend\n"))
-     (run-next nprg info st)]))
+    [(state prgs info os)
+     (define nprgs
+       (map (λ (prg)
+              (match-define (cons nprg im) (pull-expr prg))
+              (unless (empty? im)
+                (error "index map not empty at top level function"))
+              nprg)
+            prgs))
+     (dpi "pull-indexes: ~a\n" (pretty-format (map pe nprgs)))
+     (run-next nprgs info st)]))

@@ -151,8 +151,30 @@
                     (expr-prd t i start els b)))]
       [(expr-prd t i start (expr-val tv 0) _)
        (expr-val t 1)]
+      [(expr-prd t i start end (expr-val tv 1))
+       (expr-val t 1)]
+      [(expr-prd t i start end (expr-if tb tst thn (expr-val tv 1)))
+       #:when (set-member? (find-free-variables tst) i)
+       (match tst
+          [(expr-app _ (expr-intrf '==) (list  v1 v2))
+           #:when (or (equal? v1 i) (equal? v2 i))
+           (sl (expr-lets (list (typeof i))
+                       (list i)
+                       (list (if (equal? v1 i) v2 v1))
+                       (stmt-void)
+                       thn))]
+          [else (expr-prd t i start end (sl (expr-if tb tst thn (expr-val tv 1))))])]
+      [(expr-prd t i start end (expr-if tb tst thn els))
+       (sl (expr-if tb tst
+                    (expr-prd t i start end thn)
+                    (expr-prd t i start end els)))]
+      ;; TODO verify ^^
+
       [(expr-prd t i start end b)
-       (expr-prd t i start (sl end) (sl b))]
+       (define nb (sl b))
+       (if (expr-if? nb)
+           (sl (expr-prd t i start (sl end) nb))
+           (expr-prd t i start (sl end) nb))]
       [(expr-sum t i start end b)
        (expr-sum t i start (sl end) (sl b))]
       [(expr-arr t i end b)
@@ -169,15 +191,13 @@
       [(stmt-expr s e)
        (stmt-expr (sl s) (sl e))]
       [(stmt-block stmts)
-       (stmt-block (map stmts))]
+       (stmt-block (map sl stmts))]
       [(stmt-void) (stmt-void)]
       [(stmt-if tst thn els)
        (stmt-if (sl tst) (sl thn) (sl els))]
       [(stmt-assign lhs rhs)
        (stmt-assign lhs (sl rhs))]
-      [else
-       (printf "else: ")(pretty-print (pe ast))
-       ast]))
+      [else ast]))
   (match st
     [(state prg info os) #:when (list? prg)
      (define nprgs (map sl prg))
