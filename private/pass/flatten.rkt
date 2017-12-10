@@ -123,10 +123,17 @@
     [(expr-bucket _ (expr-val 'nat 0)
                   (expr-app 'nat (expr-intrf 'size) (list (expr-var _ a _))) _)
      a]
+
+    [(expr-arr _ _ (expr-val 'nat s) _) s]
+    [(expr-sum _ _ (expr-val 'nat 0) (expr-val 'nat e) _) e]
+    [(expr-prd _ _ (expr-val 'nat 0) (expr-val 'nat e) _) e]
+    [(expr-bucket _ (expr-val 'nat 0) (expr-val 'nat s) _) s]
+
     [(expr-arr _ _ (expr-var _ a _) _) a]
     [(expr-sum _ _ (expr-val 'nat 0) (expr-var _ a _) _) a]
     [(expr-prd _ _ (expr-val 'nat 0) (expr-var _ a _) _) a]
     [(expr-bucket _ (expr-val 'nat 0) (expr-var _ a _) _) a]
+
     [else '?]))
 
 ;; encapsulate the expr with the list of let bindings
@@ -279,7 +286,9 @@
     (stmt-expr (stmt-void) (wrap s (expr-val 'nat 0) imps)))
 
   (define (cant-can es imap vars)
-    (define ffv (apply set-union (cons (set) (map (compose find-free-variables cdr) imap))))
+    (define ffv (apply set-union
+                       (cons (set)
+                             (map (compose find-free-variables cdr) imap))))
     (for/fold ([cant '()]
                [can '()])
               ([im imap])
@@ -316,7 +325,8 @@
        (cons (stmt-if ntst nthn nels) (combine-imaps tst-imap thn-imap els-imap))]
       [(stmt-for i start end body)
        (match-define (cons body1 b-imap1) (pull-stmt body))
-       (match-define (cons nbody body-imap) (check&wrap-stmt (cons body1 b-imap1) (list i)))
+       (match-define (cons nbody body-imap)
+         (check&wrap-stmt (cons body1 b-imap1) (list i)))
        (cons (stmt-for i start end nbody) body-imap)]
       [(stmt-assign lhs rhs)
        (match-define (cons nrhs rhs-imap) (pull-expr rhs))
