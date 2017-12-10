@@ -4,6 +4,7 @@
          "utils.rkt")
 
 (provide initial-simplifications
+         middle-simplifications
          later-simplifications)
 
 (define debug-init-simplifications (make-parameter #f))
@@ -136,6 +137,54 @@
      (dpi "initial simplification:\n~a\n" (pretty-format (pe nprg)))
      (run-next nprg info st)]))
 
+
+(define (middle-simplifications st)
+  (define (sl ast)
+    (match ast
+      [(expr-fun name args ret-type body)
+       (expr-fun name args ret-type (sl body))]
+      [(expr-lets ts vars vals stmt body)
+       (expr-lets ts vars (map sl vals) (sl stmt) (sl body))]
+      [(expr-prd t i start (expr-if te tst thn els) b)
+       (sl (expr-if te tst
+                    (expr-prd t i start thn b)
+                    (expr-prd t i start els b)))]
+      [(expr-prd t i start (expr-val tv 0) _)
+       (expr-val t 1)]
+      [(expr-prd t i start end b)
+       (expr-prd t i start (sl end) (sl b))]
+      [(expr-sum t i start end b)
+       (expr-sum t i start (sl end) (sl b))]
+      [(expr-arr t i end b)
+       (expr-arr t i (sl end) (sl b))]
+
+      [(expr-if t tst thn els)
+       (expr-if t (sl tst) (sl thn) (sl els))]
+      [(expr-app t rator rands)
+       (expr-app t rator (map sl rands))]
+
+      ;; stmt simplifications
+      [(stmt-for i start end b)
+       (stmt-for i (sl start) (sl end) (sl b))]
+      [(stmt-expr s e)
+       (stmt-expr (sl s) (sl e))]
+      [(stmt-block stmts)
+       (stmt-block (map stmts))]
+      [(stmt-void) (stmt-void)]
+      [(stmt-if tst thn els)
+       (stmt-if (sl tst) (sl thn) (sl els))]
+      [(stmt-assign lhs rhs)
+       (stmt-assign lhs (sl rhs))]
+      [else
+       (printf "else: ")(pretty-print (pe ast))
+       ast]))
+  (match st
+    [(state prg info os) #:when (list? prg)
+     (define nprgs (map sl prg))
+     (run-next nprgs info st)]
+    [(state prg info os)
+     (define nprg (sl prg))
+     (run-next (list nprg) info st)]))
 
 ;;stuff that come up after flatten and combining loops that we can remove or simplify
 ;; this has an env which stores the bindings uptil that expression or statements
