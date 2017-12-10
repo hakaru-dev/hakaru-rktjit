@@ -114,7 +114,8 @@
             #:when (constant-size-array? (typeof arg))
             (expr-val ta (get-size-of-array (typeof arg)))]
 
-           [(expr-app ta (expr-intrf 'index) (list (expr-app t (expr-intrf 'constant-value-array) cargs) ind))
+           [(expr-app ta (expr-intrf 'index)
+                      (list (expr-app t (expr-intrf 'constant-value-array) cargs) ind))
             (second cargs)]
 
            [(expr-match t tst brs)
@@ -123,7 +124,8 @@
             #:when (and (pair? t)
                         (member (car t) '(nat real int))
                         (assocv 'constant (cdr t)))
-            (dpi "init-simple: got constant from info replacing: ~a=~a\n" sym (assocv 'constant (cdr t)))
+            (dpi "init-simple: got constant from info replacing: ~a=~a\n"
+                 sym (assocv 'constant (cdr t)))
             (expr-val t (assocv 'constant (cdr t)))])
      (reducer)
      (stmt)
@@ -133,7 +135,6 @@
      (define nprg (pass prg))
      (dpi "initial simplification:\n~a\n" (pretty-format (pe nprg)))
      (run-next nprg info st)]))
-
 
 
 ;;stuff that come up after flatten and combining loops that we can remove or simplify
@@ -147,7 +148,8 @@
       [(expr-lets (list t) (list var) (list val) (stmt-void) e)
        #:when (and (expr-var? e) (equal? var e))
        (dprintf (not (equal? (typeof val) (typeof e)))
-                "was cleaning up var but got weird types: \n\tvar ~a:~a, \n\tval ~a:~a, \n\tbody ~a:~a\n\n"
+                (string-append  "was cleaning up var but got weird types:"
+                                "\n\tvar ~a:~a, \n\tval ~a:~a, \n\tbody ~a:~a\n\n")
                 (pe var) (typeof var) (pe val) (typeof val) (pe e) (typeof e))
        val]
       [else e]))
@@ -178,10 +180,15 @@
 
        (define bffv (set-union (find-free-variables body)
                                (find-free-variables stmt)
-                               (apply set-union (cons (set) (map find-free-variables vals)))))
+                               (apply set-union
+                                      (cons (set)
+                                            (map find-free-variables vals)))))
 
        (dpl "simplifying-expr-lets: ~a\n"
-            (pretty-format (map list (map pe vars) ts (map typeof vars) (map typeof vals))))
+            (pretty-format (map list
+                                (map pe vars) ts
+                                (map typeof vars)
+                                (map typeof vals))))
 
        (define-values (nts nvars nvals ne)
          (for/fold ([nts '()] [nvars '()] [nvals '()] [e env])
@@ -195,11 +202,10 @@
               (dpl "replacing-immutable: ~a <- ~a\n" (pe var) (pe val))
               (values nts nvars nvals (hash-set e var nv))]
              [else
-              ;; (dpl "expr-let-nothing: ~a, ffv?: ~a, var?: ~a, mv?: ~a\n"
-              ;;           (pe var) (set-member? bffv var) (expr-var? nv) (is-mutable-var? var))
               (values (cons t nts) (cons var nvars) (cons nv nvals) e)])))
        (clean-expr-lets
-        (expr-lets (reverse nts) (reverse nvars) (reverse nvals) (sl stmt ne) (sl body ne)))]
+        (expr-lets (reverse nts) (reverse nvars) (reverse nvals)
+                   (sl stmt ne) (sl body ne)))]
 
       [(expr-if t tst thn els)
        (expr-if t (sl tst env) (sl thn env) (sl els env))]
@@ -263,7 +269,9 @@
           stmts))
        (stmt-expr (stmt-void)
                   (sl
-                   (expr-lets (append-map first tvls) (append-map second tvls) (append-map third tvls)
+                   (expr-lets (append-map first tvls)
+                              (append-map second tvls)
+                              (append-map third tvls)
                               (sl (stmt-block (map fourth tvls)) env)
                               (expr-val 'nat 0))
                    env))]
@@ -301,9 +309,20 @@
         env)]
       [(stmt-return v)
        (stmt-return v)]
+
+      [(expr-sum t i start end b)
+       (expr-sum t (sl i env) (sl start env) (sl end env) (sl b env))]
+      [(expr-prd t i start end b)
+       (expr-prd t (sl i env) (sl start env) (sl end env) (sl b env))]
+      [(expr-arr t i end b)
+       (expr-arr t (sl i env) (sl end env) (sl b env))]
+      [(expr-bucket t start end r)
+       (expr-bucket t start end r)]
+
       [v #:when (hash-has-key? env v)
          (dpl "\treplaced: ~a:~a with ~a:~a\n"
-              (print-expr v) (typeof v) (print-expr (hash-ref env v)) (typeof (hash-ref env v)))
+              (print-expr v) (typeof v) (print-expr (hash-ref env v))
+              (typeof (hash-ref env v)))
          (hash-ref env v)]
       [v #:when (or (expr-var? v) (expr-val? v)) v]
 
@@ -331,8 +350,8 @@
 
   (match st
     [(state prg info os) #:when (list? prg)
-     (define nprgs (map (curryr sl (make-immutable-hash)) prg))
-     (run-next nprgs info st)]
+                         (define nprgs (map (curryr sl (make-immutable-hash)) prg))
+                         (run-next nprgs info st)]
     [(state prg info os)
      (define nprg (sl prg (make-immutable-hash)))
      (dpl "later-simplifications: \n~a\n" (pretty-format (pe nprg)))
