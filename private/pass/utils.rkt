@@ -28,7 +28,7 @@
     (string->symbol (string-append (symbol->string sym) sep (number->string n)))))
 
 (define (assocv sym lst (default #f))
-  (if lst
+  (if (and (list? lst) (andmap pair? lst))
       (let ([av (assoc sym lst)])
         (if av (cdr av) default))
       default))
@@ -89,11 +89,11 @@
 
 (define (get-type-with-info var-type var-info)
   (define (number-type)
-    (define infosym (symbol-append var-type 'info))
+    (define infosym (symbol-append var-type '-info))
     (define type-info (assocv infosym var-info))
     (if type-info
         (let ([constant (assocv 'constant type-info)]
-              [valuerange (assocv 'valuerange type-info)])
+              [valuerange (assocv 'value-range type-info)])
           (cond
             [constant `(,var-type (constant . ,constant))]
             [valuerange `(,var-type (valuerange . ,valuerange))]))
@@ -104,7 +104,7 @@
     ['prob (number-type)]
     ['bool (number-type)]
     [`(pair ,at ,bt)
-     (define pair-info (assocv 'pairinfo var-info))
+     (define pair-info (assocv 'pair-info var-info))
      (if pair-info
          (let ([ainfo (assocv 'ainfo pair-info)]
                [binfo (assocv 'binfo pair-info)])
@@ -112,19 +112,38 @@
                   ,(get-type-with-info bt binfo)))
          `(pair ,at ,bt))]
     [`(array ,type)
-     (define array-info (assocv 'arrayinfo var-info))
+     (define array-info (assocv 'array-info var-info))
      (if array-info
          (let ([size (assocv 'size array-info)]
-               [typeinfo (assocv 'typeinfo array-info)])
+               [typeinfo (assocv 'elem-info array-info)])
            `(array ,(get-type-with-info type typeinfo) (size . ,size)))
          `(array ,type))]))
+(define (is-constant-type? t)
+  (if (list? t)
+      (assocv 'constant (cdr t))
+      #f))
+(define (get-constant-value t)
+   (assocv 'constant (cdr t)))
+
+
+(define (get-arg-info i) (assocv 'arg-info i))
+(define (get-array-info i)
+  (assocv  'array-info (get-arg-info i)))
+(define (get-array-elem-info i)
+  (assocv 'elem-info (get-array-info i)))
+(define (get-array-elem-type-info i t)
+  (assocv t (get-array-elem-info i)))
+(define (get-array-elem-constant-value i t)
+  (assocv 'constant (get-array-elem-type-info i t)))
 
 (define (debug-print st)
   (match st
     [(state prg info os)
      (if (list? prg)
          (if (expr? (car prg))
-             (printf "debug-printing multiple: \n~a\n" (map (compose pretty-format pe) prg))
-             (printf "debug-printing multiple: \n~a\n" (map (compose pretty-format print-sham-def) prg)))
+             (printf "debug-printing multiple: \n~a\n"
+                     (map (compose pretty-format pe) prg))
+             (printf "debug-printing multiple: \n~a\n"
+                     (map (compose pretty-format print-sham-def) prg)))
          (printf "debug-printing: \n~a\n" (pretty-format (pe prg))))
      (run-next prg info st)]))

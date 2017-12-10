@@ -115,6 +115,10 @@
             #:when (constant-size-array? (typeof arg))
             (expr-val ta (get-size-of-array (typeof arg)))]
 
+           [(expr-app ta (expr-intrf 'index) (list (expr-var tv vv info) ind))
+            (if (is-constant-type? (second tv))
+                (expr-val ta (get-constant-value (second tv)))
+                (expr-app ta (expr-intrf 'index) (list (expr-var tv vv info) ind)))]
            [(expr-app ta (expr-intrf 'index)
                       (list (expr-app t (expr-intrf 'constant-value-array) cargs) ind))
             (second cargs)]
@@ -132,10 +136,10 @@
      (stmt)
      (pat)))
   (match st
-    [(state prg info os)
-     (define nprg (pass prg))
-     (dpi "initial simplification:\n~a\n" (pretty-format (pe nprg)))
-     (run-next nprg info st)]))
+    [(state prgs info os)
+     (define nprgs (map pass prgs))
+     (dpi "initial simplification:\n~a\n" (pretty-format (map pe nprgs)))
+     (run-next nprgs info st)]))
 
 
 (define (middle-simplifications st)
@@ -199,12 +203,9 @@
        (stmt-assign lhs (sl rhs))]
       [else ast]))
   (match st
-    [(state prg info os) #:when (list? prg)
-     (define nprgs (map sl prg))
-     (run-next nprgs info st)]
-    [(state prg info os)
-     (define nprg (sl prg))
-     (run-next (list nprg) info st)]))
+    [(state prgs info os)
+     (define nprgs (map sl prgs))
+     (run-next nprgs info st)]))
 
 ;;stuff that come up after flatten and combining loops that we can remove or simplify
 ;; this has an env which stores the bindings uptil that expression or statements
@@ -244,7 +245,6 @@
        (expr-fun name args ret-type (sl body env))]
       [(expr-lets '() '() '() (stmt-void) b)
        (sl b env)]
-
       [(expr-lets ts vars vals stmt body)
 
        (define bffv (set-union (find-free-variables body)
@@ -418,10 +418,6 @@
       [else (error 'notdone)]))
 
   (match st
-    [(state prg info os) #:when (list? prg)
-                         (define nprgs (map (curryr sl (make-immutable-hash)) prg))
-                         (run-next nprgs info st)]
-    [(state prg info os)
-     (define nprg (sl prg (make-immutable-hash)))
-     (dpl "later-simplifications: \n~a\n" (pretty-format (pe nprg)))
-     (run-next nprg info st)]))
+    [(state prgs info os)
+     (define nprgs (map (curryr sl (make-immutable-hash)) prgs))
+     (run-next nprgs info st)]))

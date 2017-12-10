@@ -52,7 +52,7 @@
        (expr-arr type ie nsize (parse body (hash-set env index ie)))]
 
       [`((bucket ,start ,end ,reducer) : ,type)
-       (expr-bucket type (parse start env) (parse end env) (parse-reducer reducer env))]
+       (expr-bucket type (parse start env) (parse end env) (parse-reducer reducer env (list (expr-var 'nat (gensym^ 'bki) '_))))]
 
       [`((match ,tst ,brnchs ...) : ,type)
        (expr-match type (parse tst env) (map (curryr parse-branch env) brnchs))]
@@ -140,18 +140,28 @@
        (expr-val 'real cv)]))
 
 
-  (define (parse-reducer r env)
+  (define (parse-reducer r env bind-vars)
+    (define (use-bind-vars e env bind-vars)
+      (match* (e bind-vars)
+        [(`(bind ,v ,be) (cons bv rst))
+         (expr-bind bv (use-bind-vars be (hash-set env v bv) rst))]
+        [(ne bvs)
+         #:when (not (equal? (car ne) 'bind))
+         (parse ne env)]))
     (match r
       [`(r_split ,e ,ra ,rb)
-       (reducer-split (parse e env) (parse-reducer ra env) (parse-reducer rb env))]
+       (reducer-split (use-bind-vars e env bind-vars) (parse-reducer ra env bind-vars) (parse-reducer rb env bind-vars))]
       [`(r_fanout ,ra ,rb)
-       (reducer-fanout (parse-reducer ra env) (parse-reducer rb env))]
+       (reducer-fanout (parse-reducer ra env bind-vars) (parse-reducer rb env bind-vars))]
       [`(r_add ,i)
-       (reducer-add (parse i env))]
+       (reducer-add (use-bind-vars i env bind-vars))]
       [`r_nop
        (reducer-nop)]
       [`(r_index ,i ,e ,rb)
-       (reducer-index (parse i env) (parse e env) (parse-reducer rb env))]
+       (define ni (use-bind-vars i env (cdr bind-vars)))
+       (define ne (use-bind-vars e env bind-vars))
+       (define nr (parse-reducer rb env (append bind-vars (list  (expr-var 'nat (gensym^ 'bi) '_)))))
+       (reducer-index ni ne nr)]
       [else (error "unknown reducer " r)]))
 
   (define (parse-branch b env)
@@ -187,4 +197,4 @@
     [(state prg info os)
      (define nprg (parse-with-info prg info))
      (dp "parsed:\n~a\n" (pretty-format (pe nprg)))
-     (run-next nprg info st)]))
+     (run-next (list nprg) info st)]))
