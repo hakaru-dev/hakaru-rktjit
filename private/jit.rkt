@@ -12,21 +12,22 @@
 
   (list
    clean-curry
-
    parse-sexp
-   initial-simplifications
-   flatten-anf
-
+   initial-simplifications  ;; debug-print
+   flatten-anf              ;; debug-print
+   later-simplifications
+   middle-simplifications   ;; debug-print
+   later-simplifications    ;; debug-print
+   fix-loop-lets            debug-print
    combine-loops
    later-simplifications
-   pull-indexes
-   later-simplifications
+   pull-indexes             ;; debug-print
+   later-simplifications    debug-print
 
-   to-stmt
+   to-stmt debug-print stop
    to-sham-lc
    compile-with-sham
-   optimize&init-jit
-   ))
+   optimize&init-jit))
 
 (define (run-pipeline src arg-info)
   (define init-state
@@ -55,6 +56,10 @@
 (define (compile-file fname arg-info)
   (compile-src (file->value fname) arg-info))
 
+(define (debug-file fname arg-info)
+  (parameterize ([debug-flatten-anf #f])
+    (compile-src (file->value fname) arg-info)))
+
 (define (debug-store-file src-fname out-fname)
   (call-with-output-file out-fname
     (λ (out-port)
@@ -70,10 +75,6 @@
       (jit-dump-module mod-env)
       (jit-verify-module mod-env))
     (void))
-  (define (cf fname inf)
-    (parameterize [(debug-curry #f)]
-      (compile-file fname inf)))
-
   (define (doct)
     (define nct 1000)
     (define ctinfo
@@ -85,7 +86,7 @@
       (list (list) (list)))
 
     (define ct-module-env
-      (cf "../../testcode/hkrkt/ClinicalTrial.hkr" ectinfo))
+      (debug-file "../../testcode/hkrkt/ClinicalTrial.hkr" ectinfo))
     (define f (jit-get-function 'prog ct-module-env))
     (dv ct-module-env))
   (define (dolr)
@@ -94,7 +95,7 @@
                     (list `(arrayinfo . ((size . ,nlr))))
                     (list `(arrayinfo . ((size . ,nlr))))))
     (define lr-module-env
-      (cf "../../testcode/hkrkt/LinearRegression.hkr" lrinfo))
+      (debug-file "../../testcode/hkrkt/LinearRegression.hkr" lrinfo))
     (define f (jit-get-function 'prog lr-module-env))
     (dv lr-module-env))
   (define (dogg)
@@ -104,12 +105,12 @@
       (list
        (list )
        (list `(arrayinfo . ((size . ,classes)
-                            (typeinfo . ((probinfo . ((constant . 0)))))
+                            (eleminfo . ((probinfo . ((constant . 0)))))
                             (constant . #t)))
              `(fninfo . (remove)))
        (list `(arrayinfo
                . ((size . ,points)
-                  (typeinfo
+                  (eleminfo
                    . ((natinfo
                        . ((valuerange . (0 . ,(- classes 1)))))))))
              `(fninfo . (movedown)))
@@ -118,30 +119,39 @@
 
        (list `(natinfo . ((valuerange . (0 . ,(- points 1))))))))
     (define gg-module-env
-      (cf "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
+      (debug-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
     (jit-dump-function gg-module-env 'prog)
     (jit-verify-module gg-module-env))
-  (define (donb num-topics num-words num-docs words-size docs-size)
+  (define (donb num-topics num-words num-docs words-size)
     (define empty-info (list '() '() '() '() '() '()))
     (define full-info
       (list
-       (list `(arrayinfo . ((size . ,num-topics)
-                            (typeinfo . ((probinfo . ((constant . 0)))))
+       (list `(array-info . ((size . ,num-topics)
+                            (elem-info . ((prob-info . ((constant . 0)))))
                             (constant . #t)))
-             `(fninfo . (remove)))
-       (list `(arrayinfo . ((size . ,num-words)
-                            (typeinfo . ((probinfo . ((constant . 0)))))
+             `(attrs . (remove)))
+       (list `(array-info . ((size . ,num-words)
+                            (elem-info . ((prob-info . ((constant . 0)))))
                             (constant . #t)))
-             `(fninfo . (remove)))
-       (list `(arrayinfo . ((size . ,num-docs)
-                            (typeinfo . ((probinfo . ((constant . 0)))))
-                            (constant . #t))))
-       (list `(arrayinfo . ((size . ,words-size))))
-       (list `(arrayinfo . ((size . ,docs-size))))
-       (list `(natinfo . ((valuerange . (0 . ,(- num-docs 1))))))))
+             `(attrs . (remove)))
+       (list `(array-info . ((size . ,num-docs)
+                            (elem-info . ((nat-info
+                                          . ((value-range
+                                              . (0 . ,(- num-topics 1))))))))))
+       (list `(array-info . ((size . ,words-size)
+                            (elem-info . ((nat-info
+                                          . ((value-range
+                                              . (0 . ,(- num-words 1)))))))))
+             `(attrs . (no-change)))
+       (list `(array-info . ((size . ,words-size)
+                            (elem-info . ((nat-info
+                                          . ((value-range
+                                              . (0 . ,(- num-docs 1)))))))))
+             `(attrs . (no-change)))
+       (list `(nat-info . ((valuerange . (0 . ,(- num-docs 1))))))))
 
     (define nb-module-env
-      (cf "../../testcode/hkrkt/NaiveBayesGibbsT.hkr" empty-info))
+      (debug-file "../../testcode/hkrkt/NaiveBayesGibbsT.hkr" full-info))
     (jit-dump-function nb-module-env 'prog)
     (optimize-module nb-module-env)
     ;; (basic-optimize-module nb-module-env #:opt-level 1)
@@ -155,7 +165,7 @@
     )
 
   ;; (dogg)
-  (donb 0 0 0 0 0)
+  (donb 20 59967 19997 2435579)
   ;; (define zp-info (list '()))
   ;; (define zp-env (compile-file "../test/zero-product.hkr" zp-info ))
   ;; (define real2prob (jit-get-function (string->symbol "real2prob") zp-env))
