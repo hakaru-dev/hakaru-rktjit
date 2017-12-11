@@ -49,6 +49,7 @@
     [else _pointer]))
 
 (define (rkt->jit module-env type val)
+  (define real2prob (jit-get-function 'real2prob module-env))
   (match type
     [`(array ,t)
      (define size (length val))
@@ -64,7 +65,7 @@
     ;; [`(pointer ,t)
     ;;  (define vals (map (curry rkt->jit module-env t) val))
     ;;  (list->cblock vals (get-racket-type t))]
-    ['prob ((jit-get-function 'real2prob module-env) (exact->inexact val))]
+    ['prob (real2prob (exact->inexact val))]
     ['real (exact->inexact val)]
     [else val]))
 

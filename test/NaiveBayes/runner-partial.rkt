@@ -21,10 +21,11 @@
 
   ;; (printf "running naive bayes:\n\t topics: ~a\n\t words: ~a\n\t docs: ~a\n" topics words docs)
 
-  ;; (printf "compiled\n")
+
   (define prog (jit-get-function 'prog module-env))
   (define init-rng (jit-get-function 'init-rng module-env))
   (init-rng)
+  (printf "compiled\n")
   (define num-topics (add1 (argmax identity topics)))
   (define num-words (add1 (argmax identity words)))
   (define num-docs (add1 (last docs)))
@@ -39,26 +40,26 @@
   (define zs (rkt->jit module-env '(array nat) topics))
   (define doc 0)
 
-  ;; (printf "done making arrays, calling prog\n")
+  (printf "calling prog\n")
   (define init-time (get-time))
   (define output-c (prog topic-prior word-prior zs c-words c-docs doc ))
   (define el-time (elasp-time init-time))
   (define jit-out (jit->rkt module-env output-type output-c))
-  ;; (printf "time taken: ~a\n" el-time)
+  (printf "time taken: ~a\n" el-time)
   jit-out)
 
-(define (run-vs-test fname type hs-output)
+(define (run-vs-test fname type)
   (printf "running test: ~a\n" fname)
   (run-test (compile-file fname empty-nbinfo)
-            vs-topics vs-words vs-docs type hs-output))
+            vs-topics vs-words vs-docs type))
 
-(define (run-full-test fname type hs-output)
+(define (run-full-test fname type)
   (run-test (compile-file fname empty-nbinfo)
-            full-topics full-words full-docs type hs-output))
+            full-topics full-words full-docs type))
 
 ;; (run-full-test "./NaiveBayesGibbs.hkr" 'nat 0)
 (module+ test
-  (define our-out (run-full-test "./partial.hkr" '(array real) '()))
+  (define our-out (run-full-test "./partial.hkr" '(array real)))
   (map (curryr check-= 0.0000000001) our-out
        (list -8659.371903184961 -9473.64535560285 -10152.497937672506 -9648.673918539233 -9606.47160672382 -9624.352183391884 -9468.15394886717
              -9580.842985576339 -9559.369326621854 -9634.407671463574 -9701.445215668664 -9415.152206831734 -9512.773749149055 -9368.555288242434

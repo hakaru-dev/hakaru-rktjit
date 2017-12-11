@@ -9,7 +9,6 @@
 (provide compile-file)
 
 (define passes
-
   (list
    clean-curry
    parse-sexp
@@ -18,13 +17,13 @@
    later-simplifications
    middle-simplifications   ;; debug-print
    later-simplifications    ;; debug-print
-   fix-loop-lets            debug-print
+   fix-loop-lets            ;; debug-print
    combine-loops
    later-simplifications
    pull-indexes             ;; debug-print
-   later-simplifications    debug-print
+   later-simplifications    ;; debug-print
 
-   to-stmt debug-print stop
+   to-stmt                  ;; debug-print
    to-sham-lc
    compile-with-sham
    optimize&init-jit))

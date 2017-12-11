@@ -86,7 +86,7 @@
   (printf "output from prog: ~a\n" output-list)
   (printf "output from hskl: ~a\n" output-hs))
 
-(define env (compile-file (build-path current-dir "fullstateless.hkr") empty-nbinfo))
+;; (define env (compile-file (build-path current-dir "fullstateless.hkr") empty-nbinfo))
 
-(printf "fullstateless:\n")
-(run-test env vs-topics vs-words vs-docs '(0.005494505494505496 0.011111111111111112 0.03333333333333335))
+;; (printf "fullstateless:\n")
+;; (run-test env vs-topics vs-words vs-docs '(0.005494505494505496 0.011111111111111112 0.03333333333333335))
