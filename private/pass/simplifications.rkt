@@ -5,7 +5,8 @@
 
 (provide initial-simplifications
          middle-simplifications
-         later-simplifications)
+         later-simplifications
+         fix-loop-lets)
 
 (define debug-init-simplifications (make-parameter #f))
 (define dpi (debug-printf debug-init-simplifications))
@@ -122,6 +123,15 @@
            [(expr-app ta (expr-intrf 'index)
                       (list (expr-app t (expr-intrf 'constant-value-array) cargs) ind))
             (second cargs)]
+           [(expr-sum t i start end (expr-val 'prob v))
+            (expr-app 'prob (expr-intrf 'real2prob)
+                      (list (expr-app 'real (expr-intrf 'nat2real)
+                                 (list
+                                  (expr-app 'nat (expr-intrf '*)
+                                            (list
+                                             (expr-app 'nat (expr-intrf '-)
+                                                       (list end start))
+                                             (expr-val 'real (exp v))))))))]
 
            [(expr-match t tst brs)
             (if (eq? (typeof tst) 'bool) (toif t tst brs) (extract-pair t tst brs))]
@@ -420,4 +430,74 @@
   (match st
     [(state prgs info os)
      (define nprgs (map (curryr sl (make-immutable-hash)) prgs))
+     (run-next nprgs info st)]))
+
+;; we need later-simplifications to run before middle once for removing loops
+;; but that also ends up removing let for some loops
+(define (fix-loop-lets st)
+  (define (apply-inside ast)
+    (match ast
+      [(expr-sum t i start end b)
+       (expr-sum t i start end (pass  b))]
+      [(expr-prd t i start end b)
+       (expr-prd t i start end (pass  b))]
+      [(expr-arr t i end b)
+       (expr-arr t i end (pass b))]
+      [else ast]))
+  (define (pass ast)
+    (match ast
+      [(expr-fun name args ret-type body)
+       (expr-fun name args ret-type (pass body))]
+      [(expr-lets ts vars vals stmt body)
+       (expr-lets ts vars (map apply-inside vals) (pass stmt) (pass body))]
+
+      [(expr-if t tst thn els)
+       (expr-if t (pass tst) (pass thn) (pass els))]
+
+      [(expr-app t rator rands)
+       (expr-app t rator (map pass rands))]
+
+      ;; stmt simplifications
+      [(stmt-for i start end b)
+       (stmt-for i start end (pass b))]
+
+      [(stmt-expr s e)
+       (stmt-expr (pass s) (pass e))]
+
+      [(stmt-block stmts)
+       (stmt-block (map pass stmts))]
+      [(stmt-void) (stmt-void)]
+
+      [(stmt-if tst thn els)
+       (stmt-if (pass tst) (pass thn) (pass els))]
+
+      [(stmt-assign lhs rhs)
+       (stmt-assign (pass lhs) (pass rhs))]
+      [(stmt-return v)
+       (stmt-return v)]
+
+      [(expr-sum t i start end b)
+       (define var (expr-var t (gensym^ 'sm) '()))
+       (expr-lets (list t) (list var) (list (expr-sum t i start end (pass  b)))
+                  (stmt-void)
+                  var)]
+      [(expr-prd t i start end b)
+       (define var (expr-var t (gensym^ 'pr) '()))
+       (expr-lets (list t) (list var) (list (expr-prd t i start end (pass b)))
+                  (stmt-void)
+                  var)]
+      [(expr-arr t i end b)
+       (define var (expr-var t (gensym^ 'ar) '()))
+       (expr-lets (list t) (list var) (list (expr-arr t i end (pass b)))
+                  (stmt-void)
+                  var)]
+      [(expr-bucket t start end r)
+       (define var (expr-var t (gensym^ 'bk) '()))
+       (expr-lets (list t) (list var) (list (expr-bucket t start end r))
+                  (stmt-void)
+                  var)]
+      [else ast]))
+  (match st
+    [(state prgs info os)
+     (define nprgs (map pass prgs))
      (run-next nprgs info st)]))

@@ -162,12 +162,12 @@
    (λ (vv)
      (define-values (start end) (loop-ends (second vv)))
      (if (and (expr-val? start)
-              (eq? (expr-val-v start) 0)
-              (eq? (expr-val-type start) 'nat))
-         (match end
-           [(expr-app _ (expr-intrf 'size) (list (expr-var _ sym _))) sym]
-           [else (print-expr end)])
-         (print-expr (expr-app (expr-intrf '-) (list end start)))))
+                (eq? (expr-val-v start) 0)
+                (eq? (expr-val-type start) 'nat))
+           (match end
+             [(expr-app _ (expr-intrf 'size) (list (expr-var _ sym _))) sym]
+             [else (print-expr end)])
+           (print-expr (expr-app (expr-intrf '-) (list end start)))))
    var-map))
 
 
@@ -186,7 +186,8 @@
 
         (define (gsf b i assigner) ;get-stmt-fold
           (set-constant-var i)
-          (stmt-expr (stmt-void) (wrap-expr 'nat  i index (expr->stmt b assigner) (expr-val 'nat 0))))
+          (stmt-expr (stmt-void)
+                     (wrap-expr 'nat  i index (expr->stmt b assigner) (expr-val 'nat 0))))
         (define (get-stmt-sp b i t op) ;sum and prd
           (gsf b i (λ (e) (stmt-assign var (expr-app t (expr-intrf op) (list var e))))))
         (define (get-stmt-ar b i t) ;arr
@@ -194,30 +195,36 @@
 
         (match body
           [(expr-bucket t start end reducer)
-           (dpc "bucket: ~a : ~a\n" (pe var) t)
+           ;; (dpc "bucket: ~a : ~a\n" (pe var) t)
            (define-values (nt v l) (get-init '() var t reducer))
-           (dpc "nt ~a v ~a l ~a\n" nt v (map pe l))
+           ;; (dpc "nt ~a v ~a l ~a\n" nt v (map pe l))
            (values (append nt ntypes)
                    (append (map set-mutable-var v) nvars)
                    (append l nvals)
                    (cons (get-accum index (list index) var t reducer) stmts))]
+
           [(expr-sum t i s e b)
-           (values (cons t ntypes) (cons var nvars) (cons (expr-val t 0) nvals)
+           (values (cons t ntypes)
+                   (cons var nvars)
+                   (cons (expr-val t 0) nvals)
                    (cons (get-stmt-sp b i t '+) stmts))]
+
           [(expr-prd t i s e b)
-           (values (cons t ntypes) (cons var nvars) (cons (expr-val t 1) nvals)
+           (values (cons t ntypes)
+                   (cons var nvars)
+                   (cons (expr-val t 1) nvals)
                    (cons (get-stmt-sp b i t '*) stmts))]
+
           [(expr-arr t i e b)
            (define nt (if (and (expr-val? e) (equal? (expr-val-type e) 'nat))
                           (add-array-size-info t (expr-val-v e))
                           t))
            (unless (equal? t nt) (dpc "changing varinfo for var: ~a\n" (print-expr var)))
            (set-expr-var-type! var nt)
-           (values (cons nt ntypes) (cons var nvars)
-                   (cons (if (and (expr-val? e) (equal? (expr-val-type e) 'nat))
-                             (expr-app nt (expr-intrf 'empty) (list))
-                             (expr-app nt (expr-intrf 'empty) (list e)))
-                         nvals)
+
+           (values (cons nt ntypes)
+                   (cons var nvars)
+                   (cons (expr-app nt (expr-intrf 'empty) (list e)) nvals)
                    (cons (get-stmt-ar b i t) stmts))])))
 
     (define for-stmt (stmt-for index start end (stmt-block  nstmts)))
@@ -229,8 +236,8 @@
 (define (wrap-body-for-normals nvm body)
   (define-values (types vars vals)
     (values (map third nvm) (map first nvm) (map second nvm)))
-  (dpc "wrapping-normals: ~a\n"
-       (map list (map pe vars) (map pe vals) types (map typeof vars) (map typeof vals)))
+  ;; (dpc "wrapping-normals: ~a\n"
+  ;;      (map list (map pe vars) (map pe vals) types (map typeof vars) (map typeof vals)))
   (wrap-expr types vars vals (stmt-void) body))
 
 (define (combine-loops st)
@@ -246,10 +253,7 @@
     (create-rpass
      (expr
       [(expr-lets types vars vals (stmt-void) body)
-       (combine-lets (expr-lets types vars vals (stmt-void) body))]
-      [e #:when (ormap (λ (f) (f e)) (list expr-prd? expr-arr? expr-sum? expr-bucket?))
-         (define v (expr-var (typeof e) (gensym^ 'lp) '_))
-         (combine-lets (expr-lets (list (typeof e)) (list v) (list e) (stmt-void) v))])
+       (combine-lets (expr-lets types vars vals (stmt-void) body))])
      (reducer) (stmt) (pat)))
   (match st
     [(state prgs info os)
