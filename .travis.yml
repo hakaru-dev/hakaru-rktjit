@@ -1,0 +1,20 @@
+sudo: enabled
+
+language: c
+
+before_install:
+  - git clone https://github.com/rjnw/sham
+  - cd hakrit; git clone https://github.com/
+  - sudo add-apt-repository "deb http://apt.llvm.org/artful/ llvm-toolchain-artful main"
+  - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key| sudo apt-key add -
+  - sudo add-apt-repository ppa:plt/racket
+  - sudo apt-get update
+  - sudo apt-get install racket llvm-5.0
+  - sudo ln -s /usr/bin/llvm-config-5.0 /usr/bin/llvm-config
+
+install:
+  - cd sham && raco pkg install --deps search-auto
+  - raco pkg install --deps search-auto
+
+script:
+  - raco test -t test
