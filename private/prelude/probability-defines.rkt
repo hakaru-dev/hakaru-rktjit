@@ -56,13 +56,13 @@
      #:info (prelude-function-info)
      (uniform  (v1 treal) (v2 treal) treal)
      (sham$block
-      (sham:stmt:expr
-       (sham:expr:app
-        (sham:rator:racket
-         (gensym 'debug-uniform)
-         (λ (a b) (printf "debug: uniform args: ~a, ~a\n" a b))
-         (sham:type:function (list treal treal) (sham:type:ref 'void)))
-        (list (sham$var v1) (sham$var v2))))
+      ;; (sham:stmt:expr
+      ;;  (sham:expr:app
+      ;;   (sham:rator:racket
+      ;;    (gensym 'debug-uniform)
+      ;;    (λ (a b) (printf "debug: uniform args: ~a, ~a\n" a b))
+      ;;    (sham:type:function (list treal treal) (sham:type:ref 'void)))
+      ;;   (list (sham$var v1) (sham$var v2))))
       (sham:stmt:return
        (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_flat treal)
                       (list (sham:expr:var 'gsl-rng)

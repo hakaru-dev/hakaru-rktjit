@@ -8,7 +8,8 @@
          "utils.rkt"
          "../utils.rkt")
 
-(provide to-sham-lc)
+(provide to-sham-lc
+         debug-to-sham)
 (define debug-to-sham (make-parameter #t))
 (define dts (debug-printf debug-to-sham))
 
@@ -27,6 +28,7 @@
   (add-basic&probability-defs prl)
 
   (define (get&add-type type-ast)
+    (dts "get&add-type: ~a\n" type-ast)
     (define-values (ref defs) (get-defs&ref-type type-ast))
     (add-defs-prelude! prl defs)
     ref)
@@ -45,6 +47,7 @@
       [(expr-var t sym _) (sham:expr:var sym)]
       [(expr-val t v) (get-value v t)]
       [(expr-lets types vars vals stmt body)
+       (unless (empty? vars) (dts "expr-lets: vars: ~a, types: ~a\n" (map expr-var-sym vars) (map typeof vars)))
        (define sham-types (map (compose get&add-type typeof) vars))
        (sham:expr:let (map expr-var-sym vars)
                       sham-types
@@ -114,6 +117,7 @@
             fname; (map expr-var-type nargs) ret-type
             (map print-sham-type (map (compose get&add-type expr-var-type) nargs))
             (print-sham-type (get&add-type ret-type)))
+
        (define dprf (symbol-append 'debug-print- fname))
        (sham:def:function
         (prog-fun-info  (map typeof nargs) ret-type fname)
