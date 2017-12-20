@@ -61,23 +61,20 @@
      (define-values (vrt vra vla) (get-init (cons fori binds) new-result tar ra))
      (define arr-size (late-simplify (assign-binds binds n)))
      (define is-constant-size? (and (expr-val? arr-size) (equal? (expr-val-type arr-size) 'nat)))
-     (define narrt (append`(array ,(car vrt))
+     (define narrt (append `(array ,(car vrt))
                            (if is-constant-size? `((size . ,(expr-val-v arr-size))) '())))
-
      (define arr-init (expr-app narrt (expr-intrf 'empty) (list arr-size)))
-
 
      (when (expr-var? result) (set-expr-var-type! result narrt))
      (values (list narrt)
              (list result)
              (cond
                [(or (equal? vrt 'real) (equal? tar 'nat)) (list arr-init)]
-               [(constant-size-array? (car vrt)) (list (expr-app `(array ,vrt (size . ,(expr-val-v arr-size)))
-                                                           (expr-intrf 'empty)
-                                                           (list arr-size)))]
+               [(constant-size-array? (car vrt))
+                (list (expr-app narrt (expr-intrf 'empty) (list arr-size)))]
                [else
                 (list (wrap-expr
-                       t arrn arr-init
+                       narrt arrn arr-init
                        (stmt-for
                         fori (expr-val 'nat 0) arr-size
                         (stmt-assign new-result (car vla)))

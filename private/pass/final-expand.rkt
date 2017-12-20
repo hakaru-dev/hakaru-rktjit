@@ -34,6 +34,7 @@
     ref)
 
   (define (ea tresult rator rands)
+    (dts "ea: ~a, ~a\n" tresult (pe rator))
     (define trands (map typeof rands))
     (define-values (rtr def)
       (get-rator (expr-intrf-sym rator) (clean-basic-type tresult) (map clean-basic-type trands)))
@@ -97,7 +98,7 @@
       [(stmt-block stmts) (sham:stmt:block (map es stmts))]
       [(stmt-assign var val) (sham:stmt:set! (ee var) (ee val))]
       [(stmt-return v)
-       (dtprintf "stmt-return: ~a, type: ~a\n" (pe v) (typeof v))
+       (dts "stmt-return: ~a, type: ~a\n" (pe v) (typeof v))
        (sham:stmt:return (ee v))]
       [(stmt-void) (sham:stmt:void)]
       [else (error (format "not expanding stmt: ~a\n" (ps stmt)))]))

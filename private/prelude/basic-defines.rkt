@@ -249,6 +249,13 @@
                  (tnat? (second trands)))
      (values (sham:rator:symbol 'root-prob-nat) (void))]
 
+    ['-
+     #:when (and (tnat? tresult)
+                 (equal? (length trands) 2)
+                 (tnat? (first trands))
+                 (tnat? (second trands)))
+     (values (sham:rator:symbol 'sub-nuw) (void))]
+
     ['exp
      #:when (and (tprob? tresult)
                  (equal? (length trands) 1)
