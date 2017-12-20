@@ -6,6 +6,8 @@
 (provide initial-simplifications
          middle-simplifications
          later-simplifications
+         late-simplify
+         remove-pairs
          fix-loop-lets)
 
 (define debug-init-simplifications (make-parameter #f))
@@ -217,10 +219,7 @@
      (define nprgs (map sl prgs))
      (run-next nprgs info st)]))
 
-;;stuff that come up after flatten and combining loops that we can remove or simplify
-;; this has an env which stores the bindings uptil that expression or statements
-;; so all the stuff which depends on environment should come here,
-(define (later-simplifications st)
+(define (late-simplify e)
   (define (clean-expr-lets e)
     (match e
       [(expr-lets '() '() '() (stmt-void) e)
@@ -426,10 +425,65 @@
       [(? stmt?) (error "stmt not done: ~a\n" (ps e))]
       [(? expr?) (error "expr not done: ~a\n" (pe e))]
       [else (error 'notdone)]))
-
+  (sl e (make-immutable-hash)))
+;;stuff that come up after flatten and combining loops that we can remove or simplify
+;; this has an env which stores the bindings uptil that expression or statements
+;; so all the stuff which depends on environment should come here,
+(define (later-simplifications st)
   (match st
     [(state prgs info os)
-     (define nprgs (map (curryr sl (make-immutable-hash)) prgs))
+     (define nprgs (map late-simplify prgs))
+     (run-next nprgs info st)]))
+
+(define (remove-pairs st)
+  (define (rp e env)
+    (match e
+
+      [(expr-app t (expr-intrf s) (list arg))
+       #:when (member s '(car cdr))
+       (define narg (rp arg env))
+       (if (and (expr-var? narg)
+                (ormap (λ (vs) (string-prefix? vs (symbol->string (expr-var-sym narg)))) (hash-keys env)))
+           (let ([sym (symbol-append (expr-var-sym narg)
+                                     (if (equal? s 'car) 'a 'b))])
+             (if (hash-has-key? env (symbol->string sym))
+                 (hash-ref env (symbol->string sym))
+                 (expr-var (expr-var-type narg) sym '())))
+           (expr-app t (expr-intrf s) (list narg)))]
+
+      [(expr-fun name args ret-type body)
+       (expr-fun name args ret-type (rp body env))]
+      [(expr-lets ts vars vals stmt body)
+       (define nvals (map (curryr rp env) vals))
+       (define nenv (for/fold [(e env)] ([v vars]) (hash-set e (symbol->string (expr-var-sym v)) v)))
+       (expr-lets ts vars nvals (rp stmt nenv) (rp body nenv))]
+      [(expr-if t tst thn els)
+       (expr-if t (rp tst env) (rp thn env) (rp els env))]
+      [(expr-app t (expr-intrf 'index) rands)
+       (define nrands (map (curryr rp env) rands))
+       (expr-app (second (typeof (car rands))) (expr-intrf 'index) nrands)]
+      [(expr-app t rator rands)
+       (expr-app t rator (map (curryr rp env) rands))]
+      [(stmt-for i start end b)
+       (stmt-for i (rp start env) (rp end env) (rp b env))]
+      [(stmt-expr s e)
+       (stmt-expr (rp s env) (rp e env))]
+      [(stmt-block stmts)
+       (stmt-block (map (curryr rp env) stmts))]
+      [(stmt-void) (stmt-void)]
+      [(stmt-if tst thn els)
+       (stmt-if (rp tst env) (rp thn env) (rp els env))]
+      [(stmt-assign lhs rhs)
+       (stmt-assign (rp lhs env) (rp rhs env))]
+      [v
+       #:when (or (expr-var? v) (expr-val? v))
+       v]
+      [(? stmt?) (error "stmt not done: ~a\n" (ps e))]
+      [(? expr?) (error "expr not done: ~a\n" (pe e))]
+      [else (error 'notdone)]))
+  (match st
+    [(state prgs info os)
+     (define nprgs (map (curryr rp (make-immutable-hash)) prgs))
      (run-next nprgs info st)]))
 
 ;; we need later-simplifications to run before middle once for removing loops
