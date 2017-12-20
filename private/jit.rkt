@@ -12,19 +12,23 @@
   (list
    clean-curry
    parse-sexp
-   initial-simplifications  ;; debug-print
-   flatten-anf              ;; debug-print
+   initial-simplifications  ;; debug-print stop
+   flatten-anf              ;; debug-print stop
    later-simplifications
    middle-simplifications   ;; debug-print
-   later-simplifications    ;; debug-print
+   later-simplifications    ;; debug-print stop
    fix-loop-lets            ;; debug-print
-   combine-loops
-   later-simplifications
-   pull-indexes             ;; debug-print
-   later-simplifications    ;; debug-print
+   combine-loops            ;; debug-print stop
+   later-simplifications    ;; debug-print stop
+   remove-pairs             debug-print stop
 
-   to-stmt                  ;; debug-print
-   to-sham-lc
+   pull-indexes             ;; debug-print
+
+   later-simplifications    ;; debug-print stop
+
+
+   to-stmt                  debug-print stop
+   to-sham-lc               debug-print stop
    compile-with-sham
    optimize&init-jit))
 
@@ -45,8 +49,8 @@
 ;; each info is again list
 ;; which can have following:
 ;; (constant <value>)
-;; (pairinfo <ainfo> <binfo>)
-;; (arrayinfo (size <value>) (valuerange (from . to))
+;; (pair-info <ainfo> <binfo>)
+;; (array-info (size <value>) (valuerange (from . to))
 ;; (curryhere)
 
 (define (compile-src src arg-info)
@@ -56,7 +60,11 @@
   (compile-src (file->value fname) arg-info))
 
 (define (debug-file fname arg-info)
-  (parameterize ([debug-flatten-anf #f])
+  (parameterize ([hakrit-print-debug #t]
+                 [debug-curry #f]
+                 [debug-flatten-anf #f]
+                 [debug-combine-loops #f]
+                 [debug-to-sham #t])
     (compile-src (file->value fname) arg-info)))
 
 (define (debug-store-file src-fname out-fname)
@@ -103,54 +111,57 @@
     (define gmminfo
       (list
        (list )
-       (list `(arrayinfo . ((size . ,classes)
-                            (eleminfo . ((probinfo . ((constant . 0)))))
+       (list `(array-info . ((size . ,classes)
+                            (elem-info . ((prob-info . ((constant . 0)))))
                             (constant . #t)))
-             `(fninfo . (remove)))
-       (list `(arrayinfo
+             ;; `(attrs . (remove))
+             )
+       (list `(array-info
                . ((size . ,points)
-                  (eleminfo
-                   . ((natinfo
-                       . ((valuerange . (0 . ,(- classes 1)))))))))
-             `(fninfo . (movedown)))
-       (list `(arrayinfo . ((size . ,points))))
+                  (elem-info
+                   . ((nat-info
+                       . ((value-range . (0 . ,(- classes 1)))))))))
+             ;; `(attrs . (movedown))
+             )
+       (list `(array-info . ((size . ,points))))
        ;             `(fninfo . (curry)))
 
-       (list `(natinfo . ((valuerange . (0 . ,(- points 1))))))))
+       (list `(nat-info . ((value-range . (0 . ,(- points 1))))))))
     (define gg-module-env
       (debug-file "../../testcode/hkrkt/GmmGibbs.hkr" gmminfo))
     (jit-dump-function gg-module-env 'prog)
     (jit-verify-module gg-module-env))
+  ;; (dogg)
   (define (donb num-topics num-words num-docs words-size)
     (define empty-info (list '() '() '() '() '() '()))
     (define full-info
       (list
        (list `(array-info . ((size . ,num-topics)
-                            (elem-info . ((prob-info . ((constant . 0)))))
-                            (constant . #t)))
+                             (elem-info . ((prob-info . ((constant . 0)))))
+                             (constant . #t)))
              `(attrs . (remove)))
        (list `(array-info . ((size . ,num-words)
-                            (elem-info . ((prob-info . ((constant . 0)))))
-                            (constant . #t)))
+                             (elem-info . ((prob-info . ((constant . 0)))))
+                             (constant . #t)))
              `(attrs . (remove)))
        (list `(array-info . ((size . ,num-docs)
-                            (elem-info . ((nat-info
-                                          . ((value-range
-                                              . (0 . ,(- num-topics 1))))))))))
+                             (elem-info . ((nat-info
+                                            . ((value-range
+                                                . (0 . ,(- num-topics 1))))))))))
        (list `(array-info . ((size . ,words-size)
-                            (elem-info . ((nat-info
-                                          . ((value-range
-                                              . (0 . ,(- num-words 1)))))))))
+                             (elem-info . ((nat-info
+                                            . ((value-range
+                                                . (0 . ,(- num-words 1)))))))))
              `(attrs . (no-change)))
        (list `(array-info . ((size . ,words-size)
-                            (elem-info . ((nat-info
-                                          . ((value-range
-                                              . (0 . ,(- num-docs 1)))))))))
+                             (elem-info . ((nat-info
+                                            . ((value-range
+                                                . (0 . ,(- num-docs 1)))))))))
              `(attrs . (no-change)))
-       (list `(nat-info . ((valuerange . (0 . ,(- num-docs 1))))))))
+       (list `(nat-info . ((value-range . (0 . ,(- num-docs 1))))))))
 
     (define nb-module-env
-      (debug-file "../../testcode/hkrkt/NaiveBayesGibbsT.hkr" full-info))
+      (debug-file "../../testcode/hkrkt/NaiveBayesGibbs.hkr" full-info))
     (jit-dump-function nb-module-env 'prog)
     (optimize-module nb-module-env)
     ;; (basic-optimize-module nb-module-env #:opt-level 1)
