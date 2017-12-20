@@ -340,8 +340,6 @@
     [(expr-intrf s) '!]
     [(expr-var t s o) t]
     [(expr-bucket t s e b) t]))
-    ;; [(expr-block t s b) t]
-
 
 (define hakrit-print-debug (make-parameter #f))
 (define (pe e)
@@ -357,7 +355,7 @@
      `(function ,name ,(map pe args) ,(pe body))]
     [(expr-var type sym orig)
      (if (hakrit-print-debug)
-         `(,sym : ,type \| ,orig)
+         `(,sym : ,type)
          sym)]
     [(expr-arr type index size body)
      `(array ,(pe index) ,(pe size) ,(pe body))]
@@ -366,7 +364,9 @@
     [(expr-prd type index start end body)
      `(product (,(pe index) ,(pe start) ,(pe end)) ,(pe body))]
     [(expr-bucket type start end reducer)
-     `(bucket ,(pe start) ,(pe end) ,(pr reducer))]
+     (if (hakrit-print-debug)
+         `(bucket ,type ,(pe start) ,(pe end) ,(pr reducer))
+         `(bucket ,(pe start) ,(pe end) ,(pr reducer)))]
     [(expr-bind var body)
      `(/ ,(pe var) -> ,(pe body))]
     [(expr-match type tst branches)
@@ -376,25 +376,22 @@
     [(expr-if type tst thn els)
      `(if ,(pe tst) ,(pe thn) ,(pe els))]
     [(expr-app type rator rands)
-     `(,(pe rator) ,@(map pe rands))]
-    ;; [(expr-let type var val body)
-    ;;  `(elet (,(pe var) ,(pe val)) ,(pe body))]
+     (if (hakrit-print-debug)
+          `(,(pe rator) ,type ,@(map pe rands))
+         `(,(pe rator) ,@(map pe rands)))]
     [(expr-lets '() '() '() s (expr-val t 0))
      (ps s)]
     [(expr-lets '() '() '() (stmt-void) e)
      (pe e)]
     [(expr-lets types vars vals stmt (expr-val t 0))
-     `(lets (,@(for/list ( [var vars] [val vals])
-                  `(,(pe var) ,(pe val))))
-             ,(ps stmt))]
+     `(lets (,@(for/list ([var vars] [val vals] [t types])
+                 `(,(pe var) ,(pe val) : ,t)))
+            ,(ps stmt))]
     [(expr-lets types vars vals stmt body)
-     `(elets (,@(for/list ( [var vars] [val vals])
-                  `(,(pe var) ,(pe val))))
+     `(elets (,@(for/list ( [var vars] [val vals] [t types])
+                  `(,(pe var) ,(pe val) : ,t)))
              ,(ps stmt)
              ,(pe body))]
-    ;; [(expr-block t stmt e)
-    ;;  `(expr-block ,(ps stmt) ,(pe e))]
-    ;; [(expr-intr s) s]
     [(expr-intrf s) s]
     [(expr-val t v) v]
     [else '?]))
@@ -420,42 +417,17 @@
 (define display-pattern (compose pretty-display print-pattern))
 (define (ps stmt)
   (match stmt
-    ;; [(stmt-lets vars stmt) `(let-stmt ,(map pe vars) ,(ps stmt))]
-    ;; [(stmt-elets vars vals stmt) `(elet-stmt (,@(for/list ([var vars] [val vals]) `(,(pe var) ,(pe val)))) ,(ps stmt))]
     [(stmt-if tst thn els) `(if-stmt ,(pe tst) ,(ps thn) ,(ps els))]
     [(stmt-for i start end body) `(for-stmt (,(pe i) ,(pe start) ,(pe end)) ,(ps body))]
     [(stmt-block stmts) `($ ,@(map ps stmts))]
     [(stmt-assign var val) `(set! ,(pe var) ,(pe val))]
     [(stmt-return val) `(return ,(pe val))]
-    [(stmt-expr (stmt-void) e)
-     (pe e)]
+    [(stmt-expr (stmt-void) e) (pe e)]
     [(stmt-expr s e) `(se ,(ps s) ,(pe e))]
     [(stmt-void) '<svoid>]
     [else `(unknown-stmt ,stmt)]))
 (define print-stmt ps)
 (define display-stmt (compose pretty-display print-stmt))
-
-(define (is-complex? expr)
-  (match expr
-    [(expr-sum _ _ _ _ _) #t]
-    [(expr-prd _ _ _ _ _) #t]
-    [(expr-arr _ _ _ _) #t]
-    [(expr-bucket _ _ _ _) #t]
-;    [(expr-let _ _ v b) (or (is-complex? v) (is-complex? b))]
-    [(expr-lets _ _ vs s b) (or (is-complex? s) (is-complex? b) (ormap is-complex? vs))]
-    [(expr-match _ _ brs) (ormap is-complex? brs)]
-    [(expr-branch _ b) (is-complex? b)]
-    [(expr-bind _ b) (is-complex? b)]
-    [(expr-if _ tst thn els) #t]
-    ;(or (is-complex? tst) (is-complex? thn) (is-complex? els))]
-    [(expr-app _ (expr-intrf 'index) rds) #t]
-    [(expr-app _ rt rds)
-     (ormap is-complex? rds)]
-    [(stmt-void) #f]
-    [(expr-var _ _ _)
-     #f]
-    [(expr-val _ _)
-     #f]))
 
 (define (find-free-variables expr)
   (define ffv^ find-free-variables)
