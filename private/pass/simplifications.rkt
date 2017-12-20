@@ -404,28 +404,13 @@
          (hash-ref env v)]
       [v #:when (or (expr-var? v) (expr-val? v)) v]
 
-      ;; [(expr-app t (expr-intrf s) rands)
-      ;;  #:when (and (member s '(car cdr))
-      ;;              (expr-var? (first rands)))
-      ;;  ;;removing cars and cdrs if we have already
-      ;;  ;; removed them while doing bucket
-      ;;  (define var-to-check
-      ;;    (expr-var t
-      ;;              (symbol-append (expr-var-sym (first rands))
-      ;;                             (if (equal? s 'car) 'a 'b))
-      ;;              '_))
-      ;;  (if (hash-has-key? env var-to-check) var-to-check e)]
-
-
-
       [(stmt-assign lhs rhs)
        (stmt-assign lhs (sl rhs env))]
-      ;; #:when (expr-var? lhs)
-      ;; (sl (expr->stmt rhs (curry stmt-assign lhs)) env)]
       [(? stmt?) (error "stmt not done: ~a\n" (ps e))]
       [(? expr?) (error "expr not done: ~a\n" (pe e))]
       [else (error 'notdone)]))
   (sl e (make-immutable-hash)))
+
 ;;stuff that come up after flatten and combining loops that we can remove or simplify
 ;; this has an env which stores the bindings uptil that expression or statements
 ;; so all the stuff which depends on environment should come here,
@@ -438,7 +423,6 @@
 (define (remove-pairs st)
   (define (rp e env)
     (match e
-
       [(expr-app t (expr-intrf s) (list arg))
        #:when (member s '(car cdr))
        (define narg (rp arg env))
@@ -461,7 +445,8 @@
        (expr-if t (rp tst env) (rp thn env) (rp els env))]
       [(expr-app t (expr-intrf 'index) rands)
        (define nrands (map (curryr rp env) rands))
-       (expr-app (second (typeof (car rands))) (expr-intrf 'index) nrands)]
+       ;; (printf "index: ~a\n" (pe (car nrands)))
+       (expr-app (second (typeof (car nrands))) (expr-intrf 'index) nrands)]
       [(expr-app t rator rands)
        (expr-app t rator (map (curryr rp env) rands))]
       [(stmt-for i start end b)
@@ -475,6 +460,9 @@
        (stmt-if (rp tst env) (rp thn env) (rp els env))]
       [(stmt-assign lhs rhs)
        (stmt-assign (rp lhs env) (rp rhs env))]
+      [(expr-var t sym i)
+       #:when  (hash-has-key? env (symbol->string sym))
+       (hash-ref env (symbol->string sym))]
       [v
        #:when (or (expr-var? v) (expr-val? v))
        v]
