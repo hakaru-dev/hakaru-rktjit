@@ -12,8 +12,9 @@
 (define dpf (debug-printf debug-flatten-anf))
 (define debug-pull-indexes (make-parameter #f))
 (define dpi (debug-printf debug-pull-indexes))
-(define hakrit-loop-hoist? (make-parameter #t))
 
+(define hakrit-loop-hoist? (make-parameter #t))
+(define hakrit-try-loop-global? (make-parameter #t))
 #|
  Does anf and let hoisting in single pass using sorting
   for dependency graph ordering, so might be slow but
@@ -47,15 +48,8 @@
   (cons (print-expr (ufb-expr u)) (pretty-efvp (ufb-efvp u))))
 (define (pretty-efvp efvp)
   (map pretty-efv efvp))
-;;forces to form a let for `efv`'s having `var` as a free variable
-(define (get-ufb-without uf vars)
-  (define vset (list->set vars))
-  (define sefvp (sort-efvp (ufb-efvp uf)))
-  (define-values (bind free)
-    (partition (λ (ef) (set-empty? (set-subtract vset (efv-fvars ef)))) sefvp))
-  (if (hakrit-loop-hoist?)
-      (ufb (combine-expr (ufb-expr uf) bind) free)
-      (ufb (combine-expr (ufb-expr uf) sefvp) '())))
+
+
 ;   ;;for no loop hoisting,
 ;; essentially force all lets now
 
@@ -136,112 +130,146 @@
 
     [else '?]))
 
-;; encapsulate the expr with the list of let bindings
-;; does it in sets based on their dependency
 
-(define (combine-expr expr efvp)
-  (if (empty? efvp)
-      expr
-      (begin
-        (for/fold ([b expr])
-                  ([pds (reverse (partition-dependency efvp))])
-
-          (for/fold ([e b])
-                    ([(k v) (in-hash pds)])
-            (define efvs (set->list v))
-            ;; (printf "size: ~a, efvs: ~a\n" k
-            ;;         (map (compose print-expr efv-var) efvs))
-            (expr-lets (map (λ (ef) (typeof (efv-expr ef))) efvs)
-                       (map (λ (ef) (efv-var ef)) efvs)
-                       (map (λ (ef) (efv-expr ef)) efvs)
-                       (stmt-void)
-                       e))))))
-
-(define (combine-ufb u)
-  (combine-expr (ufb-expr u) (ufb-efvp u)))
 
 (define (new-var t sym)
-  (expr-var t sym sym))
+  (expr-var t sym '()))
+(define ffv find-free-variables)
+
+(define (is-complex? expr)
+  (match expr
+    [(expr-sum _ _ _ _ _) #t]
+    [(expr-prd _ _ _ _ _) #t]
+    [(expr-arr _ _ _ _) #t]
+    [(expr-bucket _ _ _ _) #t]
+    [(expr-lets _ _ vs s b) (or (is-complex? s) (is-complex? b) (ormap is-complex? vs))]
+    [(expr-match _ _ brs) (ormap is-complex? brs)]
+    [(expr-branch _ b) (is-complex? b)]
+    [(expr-bind _ b) (is-complex? b)]
+    [(expr-if _ tst thn els) #t]
+    [(expr-app _ (expr-intrf 'index) rds) #t]
+    [(expr-app _ rt rds)
+     (ormap is-complex? rds)]
+    [(stmt-void) #f]
+    [(expr-var _ _ _)
+     #f]
+    [(expr-val _ _)
+     #f]))
 
 (define (flatten-anf st)
-  (define ffv find-free-variables)
-  ;; (define (ffv expr)
-  ;;   (set-subtract (find-free-variables expr) (list->set args)))
-  (define (check-and-add expr efvp)
-    (if (is-complex? expr)
-        (let ([eufb (uf expr)])
-          (values (ufb-expr eufb)
-                  (append (ufb-efvp eufb) efvp)))
-        (values expr efvp)))
-  ;expr -> ufb
-  (define (uf body)
-    (match body
+  (define new-funs (box '()))
+  (define (add-fun f)
+    (set-box! (cons f (unbox new-funs))))
+  (define (flatten-fun fun)
+    (match fun
       [(expr-fun name args ret-type body)
-       (ufb (expr-fun name args ret-type (combine-ufb (uf body))) '())]
+       (define (check-and-add expr efvp)
+         (if (is-complex? expr)
+             (let ([eufb (uf expr)])
+               (values (ufb-expr eufb)
+                       (append (ufb-efvp eufb) efvp)))
+             (values expr efvp)))
+       (define (get-ufb-without uf vars)
+         ;;forces to form a let for `efv`'s having `var` as a free variable
+         (define vset (list->set vars))
+         (define sefvp (sort-efvp (ufb-efvp uf)))
+         (define-values (bind free)
+           (partition (λ (ef) (set-empty? (set-subtract vset (efv-fvars ef)))) sefvp))
+         (if (hakrit-loop-hoist?)
+             (ufb (combine-expr (ufb-expr uf) bind) free)
+             (ufb (combine-expr (ufb-expr uf) sefvp) '())))
+       (define (combine-expr expr efvp)
+         ;; encapsulate the expr with the list of let bindings
+         ;; does it in sets based on their dependency and same loop weight
+         (if (empty? efvp)
+             expr
+             (begin
+               (for/fold ([b expr])
+                         ([pds (reverse (partition-dependency efvp))])
 
-      [(expr-lets type vars vals (stmt-void) b)
-       ;;all of the lets at this point should only have void stmts
-       (define nb (get-ufb-without (uf b) vars))
-       ;; we hoist all the complex values, like loops and leave the rest alone
-       (define-values (nvals nefvp)
-         (for/fold ([nvals '()]
-                    [efv (ufb-efvp nb)])
-                   ([v (reverse vals)])
-           (define-values (nv nefv) (check-and-add v efv))
-           (values (cons nv nvals) (append nefv efv))))
-       (ufb (expr-lets type vars nvals (stmt-void) (ufb-expr nb)) nefvp)]
+                 (for/fold ([e b])
+                           ([(k v) (in-hash pds)])
+                   (define efvs (set->list v))
+                   (define vars (map efv-var efvs))
+                   (define vals (map efv-expr efvs))
+                   ;; (printf "size: ~a, efvs: ~a\n" k (map pe vars))
+                   ;; (define union-free (apply set-union (map ffv vals)))
+                   ;; (printf "all free minus args: ~a\n"
+                   ;;         (map pe (set->list (set-subtract union-free (list->set args)))))
+                   (expr-lets (map (compose typeof efv-expr) efvs)
+                              (map efv-var efvs)
+                              (map efv-expr efvs)
+                              (stmt-void) e))))))
+       (define (combine-ufb u)
+         (combine-expr (ufb-expr u) (ufb-efvp u)))
+       (define (uf body)
+         ;expr -> ufb
+         (match body
+           [(expr-lets type vars vals (stmt-void) b)
+            ;;all of the lets at this point should only have void stmts
+            (define nb (get-ufb-without (uf b) vars))
+            ;; we hoist all the complex values, like loops and leave the rest alone
+            (define-values (nvals nefvp)
+              (for/fold ([nvals '()]
+                         [efv (ufb-efvp nb)])
+                        ([v (reverse vals)])
+                (define-values (nv nefv) (check-and-add v efv))
+                (values (cons nv nvals) (append nefv efv))))
+            (ufb (expr-lets type vars nvals (stmt-void) (ufb-expr nb)) nefvp)]
 
-      [(expr-sum t i start end b)
-       (define es (new-var t (gensym^ 'sm)))
-       (define nb (get-ufb-without (uf b) (list i)))
-       (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
-       (define ns (expr-sum t i start nend (ufb-expr nb)))
-       (define nefv (cons (efv es ns (ffv ns)) nefvp))
-       (ufb es nefv)]
+           [(expr-sum t i start end b)
+            (define es (new-var t (gensym^ 'sm)))
+            (define nb (get-ufb-without (uf b) (list i)))
+            (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
+            (define ns (expr-sum t i start nend (ufb-expr nb)))
+            (define nefv (cons (efv es ns (ffv ns)) nefvp))
+            (ufb es nefv)]
 
-      [(expr-prd t i start end b)
-       (define es (new-var t (gensym^ 'pr)))
-       (define nb (get-ufb-without (uf b) (list i)))
-       (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
-       (define ns (expr-prd t i start nend (ufb-expr nb)))
-       (define nefv (cons (efv es ns (ffv ns)) nefvp))
-       (ufb es nefv)]
+           [(expr-prd t i start end b)
+            (define es (new-var t (gensym^ 'pr)))
+            (define nb (get-ufb-without (uf b) (list i)))
+            (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
+            (define ns (expr-prd t i start nend (ufb-expr nb)))
+            (define nefv (cons (efv es ns (ffv ns)) nefvp))
+            (ufb es nefv)]
 
-      [(expr-arr t i end b)
-       (define es (new-var t (gensym^ 'ar)))
-       (define ub (uf b))
-       (define nb (get-ufb-without ub (list i)))
-       (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
-       (define ns (expr-arr t i nend (ufb-expr nb)))
-       (define nefv (cons (efv es ns (ffv ns)) nefvp))
-       (ufb es nefv)]
+           [(expr-arr t i end b)
+            (define es (new-var t (gensym^ 'ar)))
+            (define ub (uf b))
+            (define nb (get-ufb-without ub (list i)))
+            (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
+            (define ns (expr-arr t i nend (ufb-expr nb)))
+            (define nefv (cons (efv es ns (ffv ns)) nefvp))
+            (ufb es nefv)]
 
-      [(expr-bucket t start end r)
-       (define es (new-var t (gensym^ 'bk)))
-       (ufb es (list (efv es body (ffv body))))]
+           [(expr-bucket t start end r)
+            (define es (new-var t (gensym^ 'bk)))
+            (ufb es (list (efv es body (ffv body))))]
 
-      [x #:when (not (is-complex? x))
-         (ufb x '())]
-      [(expr-if t tst thn els)
-       (define tufb (uf tst))
-       (ufb (expr-if t (ufb-expr tufb) (combine-ufb (uf thn)) (combine-ufb (uf els)))
-            (ufb-efvp tufb))]
+           [x #:when (not (is-complex? x))
+              (ufb x '())]
+           [(expr-if t tst thn els)
+            (define tufb (uf tst))
+            (ufb (expr-if t (ufb-expr tufb) (combine-ufb (uf thn)) (combine-ufb (uf els)))
+                 (ufb-efvp tufb))]
 
-      [(expr-match t tst brs)
-       (ufb body '())]
+           [(expr-match t tst brs)
+            (ufb body '())]
 
-      [(expr-app t rt rds)
-       (define rds-ufbs (map uf rds))
-       (ufb (expr-app t rt (map ufb-expr rds-ufbs))
-            (append* (map ufb-efvp rds-ufbs)))]
+           [(expr-app t rt rds)
+            (define rds-ufbs (map uf rds))
+            (ufb (expr-app t rt (map ufb-expr rds-ufbs))
+                 (append* (map ufb-efvp rds-ufbs)))]
 
-      [(expr-var t s o)
-       (ufb body '())]
-      [else (ufb body '())]))
+           [(expr-var t s o)
+            (ufb body '())]
+           [else (ufb body '())]))
+       (expr-fun name args ret-type (combine-ufb (uf body)))]))
+
 
   (match st
     [(state prgs info os)
-     (define nprgs (map (compose combine-ufb uf) prgs))
+     (define nprgs (map flatten-fun prgs))
      (dpf "flatten-anf:\n~a\n" (map (compose pretty-format pe) nprgs))
      (run-next nprgs info st)]))
 
@@ -373,7 +401,7 @@
        (match-define (cons nstmt stmt-imap) (check&wrap-stmt (pull-stmt stmt) nvars))
 
        (match-define (cons nbody body-imap)
-         (check&wrap-expr expl (append nvars (set->list (find-free-variables nstmt)))))
+         (check&wrap-expr expl (append nvars (set->list (find-mutated-variables nstmt)))))
        (cons (expr-lets ntypes nvars nvals nstmt nbody)
              (combine-imaps tvl-imap stmt-imap body-imap))]
 
@@ -383,7 +411,10 @@
        (match-define (cons nels els-imap) (pull-expr els))
        (cons (expr-if t ntst nthn nels) (combine-imaps tst-imap thn-imap els-imap))]
       [(expr-app t (expr-intrf 'index) rds)
-       (define ni (gensym^ 'indp))
+       (define ni (gensym^ (if (and (expr-var? (first rds))
+                                    (expr-var? (second rds)))
+                               (string->symbol (format "i~a-~a-" (expr-var-sym (first rds)) (expr-var-sym (second rds))))
+                               'indp)))
        (define nivar (expr-var t ni csym))
        (define rdsl (map pull-expr rds))
        (define nrds (map car rdsl))
