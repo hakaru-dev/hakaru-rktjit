@@ -83,7 +83,7 @@
 
 (define (get-size-of-array t)
   (match t
-    [`(array ,_ ... (size . ,size)) size]
+    [`(array ,_ ... (size . ,size) ,i ...) size]
     [else (error "getting size of an array type whose size we don't know")]))
 
 
@@ -96,7 +96,7 @@
               [valuerange (assocv 'value-range type-info)])
           (cond
             [constant `(,var-type (constant . ,constant))]
-            [valuerange `(,var-type (valuerange . ,valuerange))]))
+            [valuerange `(,var-type (value-range . ,valuerange))]))
         var-type))
   (match var-type
     ['nat  (number-type)]
