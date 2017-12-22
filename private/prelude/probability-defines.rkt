@@ -155,6 +155,28 @@
        (sham:stmt:return (sham:expr:void)))))
 
     (sham$define
+     #:info (prelude-function-info)
+     (categorical-real-disc
+
+      (arr (sham:type:ref 'real*)) (size (sham:type:ref 'nat)) tnat)
+     (sham:stmt:expr
+      (sham:expr:let
+       '(table) (list (sham:type:pointer (sham:type:ref 'i8)))
+       (list
+        (sham:expr:app (gsl-rator 'gsl_ran_discrete_preproc
+                                  (sham:type:pointer (sham:type:ref 'i8)))
+                       (list (sham$var size) (sham$var arr))))
+       (sham:stmt:void)
+       (sham:expr:let
+        '(result) (list tnat)
+        (list (sham:expr:app (gsl-rator 'gsl_ran_discrete tnat)
+                             (list (sham:expr:var 'gsl-rng) (sham$var 'table))))
+        (sham$block
+         (sham:stmt:expr (sham:expr:app (gsl-rator 'gsl_ran_discrete_free tvoid) (list (sham$var 'table))))
+         (sham:stmt:return (sham$var 'result)))
+        (sham:expr:void)))))
+
+    (sham$define
       #:info (prelude-function-info)
       (categorical-real
        (arr (sham:type:ref 'real*)) (size tnat) tnat)
@@ -249,7 +271,7 @@
                                                        (list (sham$var 'i)
                                                              (sham:expr:ui-value  1 type-nat-ref)))))))
        (sham:expr:let
-        '(result) (list tnat) (list (sham$app categorical-real arr (sham$app get-size$array<prob> arp)))
+        '(result) (list tnat) (list (sham$app categorical-real-disc arr (sham$app get-size$array<prob> arp)))
         (sham$block
          (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$var arr))))
          (sham:stmt:return (sham$var result)))
@@ -367,6 +389,8 @@
   (define beta (get-f 'beta))
   (define categorical-2 (get-f 'categorical-2))
   (define categorical-real (get-f 'categorical-real))
+  (define categorical-real-disc (get-f 'categorical-real-disc))
+
   (define categorical-prob (get-f 'categorical))
   (define betaFunc (get-f 'betafunc))
   (define betaFuncreal (get-f 'betafuncreal))
@@ -415,8 +439,14 @@
   ;;            (apply + (for/list ([i (in-range 500)])
   ;;                       (categorical-prob test-prob)))))
   ;; (0.21978021978021972 0.13333333333333333 0.0666666666666667)
-  (define tprob (make-array-prob 3 (list->cblock '(-1.5151272329628593 -2.0149030205422647 -2.7080502011022096) t-prob)))
-  (printf "categorical: ~a\n" (categorical-prob tprob))
+  (define nb9900 '(-458.1908976216084 -461.9810000474454 -478.57190842283467 -446.5395681936905 -453.6747904210667 -463.4369314698437 -450.8619961395306 -453.16976113041795 -445.12265609048325 -374.5512758505581 -458.091812993318 -447.1539476558063 -454.3902748158387 -450.796948060257 -448.8193584047232 -450.2865595520607 -450.52765701408424 -460.69817293449074 -453.0247297820897 -457.1166709136238))
+  (define nmin (apply min nb9900))
+  (define nbnn (map (λ (v) (- v nmin)) nb9900))
+
+  (define tprob (make-array-prob (length nb9900) (list->cblock nb9900 t-prob)))
+
+  (printf "categorical: ~a\n"  (for/list ([i (in-range 10)]) (categorical-prob tprob)))
+  (printf "categorical-real: ~a\n"  (for/list ([i (in-range 10)]) (categorical-real-disc (list->cblock nbnn t-real) (length nbnn))))
 
   (betaFunc (c-real2prob 4.0) (c-real2prob 4.0))
   ;; hkp logFromlogFloat $ betaFunc (prob_ 4.0) (prob_ 4.0)
