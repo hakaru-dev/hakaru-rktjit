@@ -20,67 +20,74 @@
   (dpc "get-init: result: ~a, t: ~a\n" (pe result) t)
   (match* (reducer t)
     [((reducer-add _) t)
-     (values (list t) (list result) (list (expr-val t 0)))]
+     (values (list t) (list result) (list (expr-val t 0)) '())]
 
     [( (reducer-split _ ra rb) `(pair ,ta ,tb))
      #:when (expr-var? result)
-     (define-values (tra vra vla)
+     (define-values (tra vra vla ca)
        (get-init binds (expr-sym-append result 'a ta) ta ra))
-     (define-values (trb vrb vlb)
+     (define-values (trb vrb vlb cb)
        (get-init binds (expr-sym-append result 'b tb) tb rb))
-     (values (append tra trb) (append vra vrb) (append vla vlb))]
+     (values (append tra trb) (append vra vrb) (append vla vlb) (append ca cb))]
     [((reducer-split _ ra rb) `(pair ,ta ,tb))
-     (define-values (tra vra vla)
+     (define-values (tra vra vla ca)
        (get-init binds result ta ra))
-     (define-values (trb vrb vlb)
+     (define-values (trb vrb vlb cb)
        (get-init binds result tb rb))
      (values (list t)
              (list result)
-             (list (expr-app t (expr-intrf 'cons) (list (car vla) (car vlb)))))]
+             (list (expr-app t (expr-intrf 'cons) (list (car vla) (car vlb))))
+             (cons (stmt-expr (stmt-void) (expr-app t (expr-intrf 'free-pair) (list result)))
+                   (append ca cb)))]
 
     [( (reducer-fanout ra rb) `(pair ,ta ,tb))
      #:when (expr-var? result)
-     (define-values (tra vra vla)
+     (define-values (tra vra vla ca)
        (get-init binds (expr-sym-append result 'a ta) ta ra))
-     (define-values (trb vrb vlb)
+     (define-values (trb vrb vlb cb)
        (get-init binds (expr-sym-append result 'b tb) tb rb))
-     (values (append tra trb) (append vra vrb) (append vla vlb))]
+     (values (append tra trb) (append vra vrb) (append vla vlb) (append ca cb))]
     [((reducer-fanout ra rb) `(pair ,ta ,tb))
-     (define-values (tra vra vla)
+     (define-values (tra vra vla ca)
        (get-init binds result ta ra));;result should be car and cdr for next
-     (define-values (trb vrb vlb)
+     (define-values (trb vrb vlb cb)
        (get-init binds result tb rb))
      (values (list t)
              (list result)
-             (list (expr-app t (expr-intrf 'cons) (list (car vla) (car vlb)))))]
+             (list (expr-app t (expr-intrf 'cons) (list (car vla) (car vlb))))
+             (cons (stmt-expr (stmt-void) (expr-app t (expr-intrf 'free-pair) (list result)))
+                   (append ca cb)))]
 
     [((reducer-index n _ ra) `(array ,tar))
-     (define fori (expr-var 'nat (gensym^ 'fi) '_))
+     (define fori (expr-var 'nat (gensym^ 'fi) '()))
      (define arrn (expr-var t (gensym^ 'arri) '()))
      (define new-result (expr-app tar (expr-intrf 'index) (list arrn fori)))
-     (define-values (vrt vra vla) (get-init (cons fori binds) new-result tar ra))
+     (define-values (vrt vra vla vlc) (get-init (cons fori binds) new-result tar ra))
      (define arr-size (late-simplify (assign-binds binds n)))
      (define is-constant-size? (and (expr-val? arr-size) (equal? (expr-val-type arr-size) 'nat)))
      (define narrt (append `(array ,(car vrt))
                            (if is-constant-size? `((size . ,(expr-val-v arr-size))) '())))
-     (define arr-init (expr-app narrt (expr-intrf 'empty) (list arr-size)))
 
      (when (expr-var? result) (set-expr-var-type! result narrt))
+     (define-values (val cleanup)
+       (if (or (equal? (car vrt) 'real) (equal? (car vrt) 'nat) (constant-size-array? (car vrt)))
+           (values (expr-app narrt (expr-intrf 'empty) (list arr-size))
+                   (stmt-expr (stmt-void)
+                              (expr-app 'void (expr-intrf 'free) (list result))))
+           (values (wrap-expr
+                    narrt arrn (expr-app narrt (expr-intrf 'empty) (list arr-size))
+                    (stmt-for fori (expr-val 'nat 0) arr-size
+                              (stmt-assign new-result (car vla)))
+                    arrn)
+                   (stmt-expr
+                    (stmt-for fori  (expr-val 'nat 0) arr-size (stmt-block vlc))
+                    (expr-app 'void (expr-intrf 'free) (list result))))))
      (values (list narrt)
              (list result)
-             (cond
-               [(or (equal? vrt 'real) (equal? tar 'nat)) (list arr-init)]
-               [(constant-size-array? (car vrt))
-                (list (expr-app narrt (expr-intrf 'empty) (list arr-size)))]
-               [else
-                (list (wrap-expr
-                       narrt arrn arr-init
-                       (stmt-for
-                        fori (expr-val 'nat 0) arr-size
-                        (stmt-assign new-result (car vla)))
-                       arrn))]))]
+             (list val)
+             (list cleanup))]
 
-    [((reducer-nop) 'unit) (values '(unit) (list result) (list (expr-val 'unit 0)))]
+    [((reducer-nop) 'unit) (values '(unit) (list result) (list (expr-val 'unit 0)) '())]
     [(_ _) (error (format "get-init for bucket: t: ~a, result: ~a, reducer: ~a\n"
                           t (pe result) (pr reducer)))]))
 
@@ -184,8 +191,8 @@
 
     (define-values (start end) (loop-ends (second (first group))))
 
-    (define-values (ntypes nvars nvals nstmts)
-      (for/fold ([ntypes '()] [nvars '()] [nvals '()] [stmts '()]) ([loop group])
+    (define-values (ntypes nvars nvals nstmts clstmts)
+      (for/fold ([ntypes '()] [nvars '()] [nvals '()] [stmts '()] [cleanup '()]) ([loop group])
 
         (define var (set-mutable-var (first loop)))
         (define body (second loop))
@@ -202,24 +209,27 @@
         (match body
           [(expr-bucket t start end reducer)
            ;; (dpc "bucket: ~a : ~a\n" (pe var) t)
-           (define-values (nt v l) (get-init '() var t reducer))
+           (define-values (nt v l c) (get-init '() var t reducer))
            ;; (dpc "nt ~a v ~a l ~a\n" nt v (map pe l))
            (values (append nt ntypes)
                    (append (map set-mutable-var v) nvars)
                    (append l nvals)
-                   (cons (get-accum index (list index) var t reducer) stmts))]
+                   (cons (get-accum index (list index) var t reducer) stmts)
+                   (append c cleanup))]
 
           [(expr-sum t i s e b)
            (values (cons t ntypes)
                    (cons var nvars)
                    (cons (expr-val t 0) nvals)
-                   (cons (get-stmt-sp b i t '+) stmts))]
+                   (cons (get-stmt-sp b i t '+) stmts)
+                   cleanup)]
 
           [(expr-prd t i s e b)
            (values (cons t ntypes)
                    (cons var nvars)
                    (cons (expr-val t 1) nvals)
-                   (cons (get-stmt-sp b i t '*) stmts))]
+                   (cons (get-stmt-sp b i t '*) stmts)
+                   cleanup)]
 
           [(expr-arr t i e b)
            (define nt (if (and (expr-val? e) (equal? (expr-val-type e) 'nat))
@@ -231,10 +241,13 @@
            (values (cons nt ntypes)
                    (cons var nvars)
                    (cons (expr-app nt (expr-intrf 'empty) (list e)) nvals)
-                   (cons (get-stmt-ar b i t) stmts))])))
+                   (cons (get-stmt-ar b i t) stmts)
+                   (cons (stmt-expr (stmt-void) (expr-app 'void (expr-intrf 'free) (list var))) cleanup))])))
 
-    (define for-stmt (stmt-for index start end (stmt-block  nstmts)))
-    (wrap-expr ntypes nvars nvals for-stmt b)))
+    (define for-stmt (stmt-for index start end (stmt-block nstmts)))
+    (define vl (expr-var (typeof b) (gensym^ 'vl) '()))
+    (wrap-expr ntypes nvars nvals for-stmt (expr-lets (list (typeof b)) (list vl) (list b)
+                                                      (stmt-block clstmts) vl))))
 
 (define (is-loop? expr)
   (or (expr-bucket? expr) (expr-sum? expr) (expr-prd? expr) (expr-arr? expr)))
