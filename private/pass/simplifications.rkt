@@ -332,6 +332,8 @@
           (stmt-void)]
          [else se])]
 
+      [(stmt-block '())
+       (stmt-void)]
       [(stmt-block stmts)
        #:when (and (andmap stmt-expr? stmts)
                    (andmap (λ (se) (stmt-void? (stmt-expr-stmt se))) stmts)
