@@ -4,14 +4,16 @@
          "utils.rkt")
 
 (provide initial-simplifications
+         debug-initial-simplifications
          middle-simplifications
          later-simplifications
+         debug-later-simplifications
          late-simplify
          remove-pairs
          fix-loop-lets)
 
-(define debug-init-simplifications (make-parameter #f))
-(define dpi (debug-printf debug-init-simplifications))
+(define debug-initial-simplifications (make-parameter #f))
+(define dpi (debug-printf debug-initial-simplifications))
 
 (define debug-later-simplifications (make-parameter #f))
 (define dpl (debug-printf debug-later-simplifications))
@@ -355,7 +357,7 @@
                               (sl (stmt-block (map fourth tvls)) env)
                               (expr-val 'nat 0))
                    env))]
-      [(stmt-block (list s)) s]
+      [(stmt-block (list s)) (sl s env)]
 
       [(stmt-block stmts)
        (define nstmts (map (curryr sl env) stmts))

@@ -16,7 +16,7 @@
 
 (define (array-rator? sym)
    (member sym '(empty index size set-index! array-literal
-                       const-size-array-literal)))
+                       free const-size-array-literal)))
 
 
 (define (get-array-rator sym tresult trands)
@@ -38,6 +38,7 @@
                   ['set-index! (values set-index-fun-format (get-type-string (car trands)))]
                   ['size (values get-array-size-fun-format (get-type-string (car trands)))]
                   ['empty (values new-size-array-fun-format (get-type-string tresult))]
+                  ['free (values free-size-array-fun-format (get-type-string (car trands)))]
                   [else
                    (error "why is this array rator not done yet?" sym tresult trands)
                    (values "array?")]))

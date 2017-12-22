@@ -79,9 +79,10 @@
                     (stmt-for fori (expr-val 'nat 0) arr-size
                               (stmt-assign new-result (car vla)))
                     arrn)
-                   (stmt-expr
-                    (stmt-for fori  (expr-val 'nat 0) arr-size (stmt-block vlc))
-                    (expr-app 'void (expr-intrf 'free) (list result))))))
+                   (stmt-expr (stmt-void)
+                              (wrap-expr narrt arrn result
+                                         (stmt-for fori  (expr-val 'nat 0) arr-size (stmt-block vlc))
+                                         (expr-app 'void (expr-intrf 'free) (list result)))))))
      (values (list narrt)
              (list result)
              (list val)

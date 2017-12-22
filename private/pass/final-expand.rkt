@@ -10,7 +10,7 @@
 
 (provide to-sham-lc
          debug-to-sham)
-(define debug-to-sham (make-parameter #t))
+(define debug-to-sham (make-parameter #f))
 (define dts (debug-printf debug-to-sham))
 
 
