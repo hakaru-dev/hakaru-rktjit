@@ -76,11 +76,14 @@
 
 (define (build-var-info arg-info)
   `((arg-info . ,arg-info)))
+(define (array-type? t)
+  (and (pair? t) (equal? (car t) 'array)))
+(define (array-element-type t) (second t))
+
 (define (constant-size-array? t)
   (match t
     [`(array ,_ ... (size . ,size)) #t]
     [else #f]))
-
 (define (get-size-of-array t)
   (match t
     [`(array ,_ ... (size . ,size) ,i ...) size]
@@ -127,6 +130,8 @@
 
 
 (define (get-arg-info i) (assocv 'arg-info i))
+(define (get-info-attrs i)
+  (assocv 'attrs i '()))
 (define (get-array-info i)
   (assocv  'array-info (get-arg-info i)))
 (define (get-array-elem-info i)
@@ -136,14 +141,8 @@
 (define (get-array-elem-constant-value i t)
   (assocv 'constant (get-array-elem-type-info i t)))
 
-(define (debug-print st)
-  (match st
-    [(state prg info os)
-     (if (list? prg)
-         (if (expr? (car prg))
-             (printf "debug-printing multiple: \n~a\n"
-                     (map (compose pretty-format pe) prg))
-             (printf "debug-printing multiple: \n~a\n"
-                     (map (compose pretty-format print-sham-def) prg)))
-         (printf "debug-printing: \n~a\n" (pretty-format (pe prg))))
-     (run-next prg info st)]))
+
+(define (list-box [init-list '()])
+  (box init-list))
+(define (add-to-box! list-box elem)
+  (set-box! list-box (cons elem (unbox list-box))))

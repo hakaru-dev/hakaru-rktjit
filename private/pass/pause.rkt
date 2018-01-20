@@ -2,8 +2,9 @@
 (require sham)
 (require "ast.rkt"
          "utils.rkt")
-(provide pause stop)
+(provide pause stop debug-print debug-print-stop)
 
+(define debug-print-stop (make-parameter #f))
 (define state-box (box (void)))
 
 (define-namespace-anchor anchor)
@@ -23,7 +24,21 @@
   (run-next-state st))
 
 (define (stop st)
-  (printf "stopping pipeline here")
   (match st
     [(state prg info rp)
-     (state #f info '())]))
+     (if (debug-print-stop)
+         (error 'stop)
+         (run-next prg info st))]))
+
+(define (debug-print st)
+  (match st
+    [(state prg info os)
+     (when (debug-print-stop)
+       (if (list? prg)
+           (if (expr? (car prg))
+               (printf "debug-printing multiple: \n~a\n"
+                       (map (compose pretty-format pe) prg))
+               (printf "debug-printing multiple: \n~a\n"
+                       (map (compose pretty-format print-sham-def) prg)))
+           (printf "debug-printing: \n~a\n" (pretty-format (pe prg)))))
+     (run-next prg info st)]))

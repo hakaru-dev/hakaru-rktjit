@@ -8,6 +8,7 @@
  "combine-loops.rkt"
  "simplifications.rkt"
  "to-stmt.rkt"
+ "compile-time-opts.rkt"
  "final-expand.rkt"
  "jit.rkt")
 
@@ -20,5 +21,6 @@
   "combine-loops.rkt"
   "simplifications.rkt"
   "to-stmt.rkt"
+  "compile-time-opts.rkt"
   "final-expand.rkt"
   "jit.rkt"))

@@ -14,6 +14,7 @@
          get-array-rator
          build-array-literal)
 
+(define debug-arrays (make-parameter #f))
 (define (array-rator? sym)
    (member sym '(empty index size set-index! array-literal
                        free const-size-array-literal)))
@@ -160,27 +161,30 @@
      (get-fun-name get-index-fun-format)
      '(array-ptr index)
      (list aptref nat ) adnptref
-     (sham:stmt:if
-      (sham$app icmp-uge index
-                (sham:expr:app
-                 (sham:rator:symbol (get-fun-name get-array-size-fun-format))
-                 (list (sham$var 'array-ptr))))
-      (sham$block (sham:stmt:expr
-                   (sham:expr:app (sham:rator:symbol (get-fun-name get-index-error-fun-format))
-                                  (list (sham$var 'index)
-                                        (sham:expr:app
-                                         (sham:rator:symbol (get-fun-name get-array-size-fun-format))
-                                         (list (sham$var 'array-ptr)))
-                                        (sham$app 'load (get-data-ptr 'array-ptr)))))
-                  (sham:stmt:return (sham$app 'load
-                                              (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
-                                                             (list (sham:expr:ui-value 0 nat))))))
-      (sham$block
-       (sham:stmt:void)
-       (sham:stmt:return
-        (sham$app 'load
-                  (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
-                                 (list (sham$var 'index)))))))))
+     (if (debug-arrays)
+         (sham:stmt:if
+          (sham$app icmp-uge index
+                    (sham:expr:app
+                     (sham:rator:symbol (get-fun-name get-array-size-fun-format))
+                     (list (sham$var 'array-ptr))))
+          (sham$block (sham:stmt:expr
+                       (sham:expr:app (sham:rator:symbol (get-fun-name get-index-error-fun-format))
+                                      (list (sham$var 'index)
+                                            (sham:expr:app
+                                             (sham:rator:symbol (get-fun-name get-array-size-fun-format))
+                                             (list (sham$var 'array-ptr)))
+                                            (sham$app 'load (get-data-ptr 'array-ptr)))))
+                      (sham:stmt:return (sham$app 'load
+                                                  (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
+                                                                 (list (sham:expr:ui-value 0 nat))))))
+          (sham:stmt:return
+           (sham$app 'load
+                     (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
+                                    (list (sham$var 'index))))))
+         (sham:stmt:return
+           (sham$app 'load
+                     (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
+                                    (list (sham$var 'index))))))))
 
   (define (set-index-error)
     (sham:def:function
@@ -206,22 +210,29 @@
      (get-fun-name set-index-fun-format)
      '(array-ptr index v)
      (list aptref nat adnptref) (sham:type:ref 'void)
-     (sham:stmt:if
-      (sham$app icmp-uge index
-                (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format))
-                               (list (sham$var 'array-ptr))))
-      (sham$block (sham:stmt:expr
-                   (sham:expr:app (sham:rator:symbol (get-fun-name set-index-error-fun-format))
-                                  (list (sham$var 'index)
-                                        (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format))
-                                                       (list (sham$var 'array-ptr))))))
-                  (sham:stmt:return (sham:expr:void)))
-      (sham$block
-       (sham:stmt:expr
-        (sham$app store! (sham$var 'v)
-                  (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
-                                 (list (sham$var 'index)))))
-       (sham:stmt:return (sham:expr:void))))))
+     (if (debug-arrays)
+         (sham:stmt:if
+          (sham$app icmp-uge index
+                    (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format))
+                                   (list (sham$var 'array-ptr))))
+          (sham$block (sham:stmt:expr
+                       (sham:expr:app (sham:rator:symbol (get-fun-name set-index-error-fun-format))
+                                      (list (sham$var 'index)
+                                            (sham:expr:app (sham:rator:symbol (get-fun-name get-array-size-fun-format))
+                                                           (list (sham$var 'array-ptr))))))
+                      (sham:stmt:return (sham:expr:void)))
+          (sham$block
+           (sham:stmt:expr
+            (sham$app store! (sham$var 'v)
+                      (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
+                                     (list (sham$var 'index)))))
+           (sham:stmt:return (sham:expr:void))))
+         (sham$block
+          (sham:stmt:expr
+           (sham$app store! (sham$var 'v)
+                     (sham:expr:gep (sham$app 'load (get-data-ptr 'array-ptr))
+                                    (list (sham$var 'index)))))
+          (sham:stmt:return (sham:expr:void))))))
   (define (empty-array)
     (sham:def:function ;empty-array
      (prelude-function-info)

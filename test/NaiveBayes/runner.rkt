@@ -1,92 +1,56 @@
 #lang racket
 (require ffi/unsafe
+         rackunit
          racket/runtime-path)
 
 (require "../../jit.rkt"
-         sham)
+         sham
+         "utils.rkt"
+         "../../utils.rkt")
 
 (define vs-topics (list 2 1 0 2 1 0 0))
 (define vs-words (list 0 3 3 2 1 2 0 1 2 3 3 0 0 3 2 1 0))
 (define vs-docs (list 0 0 1 1 1 2 2 2 3 4 4 5 5 5 6 6 6))
 
+(define full-words (map string->number (file->lines "./news/words")))
+(define full-docs (map string->number (file->lines "./news/docs")))
+(define full-topics (map string->number (file->lines "./news/topics")))
+
 (define empty-nbinfo (list '() '() '() '() '() '()))
 
-(define-runtime-path current-dir "./")
-
-;; (jit-dump-module partial1-env)
-(define (run-test module-env topics words docs output-hs)
-  ;; (printf "running naive bayes:\n\t topics: ~a\n\t words: ~a\n\t docs: ~a\n" topics words docs)
-
+(define (create-test module-env topics words docs output-type)
   (define prog (jit-get-function 'prog module-env))
-
-  (define make-prob-array      (jit-get-function (string->symbol (format "make$array<prob>")) module-env))
-  (define new-sized-prob-array (jit-get-function (string->symbol (format "new-sized$array<prob>")) module-env))
-  (define free-prob-array      (jit-get-function (string->symbol (format "free-sized$array<prob>")) module-env))
-  (define set-index-prob-array (jit-get-function (string->symbol (format "set-index!$array<prob>")) module-env))
-  (define get-index-prob-array (jit-get-function (string->symbol (format "get-index$array<prob>")) module-env))
-  (define get-size-prob-array (jit-get-function (string->symbol (format "get-size$array<prob>")) module-env))
-
-
-  (define make-nat-array      (jit-get-function (string->symbol (format "make$array<nat>")) module-env))
-  (define new-sized-nat-array (jit-get-function (string->symbol (format "new-sized$array<nat>")) module-env))
-  (define free-nat-array      (jit-get-function (string->symbol (format "free-sized$array<nat>")) module-env))
-  (define set-index-nat-array (jit-get-function (string->symbol (format "set-index!$array<nat>")) module-env))
-  (define get-index-nat-array (jit-get-function (string->symbol (format "get-index$array<nat>")) module-env))
-  (define get-size-nat-array (jit-get-function (string->symbol (format "get-size$array<nat>")) module-env))
-
-
-  (define make-real-array      (jit-get-function (string->symbol (format "make$array<real>")) module-env))
-  (define new-sized-real-array (jit-get-function (string->symbol (format "new-sized$array<real>")) module-env))
-  (define free-real-array      (jit-get-function (string->symbol (format "free-sized$array<real>")) module-env))
-  (define set-index-real-array (jit-get-function (string->symbol (format "set-index!$array<real>")) module-env))
-  (define get-index-real-array (jit-get-function (string->symbol (format "get-index$array<real>")) module-env))
-  (define get-size-real-array  (jit-get-function (string->symbol (format "get-size$array<real>")) module-env))
-
-
-  (define real2prob (jit-get-function (string->symbol "real2prob") module-env))
-  (define prob2real (jit-get-function (string->symbol "prob2real") module-env))
-
+  (define init-rng (jit-get-function 'init-rng module-env))
+  (init-rng)
+  (printf "compiled\n")
   (define num-topics (add1 (argmax identity topics)))
   (define num-words (add1 (argmax identity words)))
   (define num-docs (add1 (last docs)))
 
-  (define (make-const-prob-array size val)
-    (define as (new-sized-prob-array size))
-    (for ([i (in-range size)])
-      (set-index-prob-array as i val))
-    as)
+  (define topic-prior
+    (rkt->jit module-env '(array prob) (build-list num-topics (const 1.0))))
+  (define word-prior
+    (rkt->jit module-env '(array prob) (build-list num-words (const 1.0))))
 
-  (define topic-prior (make-const-prob-array num-topics 0.0))
-  (define word-prior (make-const-prob-array num-words 0.0))
+  (define c-words (rkt->jit module-env '(array nat) words))
+  (define c-docs (rkt->jit module-env '(array nat) docs))
+  (define zs (rkt->jit module-env '(array nat) topics))
+  (lambda (doc)
+    (printf "calling prog\n")
+    (define init-time (get-time))
+    (define output-c (prog topic-prior word-prior zs c-words c-docs doc))
+    (define el-time (elasp-time init-time))
 
-  (define (make-c-nat-array lst)
-    (define arr (new-sized-nat-array (length lst)))
-    (for ([v lst]
-          [i (in-range (length lst))])
-      (set-index-nat-array arr i  v))
-    arr)
+    (printf "output from c: ~a\n" output-c)
+    (define jit-out (jit->rkt module-env output-type output-c))
+    (printf "time taken: ~a\n" el-time)
+    (printf "output: ~a\n" jit-out)
+    output-c))
 
-  (define (make-c-real-array lst)
-    (define arr (new-sized-real-array (length lst)))
-    (for ([v lst]
-          [i (in-range (length lst))])
-      (set-index-real-array arr i (exact->inexact v)))
-    arr)
+(define penv (compile-file "./NaiveBayesGibbs.hkr" empty-nbinfo))
+(define run-full-test
+  (create-test penv full-topics full-words full-docs 'nat))
 
-  (define c-words (make-c-nat-array words))
-  (define c-docs (make-c-nat-array docs))
-
-  (define zs (make-c-nat-array topics))
-  (define doc 0)
-
-  (define output-c (prog topic-prior word-prior zs c-words c-docs doc ))
-  (define output-list
-    (for/list ([i (in-range (get-size-prob-array output-c))])
-      (prob2real (get-index-prob-array output-c i))))
-  (printf "output from prog: ~a\n" output-list)
-  (printf "output from hskl: ~a\n" output-hs))
-
-;; (define env (compile-file (build-path current-dir "fullstateless.hkr") empty-nbinfo))
-
-;; (printf "fullstateless:\n")
-;; (run-test env vs-topics vs-words vs-docs '(0.005494505494505496 0.011111111111111112 0.03333333333333335))
+(module+ test
+  (define our-out (run-full-test 19800))
+  (printf "output: ~a\n" our-out))

@@ -132,10 +132,7 @@
 
 
 
-(define (new-var t sym)
-  (expr-var t sym '()))
 (define ffv find-free-variables)
-
 (define (is-complex? expr)
   (match expr
     [(expr-sum _ _ _ _ _) #t]
@@ -218,7 +215,7 @@
             (ufb (expr-lets type vars nvals (stmt-void) (ufb-expr nb)) nefvp)]
 
            [(expr-sum t i start end b)
-            (define es (new-var t (gensym^ 'sm)))
+            (define es (expr-var t (gensym^ 'sm) '()))
             (define nb (get-ufb-without (uf b) (list i)))
             (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
             (define ns (expr-sum t i start nend (ufb-expr nb)))
@@ -226,7 +223,7 @@
             (ufb es nefv)]
 
            [(expr-prd t i start end b)
-            (define es (new-var t (gensym^ 'pr)))
+            (define es (expr-var t (gensym^ 'pr) '()))
             (define nb (get-ufb-without (uf b) (list i)))
             (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
             (define ns (expr-prd t i start nend (ufb-expr nb)))
@@ -234,7 +231,7 @@
             (ufb es nefv)]
 
            [(expr-arr t i end b)
-            (define es (new-var t (gensym^ 'ar)))
+            (define es (expr-var t (gensym^ 'ar) '()))
             (define ub (uf b))
             (define nb (get-ufb-without ub (list i)))
             (define-values (nend nefvp) (check-and-add end (ufb-efvp nb)))
@@ -243,7 +240,7 @@
             (ufb es nefv)]
 
            [(expr-bucket t start end r)
-            (define es (new-var t (gensym^ 'bk)))
+            (define es (expr-var t (gensym^ 'bk) '()))
             (ufb es (list (efv es body (ffv body))))]
 
            [x #:when (not (is-complex? x))

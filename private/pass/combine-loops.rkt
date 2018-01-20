@@ -184,7 +184,6 @@
            (print-expr (expr-app (expr-intrf '-) (list end start)))))
    var-map))
 
-
 (define (wrap-body-for-groups loop-groups body)
   (for/fold ([b body]) ([group loop-groups])
     (define index (expr-var 'nat (gensym^ 'ci) 'm))
@@ -243,24 +242,20 @@
                    (cons var nvars)
                    (cons (expr-app nt (expr-intrf 'empty) (list e)) nvals)
                    (cons (get-stmt-ar b i t) stmts)
-                   (cons (stmt-expr (stmt-void) (expr-app 'void (expr-intrf 'free) (list var))) cleanup))])))
+                   (cons (stmt-expr (stmt-void) (expr-app 'void (expr-intrf 'free) (list var))) cleanup)
+                   )])))
 
     (define for-stmt (stmt-for index start end (stmt-block nstmts)))
     (define vl (expr-var (typeof b) (gensym^ 'vl) '()))
-    (wrap-expr ntypes nvars nvals for-stmt (expr-lets (list (typeof b)) (list vl) (list b)
-                                                      (stmt-block clstmts) vl))))
+    (wrap-expr ntypes nvars nvals for-stmt (expr-lets (list (typeof b)) (list vl) (list b) (stmt-block clstmts) vl))))
+
 
 (define (is-loop? expr)
   (or (expr-bucket? expr) (expr-sum? expr) (expr-prd? expr) (expr-arr? expr)))
-
-(define (wrap-body-for-normals nvm body)
-  (define-values (types vars vals)
-    (values (map third nvm) (map first nvm) (map second nvm)))
-  ;; (dpc "wrapping-normals: ~a\n"
-  ;;      (map list (map pe vars) (map pe vals) types (map typeof vars) (map typeof vals)))
-  (wrap-expr types vars vals (stmt-void) body))
-
-(define (combine-loops st)
+  (define (wrap-body-for-normals nvm body)
+    (define-values (types vars vals)
+      (values (map third nvm) (map first nvm) (map second nvm)))
+    (wrap-expr types vars vals (stmt-void) body))
   (define (combine-lets l)
     (match l
       [(expr-lets types vars vals (stmt-void) body)
@@ -269,6 +264,8 @@
        (define loop-groups (group-same-size loop-var-map))
        (dprint normal-var-map loop-var-map loop-groups)
        (wrap-body-for-normals normal-var-map (wrap-body-for-groups loop-groups body))]))
+
+(define (combine-loops st)
   (define pass
     (create-rpass
      (expr

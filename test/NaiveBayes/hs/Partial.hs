@@ -197,10 +197,9 @@ main = do
 
   let topic_prior = UV.map LF.logFloat $ UV.replicate numTopics 1.0
   let word_prior = UV.map LF.logFloat  $ UV.replicate numWords 1.0
-  let docUpdate = 0
+  let docUpdate = 9900
   let zs = topics
 
-  print "starting main"
   start_time <- C.getCurrentTime
   result <- return $! (prog topic_prior word_prior zs words docs docUpdate)
   end_time <- C.getCurrentTime

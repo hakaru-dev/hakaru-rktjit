@@ -101,6 +101,7 @@
     [`(array ,t)
      (define size ((get-function module-env 'get-size type) val))
      (define data ((get-function module-env 'get-data type) val))
+     (printf "array-size: ~a\n" size)
      (for/list ([j (in-range size)])
        (jit->rkt module-env t ((get-function module-env 'get-index type) val j)))]
     [`(pair ,ta ,tb)

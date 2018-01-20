@@ -302,17 +302,16 @@ main = do
 
   topic_prior <- return $! UV.map LF.logFloat $ UV.replicate numTopics 1.0
   word_prior <- return $! UV.map LF.logFloat  $ UV.replicate numWords 1.0
-  let docUpdate = 0
+  let docUpdate = 9900
   let zs = topics
   g <- MWC.createSystemRandom
 
-  print $ UV.length topics
-  print $ UV.length words
-  print $ UV.length docs
-
   result0 <- unMeasure (prog topic_prior word_prior zs words docs 2) g
-
-  print "starting main"
+  -- print "result"
+  -- print result0
+  print "truth"
+  print $ topics UV.! docUpdate
+  -- print "starting main"
 
   forM_ [0..10] $ \i -> do
     start_time <- C.getCurrentTime

@@ -1,6 +1,7 @@
 hs/*hi
 hs/*o
 test/hs/*
+test/news/*
 test/output/*
 compiled/
 private/compiled/

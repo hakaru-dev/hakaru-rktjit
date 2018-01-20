@@ -57,7 +57,11 @@
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
          (match-define (expr-mod main fns) e^)
          (expr-mod (f-expr main) (map (λ (f) (cons (car f) (f-expr (cdr f)))) fns)))))
-
+    (struct expr-cvar expr (var val)
+      #:methods gen:exprg
+      ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
+         (match-define (expr-cvar var val) e^)
+         (expr-cvar var (f-expr val)))))
     (struct expr-fun expr (name args ret-type body)
       #:methods gen:exprg
       ((define (map-expr f-expr f-reducer f-stmt f-pat e^)
@@ -273,7 +277,9 @@
                 (f-pat (λ (e)
                          (define ne (map-pat f-expr f-reducer f-stmt f-pat e))
                          (match ne mat-pat ... (else ne)))))
-         (λ (e) (map-expr f-expr f-reducer f-stmt f-pat e))))))
+         (λ (e) (if (expr? e)
+                    (map-expr f-expr f-reducer f-stmt f-pat e)
+                    (map-stmt f-expr f-reducer f-stmt f-pat e)))))))
 
 (define-syntax (create-pass stx)
   (syntax-case stx (expr reducer stmt pat)
@@ -345,14 +351,14 @@
 (define (pe e)
   (match e
     [(expr-mod main fns)
-     `((main ,(pe main))
-       ,@(for/list [(fn fns)]
-           `(,(car fn) ,(pe (cdr fn)))))]
+     `((main ,(pe main) ,(map pe fns)))]
     [(expr-fun name args ret-type body)
      #:when (stmt? body)
      `(function ,name ,(map pe args) ,(ps body))]
     [(expr-fun name args ret-type body)
      `(function ,name ,(map pe args) ,(pe body))]
+    [(expr-cvar var val)
+     `(constant ,(pe var) _)]
     [(expr-var type sym orig)
      (if (hakrit-print-debug)
          `(,sym : ,type)
