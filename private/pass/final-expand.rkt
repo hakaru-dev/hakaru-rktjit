@@ -22,7 +22,6 @@
     [`(int ,_) 'int]
     [else t]))
 
-
 (define (to-sham-lc st)
   (define prl (new-prelude))
   (add-basic&probability-defs prl)
@@ -47,6 +46,8 @@
       [(expr-app t rator rands) (ea t rator rands)]
       [(expr-var t sym _) (sham:expr:var sym)]
       [(expr-val t v) (get-value v t)]
+      [(expr-cvar var #f) (sham:expr:void)]
+      [(expr-cvar var val) (sham:expr:llvm-value val (get&add-type (typeof var)))]
       [(expr-lets types vars vals stmt body)
        (unless (empty? vars) (dts "expr-lets: vars: ~a, types: ~a\n" (map expr-var-sym vars) (map typeof vars)))
        (define sham-types (map (compose get&add-type typeof) vars))

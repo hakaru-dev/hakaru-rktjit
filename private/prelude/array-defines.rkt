@@ -14,7 +14,7 @@
          get-array-rator
          build-array-literal)
 
-(define debug-arrays (make-parameter #f))
+(define debug-arrays (make-parameter #t))
 (define (array-rator? sym)
    (member sym '(empty index size set-index! array-literal
                        free const-size-array-literal)))

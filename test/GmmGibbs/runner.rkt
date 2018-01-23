@@ -19,9 +19,12 @@
                      [2 2 2 2 1 2 2 2 2 2]))
 
 (define empty-info-3-10 '(() () () () () ()))
+(define classes 3)
+(define points 10)
+
 (define-runtime-path current-dir "./")
 
-(define partial1-env (compile-file (build-path current-dir "partial1.hkr") empty-info-3-10))
+(define partial1-env (debug-file (build-path current-dir "partial1.hkr") empty-info-3-10))
 
 ;; (jit-dump-module partial1-env)
 
@@ -82,6 +85,22 @@
   (define zs (make-zs (cdr input)))
   (define doc 0)
 
+  (define full-info
+    `(((attrs . (constant)))
+      ((array-info . ((size . ,classes)
+                      (elem-info . ((prob-info . ((constant . 0)))))))
+       (attrs . (constant)))
+      ((array-info
+        . ((size . ,points)
+           (elem-info
+            . ((nat-info
+                . ((value-range . (0 . ,(- classes 1))))))))))
+      ((array-info . ((size . ,points)))
+       (attrs . (constant))
+       (value . ,(car input)))
+      ((nat-info . ((value-range . (0 . ,(- points 1))))))))
+
+  (printf "calling prog:\n")
   (define output-c (prog stdev as zs ts doc))
   (define output-list
     (for/list ([i (get-size-prob-array output-c)])

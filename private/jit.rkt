@@ -6,7 +6,7 @@
          "pass/utils.rkt"
          "utils.rkt")
 
-(provide compile-file)
+(provide compile-file debug-file)
 
 (define passes
   (list
@@ -26,9 +26,9 @@
 
    later-simplifications     ;; debug-print ;; stop
 
-   to-stmt                  debug-print ;;stop
-   compile-opts             debug-print stop
-   to-sham-lc                ;; debug-print stop
+   to-stmt                  ;; debug-print ;;stop
+   ;; compile-opts             debug-print ;; stop
+   to-sham-lc               debug-print ;; stop
    compile-with-sham
    optimize&init-jit))
 
@@ -137,8 +137,8 @@
     `(((array-info . ((size . ,num-topics)
                       (elem-info . ((prob-info . ((constant . 0)))))))
        (attrs . (constant)))
-     ((array-info . ((size . ,num-words)
-                     (elem-info . ((prob-info . ((constant . 0)))))))
+      ((array-info . ((size . ,num-words)
+                      (elem-info . ((prob-info . ((constant . 0)))))))
       (attrs . (constant)))
      ((array-info . ((size . ,num-docs)
                      (elem-info . ((nat-info
@@ -148,13 +148,13 @@
                      (elem-info . ((nat-info
                                     . ((value-range
                                         . (0 . ,(- num-words 1)))))))))
-      (value . ())
+      (value . (0))
       (attrs . (constant)))
      ((array-info . ((size . ,words-size)
                      (elem-info . ((nat-info
                                     . ((value-range
                                         . (0 . ,(- num-docs 1)))))))))
-      (value . ())
+      (value . (0))
       (attrs . (constant)))
      ((nat-info . ((value-range . (0 . ,(- num-docs 1))))))))
 
