@@ -56,7 +56,7 @@
   (match-define (expr-var atype asym ainfo) arg)
   (define var (expr-var atype (gensym^ (symbol-append 'constant- asym)) ainfo))
   (expr-cvar var (if (not (pair? (second atype)))
-                     (llvm-ptr-list (assocv ainfo 'value) atype)
+                     (llvm-ptr-list (assocv 'value (get-arg-info ainfo)) atype)
                      #f)))
 
 (define (can-be-constant-let? triple)
@@ -72,7 +72,7 @@
   (match-define (list type var val) triple)
   (define cvar (expr-var type (gensym^ (symbol-append 'constant- (expr-var-sym var))) (expr-var-info var)))
   (define cval (expr-val  `(pointer ,type) 0))
-  (expr-cvar cvar (llvm-ptr-empty-list type)))
+  (expr-app type (expr-intrf 'clear) (list (expr-cvar cvar (llvm-ptr-empty-list type)))))
 
 (define (is-constant? info)
   (member 'constant (get-info-attrs info)))
@@ -98,7 +98,7 @@
        (define-values (can cant)
          (partition (compose is-constant? get-arg-info expr-var-info)
                     args))
-       (printf "arg cans:~a\n" (map pe can))
+       ;; (printf "arg cans:~a\n" (map pe can))
        (define gl (map get-constant can))
        (set-box! constants (append (unbox constants) gl))
        (expr-fun name cant ret-type

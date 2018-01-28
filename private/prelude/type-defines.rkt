@@ -56,7 +56,7 @@
     [`(array ,tar)
      (format array-format (get-type-string (if-need-pointer tar)))]
     [`(array ,tar (size . ,s))
-     (format sized-array-format s (get-type-string (if-need-pointer tar)))]
+     (format sized-array-format s (get-type-string tar))]
     [`(measure ,t) (get-type-string t)]
     [`(pair ,t1 ,t2) (format pair-format
                              (get-type-string (if-need-pointer t1))
@@ -114,7 +114,8 @@
                                  (sham:type:struct array-args (list type-nat-ref (get-sham-type-ref (car st))))))
        (cons ct (cons type-nat-def st))]
       [`(array ,t (size . ,s))
-       (define st (get-sham-type-define (if-need-pointer t)))
+       (define st (get-sham-type-define t;; (if-need-pointer t)
+                                        ))
        (define def (sham$def:type (get-type-sym tast) (sham:type:array (get-sham-type-ref (car st)) s)))
        (cons def st)]
 

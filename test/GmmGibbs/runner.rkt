@@ -21,19 +21,71 @@
 (define empty-info-3-10 '(() () () () () ()))
 (define classes 3)
 (define points 10)
-
 (define-runtime-path current-dir "./")
 
-(define partial1-env (debug-file (build-path current-dir "partial1.hkr") empty-info-3-10))
-
-;; (jit-dump-module partial1-env)
-
-(define (run-module module-env input)
+(define (run-with-info input)
   (define points (length (car input)))
   (define classes (add1 (apply max (cdr input))))
 
-  (define prog (jit-get-function 'prog module-env))
+  (define full-info
+    `(()
 
+      ((array-info . ((size . ,classes)
+                      ;; (elem-info . ((prob-info . ((constant . 1.0)))))
+                      ))
+       ;; (attrs . (constant))
+       )
+      ((array-info
+        . ((size . ,points)
+           (elem-info
+            . ((nat-info
+                . ((value-range . (0 . ,(- classes 1))))))))))
+      ((array-info . ((size . ,points)))
+       (attrs . (constant))
+       (value . ,(car input)))
+      ((nat-info . ((value-range . (0 . ,(- points 1))))))))
+  (define partial1-env (compile-file (build-path current-dir "partial1.hkr") full-info))
+  (define prog (jit-get-function 'prog partial1-env))
+
+  (jit-dump-module partial1-env )
+  (jit-dump-function partial1-env 'prog)
+
+
+  ;; (printf "i ~a\n" (get-index (list->cblock (list 2 2 2 2 1 2 2 2 2 2) _uint64) 0))
+
+  (define module-env partial1-env)
+  (define real2prob (jit-get-function (string->symbol "real2prob") module-env))
+  (define prob2real (jit-get-function (string->symbol "prob2real") module-env))
+
+  (define stdev (real2prob 14.0))
+  (define zs (list->cblock (cdr input) _uint64))
+  (define as (list->cblock (list 0.0 0.0 0.0) _double))
+  (define doc 0)
+
+  (printf "calling prog:\n")
+  (define output-c (prog stdev as zs doc))
+  (define get-index-3-prob (jit-get-function 'get-index$array<3.prob> partial1-env))
+  (define output-list (map prob2real (cblock->list output-c _double 3))
+    ;; (for/list ([i 3])
+    ;;   (prob2real (get-index-3-prob output-c i)))
+    )
+  output-list)
+
+
+
+
+
+(define (run input)
+  (define points (length (car input)))
+   (define classes (add1 (apply max (cdr input))))
+
+  (define partial1-env (debug-file (build-path current-dir "partial1.hkr") empty-info-3-10))
+  (define prog (jit-get-function 'prog partial1-env))
+
+  (jit-dump-module partial1-env )
+  ;; (jit-dump-function partial1-env 'prog)
+
+  (define module-env partial1-env)
   (define make-prob-array      (jit-get-function (string->symbol (format "make$array<prob>")) module-env))
   (define new-sized-prob-array (jit-get-function (string->symbol (format "new-sized$array<prob>")) module-env))
   (define free-prob-array      (jit-get-function (string->symbol (format "free-sized$array<prob>")) module-env))
@@ -85,30 +137,22 @@
   (define zs (make-zs (cdr input)))
   (define doc 0)
 
-  (define full-info
-    `(((attrs . (constant)))
-      ((array-info . ((size . ,classes)
-                      (elem-info . ((prob-info . ((constant . 0)))))))
-       (attrs . (constant)))
-      ((array-info
-        . ((size . ,points)
-           (elem-info
-            . ((nat-info
-                . ((value-range . (0 . ,(- classes 1))))))))))
-      ((array-info . ((size . ,points)))
-       (attrs . (constant))
-       (value . ,(car input)))
-      ((nat-info . ((value-range . (0 . ,(- points 1))))))))
-
   (printf "calling prog:\n")
   (define output-c (prog stdev as zs ts doc))
   (define output-list
     (for/list ([i (get-size-prob-array output-c)])
-      (prob2real (get-index-prob-array output-c i))))
-  output-list)
+      (get-index-prob-array output-c i)
+      ;; (prob2real (get-index-prob-array output-c i))
+      ))
+  output-list
+  )
 
 (module+ test
   (require rackunit)
-  (define our-out (run-module partial1-env input-3-10))
-  (define _ (map (curryr check-= 0.0000000001) our-out
-                 (list 322.48561494234417  190.89773000645684 2345.667007610382))))
+  (define our-out (run-with-info input-3-10))
+  ;; (define our-out (run input-3-10))
+
+  our-out
+  ;; (define _ (map (curryr check-= 0.0000000001) our-out
+  ;;                (list 322.48561494234417  190.89773000645684 2345.667007610382)))
+  )

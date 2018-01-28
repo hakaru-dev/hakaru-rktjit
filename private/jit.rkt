@@ -12,7 +12,7 @@
   (list
    clean-curry
    parse-sexp
-   initial-simplifications  ;; debug-print stop
+   initial-simplifications   debug-print stop
    flatten-anf              ;; debug-print stop
    later-simplifications
    middle-simplifications   ;; debug-print
@@ -27,8 +27,8 @@
    later-simplifications     ;; debug-print ;; stop
 
    to-stmt                  ;; debug-print ;;stop
-   ;; compile-opts             debug-print ;; stop
-   to-sham-lc               debug-print ;; stop
+   compile-opts             ;; debug-print stop
+   to-sham-lc               ;; debug-print stop
    compile-with-sham
    optimize&init-jit))
 
@@ -61,7 +61,7 @@
   (compile-src (file->value fname) arg-info))
 
 (define (debug-file fname arg-info)
-  (parameterize ([hakrit-print-debug #f]
+  (parameterize ([hakrit-print-debug #t]
                  [debug-curry #f]
                  [debug-flatten-anf #f]
                  [debug-combine-loops #f]
@@ -113,22 +113,49 @@
     (define points 10)
     (define empty-info '(() () () () ()))
     (define full-info
-      `(((attrs . (constant)))
+      `((;; (attrs . (constant))
+         )
         ((array-info . ((size . ,classes)
-                        (elem-info . ((prob-info . ((constant . 0)))))))
+                        (elem-info . ((prob-info . ((constant . 0.0)))))
+                        ))
          (attrs . (constant)))
         ((array-info
           . ((size . ,points)
              (elem-info
               . ((nat-info
                   . ((value-range . (0 . ,(- classes 1))))))))))
-        ((array-info . ((size . ,points))))
+        ((array-info . ((size . ,points)))
+         (attrs . (constant))
+         (value .  [3.8728103253204136
+                    1.1452918218810444
+                    -0.37443733246614497
+                    2.2524280674567634
+                    0.1088871787126991
+                    2.2484645323958334
+                    0.19013878436498044
+                    1.4032911741452248
+                    2.1930977191694936
+                    1.7312282946567383]))
         ((nat-info . ((value-range . (0 . ,(- points 1))))))))
     (define gg-module-env
-      (debug-file "../../testcode/hkrkt/GmmGibbs.hkr" empty-info))
+      (debug-file "../../testcode/hkrkt/GmmGibbs.hkr" full-info))
     (jit-dump-function gg-module-env 'prog)
-    (jit-verify-module gg-module-env))
-  ;; (dogg)
+    (jit-verify-module gg-module-env)
+    (define prog (jit-get-function 'prog gg-module-env))
+    (define real2prob (jit-get-function 'real2prob gg-module-env))
+    (define prob2real (jit-get-function 'prob2real gg-module-env))
+
+    (define stdev (real2prob 14.0))
+    (define zs (list->cblock `[2 2 2 2 1 2 2 2 2 2] _uint64))
+    (define as (list->cblock (list 0.0 0.0 0.0) _double))
+    (define doc 0)
+
+    (printf "calling prog:\n")
+    (define output-c (prog stdev ;; as
+                           zs doc))
+    (define output-list (map prob2real (cblock->list output-c _double 3)))
+    output-list)
+
 
 
   (define (donb num-topics num-words num-docs words-size)
@@ -168,4 +195,6 @@
     ;; (disassemble-ffi-function (jit-get-function-ptr 'prog nb-module-env)
     ;;                           #:size 1000)
     )
-  (donb 20 59967 19997 2435579))
+  (dogg)
+  ;; (donb 20 59967 19997 2435579)
+  )

@@ -72,8 +72,10 @@
      (define-values (val cleanup)
        (if (or (equal? (car vrt) 'real) (equal? (car vrt) 'nat) (constant-size-array? (car vrt)))
            (values (expr-app narrt (expr-intrf 'empty) (list arr-size))
-                   (stmt-expr (stmt-void)
-                              (expr-app 'void (expr-intrf 'free) (list result))))
+                   (stmt-void)
+                   ;; (stmt-expr (stmt-void)
+                   ;;            (expr-app 'void (expr-intrf 'free) (list result)))
+                   )
            (values (wrap-expr
                     narrt arrn (expr-app narrt (expr-intrf 'empty) (list arr-size))
                     (stmt-for fori (expr-val 'nat 0) arr-size
@@ -242,8 +244,9 @@
                    (cons var nvars)
                    (cons (expr-app nt (expr-intrf 'empty) (list e)) nvals)
                    (cons (get-stmt-ar b i t) stmts)
-                   (cons (stmt-expr (stmt-void) (expr-app 'void (expr-intrf 'free) (list var))) cleanup)
-                   )])))
+                   (if (constant-size-array? nt)
+                       cleanup
+                       (cons (stmt-expr (stmt-void) (expr-app 'void (expr-intrf 'free) (list var))) cleanup)))])))
 
     (define for-stmt (stmt-for index start end (stmt-block nstmts)))
     (define vl (expr-var (typeof b) (gensym^ 'vl) '()))

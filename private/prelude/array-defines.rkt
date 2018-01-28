@@ -14,10 +14,10 @@
          get-array-rator
          build-array-literal)
 
-(define debug-arrays (make-parameter #t))
+(define debug-arrays (make-parameter #f))
 (define (array-rator? sym)
    (member sym '(empty index size set-index! array-literal
-                       free const-size-array-literal)))
+                       free const-size-array-literal clear)))
 
 
 (define (get-array-rator sym tresult trands)
@@ -39,6 +39,7 @@
                   ['set-index! (values set-index-fun-format (get-type-string (car trands)))]
                   ['size (values get-array-size-fun-format (get-type-string (car trands)))]
                   ['empty (values new-size-array-fun-format (get-type-string tresult))]
+                  ['clear (values clear-size-array-fun-format (get-type-string tresult))]
                   ['free (values free-size-array-fun-format (get-type-string (car trands)))]
                   [else
                    (error "why is this array rator not done yet?" sym tresult trands)
@@ -144,15 +145,15 @@
      (sham:type:ref 'void)
      (sham:stmt:block
       (list
-       (sham:stmt:expr
-        (sham:expr:app
-         (sham:rator:racket
-          (get-fun-name rkt-get-index-error-fun-format)
-          (λ (a b c) (printf "wrong index while calling get-index~a: ~a ~a, ~a\n"
-                             tast a b (map exp (cblock->list c _double 20))))
-          (sham:type:function (list nat nat (sham:type:pointer (sham:type:ref 'i8)))
-                              (sham:type:ref 'void)))
-         (list (sham$var a) (sham$var b) (sham$var c))))
+       ;; (sham:stmt:expr
+       ;;  (sham:expr:app
+       ;;   (sham:rator:racket
+       ;;    (get-fun-name rkt-get-index-error-fun-format)
+       ;;    (λ (a b c) (printf "wrong index while calling get-index~a: ~a ~a, ~a\n"
+       ;;                       tast a b (map exp (cblock->list c _double 20))))
+       ;;    (sham:type:function (list nat nat (sham:type:pointer (sham:type:ref 'i8)))
+       ;;                        (sham:type:ref 'void)))
+       ;;   (list (sham$var a) (sham$var b) (sham$var c))))
        (sham:stmt:return (sham:expr:void))))))
 
   (define (get-index)
@@ -192,14 +193,14 @@
      (get-fun-name set-index-error-fun-format) (list 'a 'b) (list nat nat) (sham:type:ref 'void)
      (sham:stmt:block
       (list
-       (sham:stmt:expr
-        (sham:expr:app
-         (sham:rator:racket
-          (get-fun-name rkt-set-index-error-fun-format)
-          (λ (a b) (printf "wrong index while calling set-index: ~a ~a\n" a b))
-          (sham:type:function (list nat nat)
-                              (sham:type:ref 'void)))
-         (list (sham$var a) (sham$var b))))
+       ;; (sham:stmt:expr
+       ;;  (sham:expr:app
+       ;;   (sham:rator:racket
+       ;;    (get-fun-name rkt-set-index-error-fun-format)
+       ;;    (λ (a b) (printf "wrong index while calling set-index: ~a ~a\n" a b))
+       ;;    (sham:type:function (list nat nat)
+       ;;                        (sham:type:ref 'void)))
+       ;;   (list (sham$var a) (sham$var b))))
        (sham:stmt:return (sham:expr:void))))))
 
 
@@ -257,75 +258,123 @@
     (set-index-error))))
 
 (define (const-array-defs tast)
+  ;; (pretty-print tast)
   (define (get-array-data-type at)
     (match at
       [(sham:type:array _ t _) t]))
   (match-define `(array ,dtype (size . ,size)) tast)
 
-  (define-values (atdefs atdef at atref) (defs-def-t-tref tast))
-  (define-values (aptdefs aptdef apt aptref) (defs-def-t-tref `(pointer ,tast)))
+  (define nested-array
+    (and (pair? dtype)
+         (equal? (car dtype) 'array)))
+  ;; (printf "const-array-defs; ~a, ~a\n" tast nested-array)
 
-  (define adtref (get-array-data-type at))
 
-  (define adpt (sham:type:pointer adtref))
   (define nat type-nat-ref)
   (define nat* (sham:type:pointer nat))
 
-  (define arr-id (sham:def-id atdef))
+  ;; all defines, main define, main type, main type ref
+  (define-values (atdefs atdef at atref) (defs-def-t-tref tast))
+  (define-values (aptdefs aptdef apt aptref) (defs-def-t-tref `(pointer ,tast)))
+  (define-values (adtdefs adtdef adt adtref) (defs-def-t-tref dtype))
+  (define-values (apdtdefs apdtdef apdt apdtref) (defs-def-t-tref `(pointer ,dtype)))
+
+  (define (get-size tast)
+    (match tast
+      [`(array ,elem (size . ,c)) (* c (get-size elem))]
+      [else 1]))
+  (define total-size (get-size tast))
+
   (define (get-fun-name frmt)
-    (string->symbol (format frmt arr-id)))
+    (string->symbol (format frmt (sham:def-id atdef))))
 
   (define (make-array)
-    (sham:def:function
+    (sham$def-function
      (prelude-function-info)
-     (get-fun-name new-size-array-fun-format)
-     '() '() aptref
-     (sham:stmt:return
-      (sham$app bitcast
-                (sham$app arr-malloc
-                          (sham:expr:type atref) (sham:expr:ui-value size nat))
-                (sham:expr:type aptref)))))
+     ((get-fun-name new-size-array-fun-format)) aptref
+     (sham$return (sham$app bitcast (sham$app 'malloc (sham$etype atref)) (sham$etype aptref)))))
+
+  (define (clear-array)
+    (sham$def-function
+     (prelude-function-info)
+     ((get-fun-name clear-size-array-fun-format)
+      ('arr aptref)) aptref
+     ;; (sham:stmt:expr
+     ;;  (sham:expr:app
+     ;;   (sham:rator:racket
+     ;;    (gensym 'clear-info)
+     ;;    (λ (b) (printf "clear-info\n") (printf "clear array ~a: ~a\n"
+     ;;                                           tast (cblock->list b _uint64 total-size)))
+     ;;    (sham:type:function (list (sham:type:pointer (sham:type:ref 'i8)))
+     ;;                        (sham:type:ref 'void)))
+     ;;   (list (sham$var arr))))
+     (sham:stmt:expr
+      (sham:expr:app
+       (sham:rator:intrinsic 'llvm.memset.p0i8.i64 (sham:type:ref 'void))
+       (list (sham$app ptrcast (sham$var 'arr) (sham:expr:type (sham:type:pointer (sham:type:ref 'i8))))
+             (sham$app intcast (nat-value 0) (sham:expr:type (sham:type:ref 'i8)))
+             (sham$app intcast (sham:expr:sizeof at) (sham$etype nat))
+             (sham$app intcast (nat-value 0) (sham$etype i32))
+             (sham$app intcast (nat-value 0) (sham$etype i1)))))
+     (sham:stmt:return (sham$var arr))))
   (define (free-array)
-    (sham:def:function
+    (sham$def-function
      (prelude-function-info)
-     (get-fun-name free-size-array-fun-format)
-     '(arr) (list aptref) (sham:type:ref 'void)
-     (sham$block
-      (sham:stmt:expr
-       (sham:expr:app (sham:rator:symbol 'free) (list (sham$var 'arr))))
-      (sham:stmt:return (sham:expr:void)))))
+     ((get-fun-name free-size-array-fun-format)
+      ('arr aptref)) (sham:type:ref 'void)
+     (sham:stmt:expr
+      (sham:expr:app (sham:rator:symbol 'free) (list (sham$var 'arr))))
+     (sham:stmt:return (sham:expr:void))))
 
   (define (get-array-size)
-    (sham:def:function
+    (sham$def-function
      (prelude-function-info)
-     (get-fun-name get-array-size-fun-format)
-     '(arr) (list aptref) nat
+     ((get-fun-name get-array-size-fun-format)
+      ('arr aptref)) nat
      (sham:stmt:return (sham:expr:ui-value size nat))))
 
   (define (get-index)
     (sham:def:function
      (prelude-function-info)
      (get-fun-name get-index-fun-format)
-     '(arr ind) (list aptref nat) adtref
-     (sham:stmt:return
-      (sham$app 'load
-                (sham:expr:gep (sham$var 'arr)
-                               (list (nat32-value 0) (sham$var ind)))))))
+     '(arr ind) (list aptref nat) (if nested-array apdtref adtref)
+     (sham$block
+      ;; (sham:stmt:expr
+      ;;  (sham:expr:app
+      ;;   (sham:rator:racket
+      ;;    (gensym 'get-index-info)
+      ;;    (λ (a b) (printf "get-index-info\n")
+      ;;       (printf "get-index ~a: ~a ~a\n"
+      ;;               tast a (cblock->list b _uint64 total-size))
+      ;;       (when (> a total-size)
+      ;;         (error 'out-of-index)))
+      ;;    (sham:type:function (list nat (sham:type:pointer (sham:type:ref 'i8)))
+      ;;                        (sham:type:ref 'void)))
+      ;;   (list (sham$var ind) (sham$var arr))))
+      (sham:stmt:return
+       (let [(ptr (sham:expr:gep (sham$var 'arr)
+                                 (list (nat32-value 0) (sham$var ind))))]
+         (if nested-array ptr (sham:expr:app (sham$rator 'load) (list ptr))))))))
 
   (define (set-index)
     (sham:def:function
      (prelude-function-info)
      (get-fun-name set-index-fun-format)
-     '(arr ind v) (list aptref nat adtref) (sham:type:ref 'void)
+     '(arr ind v) (list aptref nat (if (pair? dtype) apdtref adtref)) (sham:type:ref 'void)
      (sham$block
-      (sham:stmt:expr (sham$app store! (sham$var v) (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))
+      (sham:stmt:expr (sham$app store!
+                                (if (pair? dtype) (sham$app 'load v) (sham$var v))
+                                (sham:expr:gep (sham$var 'arr) (list (nat32-value 0) (sham$var ind)))))
       (sham:stmt:return (sham:expr:void)))))
   (append
+   (reverse adtdefs)
+   (reverse apdtdefs)
    (reverse atdefs)
    (reverse aptdefs)
    (list type-nat-def)
    (list
     (make-array)
+    (clear-array)
     (free-array)
     (get-array-size)
     (get-index)
@@ -403,7 +452,8 @@
                           (array real)
                           (array prob)
                           (array (array nat))))
-            (list (build-array-literal `(array real) 3))))
+            (list (build-array-literal `(array real) 3))
+            ))
 
 
 
@@ -414,8 +464,8 @@
 
   (define cmod (compile-module mod))
   ;; (jit-dump-module cmod)
-  ;; (optimize-module cmod)
-  ;  (jit-dump-module cmod)
+  (optimize-module cmod)
+   (jit-dump-module cmod)
   (printf "verify after optimize: ~a\n" (jit-verify-module cmod))
   (initialize-jit! cmod)
   ;(pretty-print cmod)

@@ -344,6 +344,7 @@
     [(expr-bucket t _ _ _) t]
     [(expr-val t v) t]
     [(expr-intrf s) '!]
+    [(expr-cvar var val) (typeof var)]
     [(expr-var t s o) t]
     [(expr-bucket t s e b) t]))
 
@@ -399,7 +400,10 @@
              ,(ps stmt)
              ,(pe body))]
     [(expr-intrf s) s]
-    [(expr-val t v) v]
+    [(expr-val t v)
+     (if (hakrit-print-debug)
+         `(,v : ,t)
+         v)]
     [else '?]))
 (define print-expr pe)
 (define display-expr (compose pretty-display print-expr))

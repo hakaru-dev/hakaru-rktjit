@@ -293,25 +293,45 @@
            (list 'arrs) (list (sham:type:ref (string->symbol (format "array<~a.prob>*" s)))) type-nat-ref
            (sham:stmt:expr
             (sham:expr:let
-             '(arr i)
-             (list (sham:type:ref 'real*) type-nat-ref)
+             '(arr i mx)
+             (list (sham:type:ref 'real*) type-nat-ref type-prob-ref)
              (list (sham$app arr-alloca (sham:expr:type type-real-ref) (sham:expr:ui-value s type-nat-ref))
-                   (sham:expr:ui-value 0 type-nat-ref))
-             (sham:stmt:while
-              (sham$app icmp-ule i (sham:expr:ui-value s type-nat-ref))
-              (sham$block
-               (sham:stmt:expr (sham$app store! (sham$app prob2real (sham:expr:app get-index (list (sham$var arrs)
-                                                                                                   (sham$var i))))
-                                         (sham:expr:gep (sham$var arr) (list (sham$var i)))))
-               (sham:stmt:set! (sham$var 'i) (sham:expr:app (sham:rator:symbol 'add-nuw)
-                                                            (list (sham$var 'i)
-                                                                  (sham:expr:ui-value  1 type-nat-ref))))))
+                   (sham:expr:ui-value 0 type-nat-ref)
+                   (sham:expr:app get-index (list (sham$var arrs)
+                                                  (sham:expr:ui-value 0 type-nat-ref))))
+             (sham$block
+              (sham:stmt:while
+               (sham$app icmp-ult i (sham:expr:ui-value s type-nat-ref))
+               (sham$block
+                (sham:stmt:expr
+                 (sham:expr:let
+                  '(c) (list type-prob-ref)
+                  (list (sham:expr:app get-index (list (sham$var arrs) (sham$var i))))
+                  (sham:stmt:if (sham$app fcmp-uge (sham$var 'mx) (sham$var 'c))
+                                (sham:stmt:set! (sham$var 'mx) (sham$var 'c))
+                                (sham:stmt:void))
+                  (sham:expr:void)))
+                (sham:stmt:set! (sham$var 'i)
+                                (sham$app add-nuw i
+                                          (sham:expr:ui-value 1 type-nat-ref)))))
+
+              (sham:stmt:set! (sham$var 'i) (sham:expr:ui-value 0 type-nat-ref))
+
+              (sham:stmt:while
+               (sham$app icmp-ult i (sham:expr:ui-value s type-nat-ref))
+               (sham$block
+                (sham:stmt:expr (sham$app store! (sham$app prob2real
+                                                           (sham$app fsub
+                                                                     (sham:expr:app get-index (list (sham$var arrs)
+                                                                                                    (sham$var i)))
+                                                                     (sham$var 'mx)))
+                                          (sham:expr:gep (sham$var arr) (list (sham$var i)))))
+                (sham:stmt:set! (sham$var 'i) (sham:expr:app (sham:rator:symbol 'add-nuw)
+                                                             (list (sham$var 'i)
+                                                                   (sham:expr:ui-value  1 type-nat-ref)))))))
              (sham:expr:let
-              '(result) (list type-nat-ref) (list (sham$app categorical-real arr (sham:expr:ui-value s type-nat-ref)))
-              (sham$block
-               (sham:stmt:void)
-;               (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$var arr))))
-               (sham:stmt:return (sham$var result)))
+              '() '() '()
+              (sham:stmt:return (sham$app categorical-real-disc arr (sham:expr:ui-value s type-nat-ref)))
               (sham:expr:void)))))]))))
 
 (define (build-superpose-categorical tresult len)

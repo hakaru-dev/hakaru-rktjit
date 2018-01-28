@@ -42,6 +42,7 @@
 (define new-size-array-fun-format (cft "new-sized" 1))
 (define free-size-array-fun-format (cft "free-sized" 1))
 (define empty-array-fun-format (cft "empty" 1))
+(define clear-size-array-fun-format (cft "clear" 1))
 (define get-array-size-fun-format (cft "get-size" 1))
 (define get-array-data-fun-format (cft "get-data" 1))
 

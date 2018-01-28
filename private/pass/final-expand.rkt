@@ -39,7 +39,19 @@
       (get-rator (expr-intrf-sym rator) (clean-basic-type tresult) (map clean-basic-type trands)))
     (unless (void? def)
       (add-defs-prelude! prl (list def)))
-    (sham:expr:app rtr (map ee rands)))
+    (sham:expr:app rtr (map ee rands))
+    ;; (sham:expr:let '()'() '()
+    ;;                (sham:stmt:block
+    ;;                 (list (sham:stmt:void)
+    ;;                       ;; (sham:stmt:expr
+    ;;                       ;;  (sham:expr:app (sham:rator:racket
+    ;;                       ;;                  (gensym^ 'app)
+    ;;                       ;;                  (λ () (printf "app: rator: ~a, args: ~a\n" (pe rator) (map pe rands)))
+    ;;                       ;;                  (sham:type:function (list )
+    ;;                       ;;                                      (sham:type:ref 'void)))
+    ;;                       ;;                 (list )))
+    ;;                       )))
+    )
 
   (define (ee expr)
     (match expr
@@ -54,7 +66,18 @@
        (sham:expr:let (map expr-var-sym vars)
                       sham-types
                       (map ee vals)
-                      (es stmt)
+                      (sham:stmt:block
+                       (list
+                        ;; (sham:stmt:expr
+                        ;;  (sham:expr:app (sham:rator:racket
+                        ;;                  (gensym^ 'let)
+                        ;;                  (λ a
+                        ;;                    (printf "expr-lets: vars: ~a, types: ~a, vals: ~a\n"
+                        ;;                            (map expr-var-sym vars) (map typeof vars) a))
+                        ;;                  (sham:type:function sham-types
+                        ;;                                      (sham:type:ref 'void)))
+                        ;;                 (map (compose sham:expr:var expr-var-sym) vars)))
+                        (es stmt)))
                       (ee body))]
       [(expr-if t tst thn els)
        (define v (gensym^ 'if))
