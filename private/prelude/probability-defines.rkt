@@ -1,7 +1,9 @@
 #lang racket
 
 (require sham
-         (submod sham/ast utils))
+         (submod sham/ast utils)
+         math/distributions
+         ffi/unsafe)
 (require "template-format.rkt"
          "type-defines.rkt"
          "basic-defines.rkt"
@@ -49,7 +51,7 @@
        (sham:stmt:set!
         (sham:expr:var 'gsl-rng)
         (sham:expr:app (sham:rator:external 'libgsl 'gsl_rng_alloc tvoid*)
-                       (list (sham:expr:external 'libgsl 'gsl_rng_taus tvoid*))))
+                       (list (sham:expr:external 'libgsl 'gsl_rng_rand tvoid*))))
        (sham:stmt:return (sham:expr:void)))))
 
     (sham$define
@@ -180,52 +182,65 @@
       #:info (prelude-function-info)
       (categorical-real
        (arr (sham:type:ref 'real*)) (size tnat) tnat)
-      (sham:stmt:expr
-       (sham:expr:let
-        '(i) (list tnat) (list (sham:expr:ui-value 1 tnat))
-        (sham:stmt:block
-         (list
-          (sham:stmt:while
-           (sham$app icmp-ult i size)
-           (sham$block
-            (sham:stmt:expr
-             (sham$app store!
-                       (sham$app fadd
-                                 (sham$app 'load
-                                           arr
-                                           (sham$app sub-nuw
-                                                     i (sham:expr:ui-value 1 tnat)))
-                                 (sham$app 'load arr (sham$var i)))
-                       (sham:expr:gep (sham$var arr) (list (sham$var i)))))
-            (sham:stmt:set! (sham$var 'i)
-                            (sham$app add-nuw i (sham:expr:ui-value 1 tnat)))))
-          (sham:stmt:set! (sham$var i) (sham:expr:ui-value 0 tnat))))
-        (sham:expr:let
-         '(p) (list treal)
-         (list (sham$app uniform (sham:expr:fl-value 0.0 treal)
-                         (sham$app 'load
-                                   (sham:expr:gep
-                                    (sham$var arr)
-                                    (list
-                                     (sham$app
-                                      sub-nuw
-                                      size (sham:expr:ui-value 1 tnat)))))))
-         (sham:stmt:while
-          (sham$app icmp-ult i size)
-          (sham$block
-           (sham:stmt:if
-            (sham$app fcmp-ugt
-                      (sham$app 'load
-                                (sham:expr:gep
-                                 (sham$var arr) (list (sham$var i)))) p)
-            (sham:stmt:return (sham$var i))
-            (sham:stmt:void))
-           (sham:stmt:set! (sham$var i)
-                           (sham$app add-nuw i (sham:expr:ui-value 1 tnat)))))
-         (sham:expr:let
-          '() '() '()
-          (sham:stmt:return (sham:expr:ui-value 0 tnat))
-          (sham:expr:void))))))
+      (sham$return
+       (sham:expr:app
+        (sham:rator:racket
+         'cat
+         (λ (arr len)
+           (printf "categorical-array: ~a\n" (cblock->list arr _double len))
+           (let ([val (sample (discrete-dist (build-list len identity) (cblock->list arr _double len)))])
+             val))
+         (sham:type:function (list (sham:type:ref 'real*)
+                                   (sham:type:ref 'nat))
+                             (sham:type:ref 'nat)))
+        (list (sham$var arr)
+              (sham$var size))))
+      ;; (sham:stmt:expr
+      ;;  (sham:expr:let
+      ;;   '(i j) (list tnat tnat) (list (sham:expr:ui-value 1 tnat)
+      ;;                                 (sham:expr:ui-value 0 tnat))
+      ;;   (sham:stmt:block
+      ;;    (list
+      ;;     (sham:stmt:while
+      ;;      (sham$app icmp-ult i size)
+      ;;      (sham$block
+      ;;       (sham:stmt:while
+      ;;        (sham$app icmp-ult j i)
+      ;;        (sham$block
+      ;;         (sham:stmt:expr
+      ;;          (sham$app store!
+      ;;                    (sham$app fadd
+      ;;                              (sham$app 'load arr (sham$var j))
+      ;;                              (sham$app 'load arr (sham$var i)))
+      ;;                    (sham:expr:gep (sham$var arr) (list (sham$var i)))))
+      ;;         (sham:stmt:set! (sham$var j)
+      ;;                         (sham$app add-nuw j (sham:expr:ui-value 1 tnat)))))
+      ;;       (sham:stmt:set! (sham$var 'i)
+      ;;                       (sham$app add-nuw i (sham:expr:ui-value 1 tnat)))))
+      ;;     (sham:stmt:set! (sham$var i) (sham:expr:ui-value 0 tnat))))
+      ;;   (sham:expr:let
+      ;;    '(p) (list treal)
+      ;;    (list (sham$app fmul
+      ;;                    (sham$app 'load (sham:expr:gep (sham$var arr)
+      ;;                                                   (list (sham$app sub-nuw size (sham:expr:ui-value 1 tnat)))))
+      ;;                    (sham$app uniform (sham:expr:fl-value 0.0 treal) (sham:expr:fl-value 0.0 treal))))
+      ;;    (sham:stmt:while
+      ;;     (sham$app icmp-ult i size)
+      ;;     (sham$block
+      ;;      (sham:stmt:if
+      ;;       (sham$app fcmp-ugt
+      ;;                 (sham$app 'load
+      ;;                           (sham:expr:gep
+      ;;                            (sham$var arr) (list (sham$var i)))) p)
+      ;;       (sham:stmt:return (sham$var i))
+      ;;       (sham:stmt:void))
+      ;;      (sham:stmt:set! (sham$var i)
+      ;;                      (sham$app add-nuw i (sham:expr:ui-value 1 tnat)))))
+      ;;    (sham:expr:let
+      ;;     '() '() '()
+      ;;     (sham:stmt:return (sham:expr:ui-value 0 tnat))
+      ;;     (sham:expr:void)))))
+      )
 
 
     (sham$define
@@ -307,7 +322,7 @@
                  (sham:expr:let
                   '(c) (list type-prob-ref)
                   (list (sham:expr:app get-index (list (sham$var arrs) (sham$var i))))
-                  (sham:stmt:if (sham$app fcmp-uge (sham$var 'mx) (sham$var 'c))
+                  (sham:stmt:if (sham$app fcmp-uge (sham$var 'c) (sham$var 'mx))
                                 (sham:stmt:set! (sham$var 'mx) (sham$var 'c))
                                 (sham:stmt:void))
                   (sham:expr:void)))
@@ -460,14 +475,48 @@
   ;;                       (categorical-prob test-prob)))))
   ;; (0.21978021978021972 0.13333333333333333 0.0666666666666667)
   (define nb9900 '(-458.1908976216084 -461.9810000474454 -478.57190842283467 -446.5395681936905 -453.6747904210667 -463.4369314698437 -450.8619961395306 -453.16976113041795 -445.12265609048325 -374.5512758505581 -458.091812993318 -447.1539476558063 -454.3902748158387 -450.796948060257 -448.8193584047232 -450.2865595520607 -450.52765701408424 -460.69817293449074 -453.0247297820897 -457.1166709136238))
-  (define nmax (apply max nb9900))
-  (define nbnn (map (λ (v) (- v nmax)) nb9900))
-
+  (define nb99 '(268.0596789212606
+                 272.15138815387155
+                 272.15138815387155
+                 272.15138815387155
+                 274.6138467723381
+                 272.15138815387155
+                 193.6259482527394
+                 256.24364009217334
+                 272.15138815387155))
+  (define nmax (apply max nb99))
+  (define nbnn (map (λ (v) (- v nmax)) nb99))
+  (define nb99real (map c-prob2real nbnn))
   (define tprob (make-array-prob (length nb9900) (list->cblock nb9900 t-prob)))
+  (define tprob1 (make-array-prob (length nb99) (list->cblock nb99 t-prob)))
+  (define gsllib (ffi-lib "libgsl"))
 
-  (printf "categorical: ~a\n"  (for/list ([i (in-range 10)]) (categorical-prob tprob)))
-  (printf "categorical-real: ~a\n"  (for/list ([i (in-range 10)]) (categorical-real-disc (list->cblock nbnn t-real) (length nbnn))))
+  (define preproc (get-ffi-obj "gsl_ran_discrete_preproc" gsllib (_fun _uint64 (_list i _double) -> _pointer)))
+  (define rng_alloc (get-ffi-obj "gsl_rng_alloc" gsllib  (_fun _pointer -> _pointer)))
+  (define rng_taus  (get-ffi-obj "gsl_rng_taus" gsllib _pointer))
+  (define table (preproc (length nb99) nb99real))
+  (define rng (rng_alloc rng_taus))
 
+  (define discrete (get-ffi-obj "gsl_ran_discrete" gsllib (_fun _pointer _pointer -> _uint64)))
+  (define discrete-pdf (get-ffi-obj "gsl_ran_discrete_pdf" gsllib (_fun _uint64 _pointer -> _double)))
+  (printf "pdf: ~a\n" (for/list ([i (in-range (length nb99))]) (discrete-pdf i table)))
+
+  ;; (begin
+  ;;   (define pdf (make-hash))
+  ;;   (define repeat 10000000)
+  ;;   (for ([i (in-range repeat)])
+  ;;     (define v (discrete rng table))
+  ;;     (hash-set! pdf v (add1 (hash-ref pdf v 1))))
+  ;;   (printf "pdfi: ~a\n" (for/list ([i (in-range (length nb99))])
+  ;;                          (/ (hash-ref pdf i 0) (exact->inexact repeat)))))
+  (printf "random: ~a\n" (for/list ([i (in-range 100)]) (discrete rng table)))
+  (printf "categorical: ~a\n"  (for/list ([i (in-range 10)]) (categorical-prob tprob1)))
+  (printf "categorical-real: ~a\n"  (for/list ([i (in-range 10)]) (categorical-real-disc (list->cblock nb99real t-real) (length nbnn))))
+
+  ;; ;racket
+  (require math/distributions)
+  (define dd (discrete-dist (build-list (length nb99real) identity) nb99real))
+  (sample (discrete-dist (build-list (length nb99real) identity) nb99real))
   (betaFunc (c-real2prob 4.0) (c-real2prob 4.0))
   ;; hkp logFromlogFloat $ betaFunc (prob_ 4.0) (prob_ 4.0)
   ;  (printf "cat-real : ~a\n" (categorical-real (get-data-array-real test-arr) (get-size-array-real test-arr)))
