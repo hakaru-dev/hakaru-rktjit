@@ -139,10 +139,16 @@ prog =
 main :: IO ()
 main = do
   let points = 10
-      classes = 3
+      classes = 9
       stddev = 14
       as = array classes (const 1)
-      ts = UV.fromList ([3.8728103253204136,1.1452918218810444,-0.37443733246614497,2.2524280674567634,0.1088871787126991,2.2484645323958334,0.19013878436498044,1.4032911741452248,2.1930977191694936,1.7312282946567383] :: [Double])
-      zs = UV.fromList [2,2,2,2,1,2,2,2,2,2]
+      ts = UV.fromList ([-3.8907259534842202,-6.618193122202014,-4.941794905899988,-7.119531519149578,-5.9345748166212,4.825733087265147,-8.331891801596736,-5.597647903988242,-9.082321592213654,14.219895056304555] :: [Double])
+      zs = UV.fromList [4,4,4,4,4,7,0,4,0,6]
       doc = 0
-  print (prog stddev as zs ts doc)
+  let result = (prog stddev as zs ts doc)
+  print result
+  print $ UV.map LF.logFromLogFloat result
+  g <- MWC.createSystemRandom
+  replicateM_ 100 $ do
+    z <- unMeasure (categorical result) g
+    print z

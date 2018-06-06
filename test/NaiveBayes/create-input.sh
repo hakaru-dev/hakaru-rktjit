@@ -7,10 +7,10 @@ max_words_per_doc=$4
 name=$5
 
 echo "$num_topics $num_words $num_docs"
-echo "$num_topics $num_words $num_docs" > ./test/input/$name
+# echo "$num_topics $num_words $num_docs" > ./test/input/$name
 mkdir -p ./test/input/news_$name/
-rm ./test/input/news_$name/docs
-rm ./test/input/news_$name/words
+# rm ./test/input/news_$name/docs
+# rm ./test/input/news_$name/words
 
 shuf -i 0-$((num_topics-1)) -r -n $num_docs   > ./test/input/news_$name/topics
 
