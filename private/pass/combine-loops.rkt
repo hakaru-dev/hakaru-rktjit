@@ -180,10 +180,10 @@
      (if (and (expr-val? start)
                 (eq? (expr-val-v start) 0)
                 (eq? (expr-val-type start) 'nat))
-           (match end
-             [(expr-app _ (expr-intrf 'size) (list (expr-var _ sym _))) sym]
-             [else (print-expr end)])
-           (print-expr (expr-app (expr-intrf '-) (list end start)))))
+         (match end
+           [(expr-app _ (expr-intrf 'size) (list (expr-var _ sym _))) sym]
+           [else (print-expr end)])
+         (print-expr (expr-app (expr-intrf '-) (list end start)))))
    var-map))
 
 (define (wrap-body-for-groups loop-groups body)

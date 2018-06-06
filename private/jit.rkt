@@ -4,33 +4,39 @@
          "ast.rkt"
          "pass.rkt"
          "pass/utils.rkt"
+         "parse-hk.rkt"
          "utils.rkt")
 
-(provide compile-file debug-file)
+(provide compile-file
+         debug-file
+         compile-function
+         get-function)
 
-(define passes
+(define basic-pass-list
   (list
-   clean-curry
-   parse-sexp
-   initial-simplifications   debug-print stop
-   flatten-anf              ;; debug-print stop
+   initial-simplifications   ;; debug-print ;; stop
+   flatten-anf              ;; debug-print ;; stop
    later-simplifications
    middle-simplifications   ;; debug-print
    later-simplifications    ;; debug-print stop
    fix-loop-lets            ;; debug-print
-   combine-loops            ;; debug-print stop
+   combine-loops            ;; debug-print ;; stop
    later-simplifications    ;; debug-print stop
    remove-pairs             ;; debug-print
 
    pull-indexes             ;; debug-print
 
-   later-simplifications     ;; debug-print ;; stop
+   later-simplifications  debug-print stop
 
    to-stmt                  ;; debug-print ;;stop
-   compile-opts             ;; debug-print stop
-   to-sham-lc               ;; debug-print stop
+   compile-opts
+   to-sham-lc               debug-print ;; stop
    compile-with-sham
    optimize&init-jit))
+(define passes
+  `(,clean-curry
+    ,parse-sexp ,debug-print ;; stop
+    ,@basic-pass-list))
 
 (define (run-pipeline src arg-info)
   (define init-state
@@ -59,6 +65,17 @@
 
 (define (compile-file fname arg-info)
   (compile-src (file->value fname) arg-info))
+
+(define (get-function sym env)
+  (jit-get-function sym env))
+(define (compile-function prog-expr prog-info)
+  (define-values (env info)
+    (run-state
+     (state
+      (list prog-expr)
+      (make-immutable-hash (list (cons prog-arg-info prog-info)))
+      basic-pass-list)))
+  env)
 
 (define (debug-file fname arg-info)
   (parameterize ([hakrit-print-debug #t]
@@ -137,6 +154,7 @@
                     2.1930977191694936
                     1.7312282946567383]))
         ((nat-info . ((value-range . (0 . ,(- points 1))))))))
+
     (define gg-module-env
       (debug-file "../../testcode/hkrkt/GmmGibbs.hkr" full-info))
     (jit-dump-function gg-module-env 'prog)
@@ -153,37 +171,40 @@
     (printf "calling prog:\n")
     (define output-c (prog stdev ;; as
                            zs doc))
-    (define output-list (map prob2real (cblock->list output-c _double 3)))
-    output-list)
+    (printf "output-c: ~a" output-c)
+    ;; (define output-list (map prob2real (cblock->list output-c _double 3)))
+    ;; output-list
+    )
+  (dogg)
 
 
 
   (define (donb num-topics num-words num-docs words-size)
     (define empty-info (list '() '() '() '() '() '()))
     (define full-info
-    `(((array-info . ((size . ,num-topics)
-                      (elem-info . ((prob-info . ((constant . 0)))))))
-       (attrs . (constant)))
-      ((array-info . ((size . ,num-words)
-                      (elem-info . ((prob-info . ((constant . 0)))))))
-      (attrs . (constant)))
-     ((array-info . ((size . ,num-docs)
-                     (elem-info . ((nat-info
-                                    . ((value-range
-                                        . (0 . ,(- num-topics 1))))))))))
-     ((array-info . ((size . ,words-size)
-                     (elem-info . ((nat-info
-                                    . ((value-range
-                                        . (0 . ,(- num-words 1)))))))))
-      (value . (0))
-      (attrs . (constant)))
-     ((array-info . ((size . ,words-size)
-                     (elem-info . ((nat-info
-                                    . ((value-range
-                                        . (0 . ,(- num-docs 1)))))))))
-      (value . (0))
-      (attrs . (constant)))
-     ((nat-info . ((value-range . (0 . ,(- num-docs 1))))))))
+      `(((array-info . ((size . ,num-topics)
+                        (elem-info . ((prob-info . ((constant . 0)))))))
+         (attrs . (constant)))
+        ((array-info . ((size . ,num-words)
+                        (elem-info . ((prob-info . ((constant . 0)))))))
+         (attrs . (constant)))
+        ((array-info . ((size . ,num-docs)
+                        (elem-info . ((nat-info
+                                       . ((value-range
+                                           . (0 . ,(- num-topics 1))))))))))
+        ((array-info . ((size . ,words-size)
+                        (elem-info . ((nat-info
+                                       . ((value-range
+                                           . (0 . ,(- num-words 1)))))))))
+         (value . (0))
+         (attrs . (constant)))
+        ((array-info . ((size . ,words-size)
+                        (elem-info . ((nat-info
+                                       . ((value-range
+                                           . (0 . ,(- num-docs 1)))))))))
+         (value . (0))
+         (attrs . (constant)))
+        ((nat-info . ((value-range . (0 . ,(- num-docs 1))))))))
 
     (define nb-module-env
       (debug-file "../../testcode/hkrkt/NaiveBayesGibbs.hkr" full-info))
@@ -195,6 +216,6 @@
     ;; (disassemble-ffi-function (jit-get-function-ptr 'prog nb-module-env)
     ;;                           #:size 1000)
     )
-  (dogg)
+  ;; (dogg)
   ;; (donb 20 59967 19997 2435579)
   )

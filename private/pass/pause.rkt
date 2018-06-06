@@ -27,7 +27,8 @@
   (match st
     [(state prg info rp)
      (if (debug-print-stop)
-         (error 'stop)
+         (begin (pretty-display info)
+                (error 'stop))
          (run-next prg info st))]))
 
 (define (debug-print st)
