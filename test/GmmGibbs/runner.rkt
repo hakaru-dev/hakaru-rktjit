@@ -50,9 +50,6 @@
   (jit-dump-module partial1-env )
   (jit-dump-function partial1-env 'prog)
 
-
-  ;; (printf "i ~a\n" (get-index (list->cblock (list 2 2 2 2 1 2 2 2 2 2) _uint64) 0))
-
   (define module-env partial1-env)
   (define real2prob (jit-get-function (string->symbol "real2prob") module-env))
   (define prob2real (jit-get-function (string->symbol "prob2real") module-env))

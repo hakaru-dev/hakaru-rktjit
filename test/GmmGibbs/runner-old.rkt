@@ -54,46 +54,35 @@
        (value . ,(car input)))
       ((nat-info . ((value-range . (0 . ,(- points 1))))))))
 
-  ;; (define prog (compile-hakaru
-  ;;               (build-path current-dir "partial1.hkr")
-  ;;               ;; `(s  . (value . 0.0))
-  ;;               ;;     `(as . (value . (0.0 0.0 0.0)))
-  ;;               `(z  . (size . ,classes))
-  ;;               `(t  . (value . ,(car input)))))
   (define module-env (compile-file (build-path current-dir "partial1.hkr") full-info))
   (define prog (jit-get-function 'prog module-env))
-  ;; (define prog (jit-get-function 'prog partial1-env))
 
-  ;; (jit-dump-module partial1-env )
-  ;; (jit-dump-function partial1-env 'prog)
-  ;; (define module-env partial1-env)
-  ;; (define real2prob (jit-get-function (string->symbol "real2prob") module-env))
-  ;; (define prob2real (jit-get-function (string->symbol "prob2real") module-env))
+  (jit-dump-module module-env )
+  (jit-dump-function module-env 'prog)
 
-  (define stdev (real->prob 14.0))
-  (define zs (make-fixed-hakrit-array (cdr input) 'nat))
-  (define as (make-fixed-hakrit-array (list 0.0 0.0 0.0) 'real))
-  (define t (make-fixed-hakrit-array (car input) 'real))
+  (define real2prob (jit-get-function (string->symbol "real2prob") module-env))
+  (define prob2real (jit-get-function (string->symbol "prob2real") module-env))
+
+  (define stdev (real2prob 14.0))
+  (define zs (list->cblock (cdr input) _uint64))
+  (define as (list->cblock (list 0.0 0.0 0.0) _double))
   (define doc 0)
 
+  (printf "calling prog:\n")
   (define output-c (prog stdev as zs doc))
-  ;; (define get-index-3-prob (jit-get-function (string->symbol (format "get-index$array<~a.prob>" classes)) partial1-env))
-  (define output-list (map identity (cblock->list output-c _double classes)))
+  (define output-list  (cblock->list output-c _double 3))
   output-list)
 
 (module+ test
   (require rackunit)
-  (define our-out (run-with-info input-9-10))
-  ;; (define _ (map (curryr check-= 0.0000000000000001) our-out
-  ;;                '[2.611195425608999e116
-  ;;                  1.5625938746100886e118
-  ;;                  1.5625938746100886e118
-  ;;                  1.5625938746100886e118
-  ;;                  1.8334889944812062e119
-  ;;                  1.5625938746100886e118
-  ;;                  1.2321990778726571e84
-  ;;                  1.9284079571442863e111
-  ;;                  1.5625938746100886e118]))
-  our-out)
+  (define our-out (run-with-info input-9-10)) our-out)
 
-;; [268.0596789212606,272.15138815387155,272.15138815387155,272.15138815387155,274.6138467723381,272.15138815387155,193.6259482527394,256.24364009217334,272.15138815387155]
+#;[268.0596789212606
+   272.15138815387155
+   272.15138815387155
+   272.15138815387155
+   274.6138467723381
+   272.15138815387155
+   193.6259482527394
+   256.24364009217334
+   272.15138815387155]

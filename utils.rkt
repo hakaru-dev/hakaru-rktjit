@@ -114,3 +114,27 @@
      (jit->rkt module-env t val)]
     ['prob ((jit-get-function 'prob2real module-env) val)]
     [else val]))
+
+(define (rkt-type t)
+  (match t
+    ['nat _uint64]
+    ['prob _double]
+    ['real _double]))
+
+(define (make-fixed-hakrit-array arr type)
+  (list->cblock arr (rkt-type type)))
+(define (make-sized-hakrit-array arr type)
+  (define ret (list->cblock (cons (car arr) arr) (rkt-type type)))
+  (ptr-set! ret _uint64 0 (length arr))
+  ret)
+
+(define (fixed-hakrit-array-ref arr type index)
+  (ptr-ref arr (rkt-type type) index))
+(define (fixed-hakrit-array-set! arr type index value)
+  (ptr-set! arr (rkt-type type) index value))
+(define (sized-hakrit-array-ref arr type index)
+  (ptr-ref arr (rkt-type type) (add1 index)))
+(define (sized-hakrit-array-set! arr type index value)
+  (ptr-set! arr (rkt-type type) (add1 index) value))
+(define (sized-hakrit-array-size arr)
+  (ptr-ref arr _uint64 0))
