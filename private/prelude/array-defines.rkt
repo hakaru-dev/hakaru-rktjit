@@ -437,11 +437,10 @@
              (list (sham:stmt:return (sham$var 'arl))))))))
 
 
-(module+ test
+#;(module+ test
   (require rackunit
            sham/jit
-           ffi/unsafe
-           "../../utils.rkt")
+           ffi/unsafe)
 
   (define defs
     (append  (append-map const-array-defs

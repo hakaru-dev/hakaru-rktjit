@@ -31,7 +31,7 @@
 (define pair-cdr-fun-format (cft "cdr" 1))
 (define pair-set-car-fun-format (cft "set-car!" 1))
 (define pair-set-cdr-fun-format (cft "set-cdr!" 1))
-
+(define free-pair-fun-format (cft "free" 1))
 ;struct
 (define struct-literal-fun-format (cft "literal" 1))
 (define struct-make-fun-format (cft "make" 1))

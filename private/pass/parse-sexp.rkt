@@ -146,8 +146,12 @@
         [(`(bind ,v ,be) (cons bv rst))
          (expr-bind bv (use-bind-vars be (hash-set env v bv) rst))]
         [(ne bvs)
-         #:when (not (equal? (car ne) 'bind))
-         (parse ne env)]))
+         #:when (and (pair? ne)
+                     (not (equal? (car ne) 'bind)))
+         (parse ne env)]
+        [(i bvs)
+         #:when (symbol? i)
+         (expr-var 'nat i '())]))
     (match r
       [`(r_split ,e ,ra ,rb)
        (reducer-split (use-bind-vars e env bind-vars) (parse-reducer ra env bind-vars) (parse-reducer rb env bind-vars))]

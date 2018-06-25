@@ -14,15 +14,15 @@
 
 (define basic-pass-list
   (list
-   initial-simplifications   ;; debug-print ;; stop
-   flatten-anf              ;; debug-print ;; stop
-   later-simplifications
+   initial-simplifications     ;; debug-print stop
+   flatten-anf              debug-print ;; stop
+   later-simplifications    debug-print ;; stop
    middle-simplifications   ;; debug-print
    later-simplifications    ;; debug-print stop
-   fix-loop-lets            ;; debug-print
-   combine-loops            ;; debug-print ;; stop
-   later-simplifications    ;; debug-print stop
-   remove-pairs             ;; debug-print
+   fix-loop-lets             debug-print
+   combine-loops            debug-print ;; stop
+   later-simplifications     debug-print stop
+   remove-pairs             ;; debug-print stop
 
    pull-indexes             ;; debug-print
 
@@ -35,7 +35,7 @@
    optimize&init-jit))
 (define passes
   `(,clean-curry
-    ,parse-sexp ,debug-print ;; stop
+    ,parse-sexp ;; ,debug-print ;; stop
     ,@basic-pass-list))
 
 (define (run-pipeline src arg-info)
@@ -61,13 +61,16 @@
 ;; (curryhere)
 
 (define (compile-src src arg-info)
-  (run-pipeline src arg-info))
+
+  (run-pipeline src arg-info)
+)
 
 (define (compile-file fname arg-info)
   (compile-src (file->value fname) arg-info))
 
 (define (get-function sym env)
   (jit-get-function sym env))
+
 (define (compile-function prog-expr prog-info)
   (define-values (env info)
     (run-state
@@ -78,10 +81,10 @@
   env)
 
 (define (debug-file fname arg-info)
-  (parameterize ([hakrit-print-debug #t]
+  (parameterize ([hakrit-print-debug #f]
                  [debug-curry #f]
                  [debug-flatten-anf #f]
-                 [debug-combine-loops #f]
+                 [debug-combine-loops #t]
                  [debug-later-simplifications #f]
                  [debug-to-sham #f]
                  [debug-print-stop #t])
@@ -175,7 +178,7 @@
     ;; (define output-list (map prob2real (cblock->list output-c _double 3)))
     ;; output-list
     )
-  (dogg)
+  ;; (dogg)
 
 
 
@@ -216,6 +219,33 @@
     ;; (disassemble-ffi-function (jit-get-function-ptr 'prog nb-module-env)
     ;;                           #:size 1000)
     )
+
+  (define (do-lda num-topics num-words num-docs words-size)
+    (define empty-info (list '() '() '() '() '() '() '()))
+    (define full-info
+      `(((array-info . ((size . ,num-topics))))
+        ((array-info . ((size . ,num-words))))
+        ()
+        ;; ((nat-info . ((value . ,num-docs))))
+        ((array-info . ((size . ,words-size)
+                        (value . (0))
+                        )))
+        ((array-info . ((size . ,words-size)
+                        (value . (0))
+                        )))
+        ((array-info . ((size . ,words-size))))
+        ((nat-info . ((value-range . (0 . ,(- num-words 1))))))))
+    (define nb-module-env
+      (debug-file "../../testcode/hkrkt/LdaGibbs.hkr" full-info))
+
+    ;; (jit-dump-module nb-module-env)
+    ;; (jit-dump-function nb-module-env 'prog)
+    ;; (jit-write-module nb-module-env "nb.ll")
+    (jit-get-function 'prog nb-module-env)
+    ;; (disassemble-ffi-function (jit-get-function-ptr 'prog nb-module-env)
+    ;;                           #:size 1000)
+    )
   ;; (dogg)
+  (do-lda 20 59967 19997 2435579)
   ;; (donb 20 59967 19997 2435579)
   )

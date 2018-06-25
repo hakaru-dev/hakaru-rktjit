@@ -3,7 +3,8 @@
 (require sham/jit)
 (require "private/ast.rkt"
          "private/prelude/type-defines.rkt"
-         "private/prelude/template-format.rkt")
+         "private/prelude/template-format.rkt"
+         "private/jit.rkt")
 
 (require (for-syntax racket/syntax))
 (provide (all-defined-out))
@@ -43,6 +44,14 @@
   (vector-ref (current-command-line-arguments) i))
 
 ;; utils for running jit
+(define (compile-hakaru file-name info)
+  (define module-env (compile-file file-name info))
+  (jit-dump-module module-env)
+  (define init-rng (jit-get-function 'init-rng module-env))
+  (init-rng)
+  (define prog (jit-get-function 'prog module-env))
+  prog)
+
 (define (get-array-function-sym f t)
   (define ts (get-type-string t))
   (string->symbol
@@ -64,7 +73,7 @@
      ['set-car! (format pair-set-car-fun-format ts)]
      ['set-cdr! (format pair-set-cdr-fun-format ts)])))
 
-(define (get-function module-env sym t)
+(define (get-function-sym module-env sym t)
   (jit-get-function (if (equal? (car t) 'pair)
                            (get-pair-function-sym sym t)
                            (get-array-function-sym sym t))
@@ -82,16 +91,16 @@
   (match type
     [`(array ,t)
      (define size (length val))
-     (define arr ((get-function module-env 'new type) size))
+     (define arr ((get-function-sym module-env 'new type) size))
      (for ([j (in-range size)]
            [v val])
-       ((get-function module-env 'set-index! type)
+       ((get-function-sym module-env 'set-index! type)
         arr j (rkt->jit module-env t v)))
      arr]
     [`(pair ,ta ,tb)
      (define tav (rkt->jit module-env ta (car val)))
      (define tbv (rkt->jit module-env tb (cdr val)))
-     ((get-function module-env 'make type) tav tbv)]
+     ((get-function-sym module-env 'make type) tav tbv)]
     ['prob ((jit-get-function 'real2prob module-env) (exact->inexact val))]
     ['real (exact->inexact val)]
     [else val]))
@@ -138,3 +147,18 @@
   (ptr-set! arr (rkt-type type) (add1 index) value))
 (define (sized-hakrit-array-size arr)
   (ptr-ref arr _uint64 0))
+
+
+(define (nat-array lst)
+  (make-fixed-hakrit-array lst 'nat))
+(define (nat-array-ref arr index)
+  (fixed-hakrit-array-ref arr 'nat index))
+(define (nat-array-set! arr index val)
+  (fixed-hakrit-array-set! arr 'nat index val))
+
+(define (real-array lst)
+  (make-fixed-hakrit-array lst 'real))
+(define (real-array-ref arr index)
+  (fixed-hakrit-array-ref arr 'real index))
+(define (real-array-set! arr index val)
+  (fixed-hakrit-array-set! arr 'real index val))

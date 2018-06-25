@@ -12,7 +12,7 @@
          get-pair-rator)
 
 (define (pair-rator? sym)
-  (member sym '(car cdr cons set-car! set-cdr!)))
+  (member sym '(car cdr cons set-car! set-cdr! free-pair)))
 
 (define (get-pair-rator sym tresult trands)
   (values
@@ -25,8 +25,8 @@
           ['cdr (values pair-cdr-fun-format (get-type-string (car trands)))]
           ['set-car! (values pair-set-car-fun-format (get-type-string (car trands)))]
           ['set-cdr! (values pair-set-cdr-fun-format (get-type-string (car trands)))]
-          ['cons (values make-pair-fun-format (get-type-string tresult))]))
-
+          ['cons (values make-pair-fun-format (get-type-string tresult))]
+          ['free-pair (values free-pair-fun-format (get-type-string (car trands)))]))
       format)))
    (void)))
 
@@ -61,6 +61,15 @@
        (sham:stmt:expr (sham$app store! a ap))
        (sham:stmt:expr (sham$app store! b bp))
        (sham:stmt:return (sham$var pp))))))
+
+  (define (free-pair)
+    (sham:def:function
+     (prelude-function-info)
+     (get-fun-name free-pair-fun-format) ;;car
+     '(p) (list ptp) (sham:type:ref 'void)
+     (sham$block
+      (sham:stmt:expr (sham$app free (sham:expr:var 'p)))
+      (sham:stmt:return (sham:expr:void)))))
 
   (define (get-car)
     (sham:def:function
@@ -97,10 +106,9 @@
        (sham$app store! (sham$var b) (get-struct-field 'p 1)))
       (sham:stmt:return (sham:expr:void)))))
 
-
   (append
    (reverse ptdefs)
-   (list (make-pair)
+   (list (make-pair) (free-pair)
          (get-car) (get-cdr)
          (set-car) (set-cdr))))
 

@@ -14,6 +14,8 @@
     [`(array ,type (size . ,len))
      (define etype (get-llvm-type type))
      (LLVMArrayType etype len)]
+    [`(pair ,t1 ,t2)
+     (LLVMPointerType (LLVMInt8Type) 0)]
     ['nat (LLVMInt64Type)]
     ['int (LLVMInt64Type)]
     ['real (LLVMDoubleType)]
@@ -32,6 +34,7 @@
     [`(int ,_ ...) _uint64]
     [`(real ,_ ...) _double]
     [`(prob ,_ ...) _double]
+    [`(pair ,t1,t2) _pointer]
     [else _pointer]))
 
 (define (get-llvm-ptr rptr ltype)

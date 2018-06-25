@@ -96,7 +96,7 @@
     (sham:stmt:return
      (sham$app load (get-struct-field 'st i))))))
 
-(module+ test
+#;(module+ test
   (require rackunit
            sham/jit
            ffi/unsafe

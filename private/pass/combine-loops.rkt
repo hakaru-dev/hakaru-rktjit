@@ -29,6 +29,10 @@
      (define-values (trb vrb vlb cb)
        (get-init binds (expr-sym-append result 'b tb) tb rb))
      (values (append tra trb) (append vra vrb) (append vla vlb) (append ca cb))]
+    [((reducer-split _ ra rb) `(pair unit ,tb))
+     (get-init binds result tb rb)]
+    [((reducer-split _ ra rb) `(pair ,ta unit))
+     (get-init binds result ta ra)]
     [((reducer-split _ ra rb) `(pair ,ta ,tb))
      (define-values (tra vra vla ca)
        (get-init binds result ta ra))
@@ -100,7 +104,14 @@
   ;; (printf "\t reducer: \n")(pretty-display (pr reducer))(newline)
 
   (match* (reducer t)
-
+    [((reducer-split e ra rb) `(pair unit ,tb))
+     (stmt-if (assign-binds binds e)
+              (stmt-void)
+              (get-accum i binds result tb rb))]
+    [((reducer-split e ra rb) `(pair ,ta unit))
+     (stmt-if (assign-binds binds e)
+              (get-accum i binds result ta ra)
+              (stmt-void))]
     [((reducer-split e a b) `(pair ,ta ,tb))
      #:when (expr-var? result)
      (stmt-if (assign-binds binds e)
