@@ -1,0 +1,190 @@
+((fn
+     topic_prior
+   ((array prob)
+    ->
+    (nat
+     ->
+     ((array nat)
+      ->
+      ((array nat) -> ((array nat) -> (nat -> (array prob)))))))
+   ((fn
+        word_prior
+      (nat
+       ->
+       ((array nat)
+        ->
+        ((array nat) -> ((array nat) -> (nat -> (array prob))))))
+      ((fn
+           numDocs
+         ((array nat)
+          ->
+          ((array nat) -> ((array nat) -> (nat -> (array prob)))))
+         ((fn
+              w
+            ((array nat) -> ((array nat) -> (nat -> (array prob))))
+            ((fn
+                 doc
+               ((array nat) -> (nat -> (array prob)))
+               ((fn
+                    z
+                  (nat -> (array prob))
+                  ((fn
+                       wordUpdate
+                     (array prob)
+                     ((array
+                       (zNewh ((size (topic_prior : (array prob))) : nat))
+                       ((real2prob
+                         ((recip
+                             ((+
+                               ((int2real
+                                 ((let (summary
+                                        (array nat)
+                                        ((bucket
+                                          ((nat_ 0) : nat)
+                                          ((size (w : (array nat))) : nat)
+                                          (r_index
+                                           ((size
+                                             (topic_prior : (array prob)))
+                                            :
+                                            nat)
+                                           (bind
+                                            iB
+                                            ((index
+                                              (z : (array nat))
+                                              (iB : nat))
+                                             :
+                                             nat))
+                                           (r_add
+                                            (bind
+                                             iB
+                                             (bind zNewh ((nat_ 1) : nat))))))
+                                         :
+                                         (array nat)))
+                                    ((+
+                                      ((*
+                                        ((nat2int
+                                          ((match
+                                               ((and ((not
+                                                       ((<
+                                                         ((+
+                                                           ((nat2int
+                                                             ((size
+                                                               (topic_prior
+                                                                :
+                                                                (array prob)))
+                                                              :
+                                                              nat))
+                                                            :
+                                                            int)
+                                                           ((int_ -1) : int))
+                                                          :
+                                                          int)
+                                                         ((nat2int
+                                                           ((index
+                                                             (z : (array nat))
+                                                             (wordUpdate : nat))
+                                                            :
+                                                            nat))
+                                                          :
+                                                          int))
+                                                        :
+                                                        bool))
+                                                      :
+                                                      bool)
+                                                     ((==
+                                                       (zNewh : nat)
+                                                       ((index
+                                                         (z : (array nat))
+                                                         (wordUpdate : nat))
+                                                        :
+                                                        nat))
+                                                      :
+                                                      bool))
+                                                :
+                                                bool)
+                                             ((pdatum true (pc_inl (ps_done)))
+                                              ((nat_ 1) : nat))
+                                             ((pdatum
+                                               false
+                                               (pc_inr (pc_inl (ps_done))))
+                                              ((nat_ 0) : nat)))
+                                           :
+                                           nat))
+                                         :
+                                         int)
+                                        ((int_ -1) : int))
+                                       :
+                                       int)
+                                      ((nat2int
+                                        ((index
+                                          (summary : (array nat))
+                                          (zNewh : nat))
+                                         :
+                                         nat))
+                                       :
+                                       int))
+                                     :
+                                     int))
+                                  :
+                                  int))
+                                :
+                                real)
+                               ((prob2real
+                                 ((summate
+                                   (iB
+                                    ((nat_ 0) : nat)
+                                    ((size (word_prior : (array prob)))
+                                     :
+                                     nat))
+                                   ((index
+                                     (word_prior : (array prob))
+                                     (iB : nat))
+                                    :
+                                    prob))
+                                  :
+                                  prob))
+                                :
+                                real))
+                              :
+                              real))
+                            :
+                            real))
+                        :
+                        prob))
+                      :
+                      (array prob))
+                     )
+                   :
+                   (nat -> (array prob))))
+                :
+                ((array nat) -> (nat -> (array prob)))))
+             :
+             ((array nat) -> ((array nat) -> (nat -> (array prob))))))
+          :
+          ((array nat)
+           ->
+           ((array nat) -> ((array nat) -> (nat -> (array prob)))))))
+       :
+       (nat
+        ->
+        ((array nat)
+         ->
+         ((array nat) -> ((array nat) -> (nat -> (array prob))))))))
+    :
+    ((array prob)
+     ->
+     (nat
+      ->
+      ((array nat)
+       ->
+       ((array nat) -> ((array nat) -> (nat -> (array prob)))))))))
+ :
+ ((array prob)
+  ->
+  ((array prob)
+   ->
+   (nat
+    ->
+    ((array nat)
+     ->
+     ((array nat) -> ((array nat) -> (nat -> (array prob)))))))))

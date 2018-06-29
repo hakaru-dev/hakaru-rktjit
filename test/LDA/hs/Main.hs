@@ -27,7 +27,7 @@ prog ::
     (Int ->
      ((MayBoxVec Int Int) ->
       ((MayBoxVec Int Int) ->
-       ((MayBoxVec Int Int) -> (Int -> (Measure Int))))))))
+       ((MayBoxVec Int Int) -> (Int -> (MayBoxVec Prob Prob))))))))
 prog =
   lam $ \ topic_prior59 ->
   lam $ \ word_prior60 ->
@@ -139,23 +139,23 @@ prog =
                                                                                  ! iB108)))))
 main :: IO ()
 main = do
-  words_st <- TIO.readFile "../../news_t/words"
-  docs_st <- TIO.readFile "../../news_t/docs"
-  topics_st <- TIO.readFile "../../news_t/topics"
+  [input_path] <- getArgs
+  words_st <- TIO.readFile $ concat [input_path, "words"]
+  docs_st <- TIO.readFile $ concat [input_path,  "docs"]
+  topics_st <- TIO.readFile $ concat [input_path, "topics"]
   let topics =  UV.fromList $ ((Prelude.map (read . T.unpack) (T.lines topics_st)) :: [Int])
-  let words = UV.fromList $ ((Prelude.map (read . T.unpack) (T.lines words_st)) :: [Int])
-  let docs = UV.fromList $ ((Prelude.map (read . T.unpack) (T.lines docs_st)) :: [Int])
+      words = UV.fromList $ ((Prelude.map (read . T.unpack) (T.lines words_st)) :: [Int])
+      docs = UV.fromList $ ((Prelude.map (read . T.unpack) (T.lines docs_st)) :: [Int])
 
   let numDocs = UV.last docs + 1
-  let numTopics = UV.maximum topics + 1
-  let numWords = UV.maximum words + 1
-
-  topic_prior <- return $! UV.map LF.logFloat $ UV.replicate numTopics 1.0
-  word_prior <- return $! UV.map LF.logFloat  $ UV.replicate numWords 1.0
-
-  let wordUpdate = 1
+      numTopics = UV.maximum topics + 1
+      numWords = UV.maximum words + 1
+      wordLen = UV.length words
+      topic_prior = UV.map LF.logFloat $ UV.replicate numTopics 1.0
+      word_prior = UV.map LF.logFloat  $ UV.replicate wordLen 1.0
+      wordUpdate = 1
+      zs = UV.generate wordLen $ const 1
+  print [numDocs, numTopics, numWords, wordLen]
   -- g <- MWC.createSystemRandom
-  let zs = U.generate numWords const 1
-
-  result0 = prog topic_prior word_prior numDocs words docs zs wordUpdate
-  print result0
+  let result0 = prog topic_prior word_prior numDocs words docs zs wordUpdate
+  print $ UV.map log result0

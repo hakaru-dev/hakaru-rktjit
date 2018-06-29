@@ -44,15 +44,11 @@
   (define full-info
     `(()
       ((array-info . ((size . ,classes))))
-      ((array-info
-        . ((size . ,points)
-           (elem-info
-            . ((nat-info
-                . ((value-range . (0 . ,(- classes 1))))))))))
+      ((array-info . ((size . ,points))))
       ((array-info . ((size . ,points)))
        (attrs . (constant))
        (value . ,(car input)))
-      ((nat-info . ((value-range . (0 . ,(- points 1))))))))
+      ()))
 
   ;; (define prog (compile-hakaru
   ;;               (build-path current-dir "partial1.hkr")

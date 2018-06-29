@@ -1,0 +1,107 @@
+((fn
+     topic_prior
+   ((array prob)
+    ->
+    (nat
+     ->
+     ((array nat)
+      ->
+      ((array nat) -> ((array nat) -> (nat -> (array prob)))))))
+   ((fn
+        word_prior
+      (nat
+       ->
+       ((array nat)
+        ->
+        ((array nat) -> ((array nat) -> (nat -> (array prob))))))
+      ((fn
+           numDocs
+         ((array nat)
+          ->
+          ((array nat) -> ((array nat) -> (nat -> (array prob)))))
+         ((fn
+              w
+            ((array nat) -> ((array nat) -> (nat -> (array prob))))
+            ((fn
+                 doc
+               ((array nat) -> (nat -> (array prob)))
+               ((fn
+                    z
+                  (nat -> (array prob))
+                  ((fn
+                       wordUpdate
+                     (array nat)
+((bucket
+                                        ((nat_ 0) : nat)
+                                        ((size (w : (array nat))) : nat)
+                                        (r_index
+                                         ((size (topic_prior : (array prob)))
+                                          :
+                                          nat)
+                                         (bind
+                                          iB
+                                          ((index
+                                            (z : (array nat))
+                                            (iB : nat))
+                                           :
+                                           nat))
+                                         (r_split
+                                          (bind
+                                           iB
+                                           (bind
+                                            zNewh
+                                            ((==
+                                              ((index
+                                                (doc : (array nat))
+                                                (wordUpdate : nat))
+                                               :
+                                               nat)
+                                              ((index
+                                                (doc : (array nat))
+                                                (iB : nat))
+                                               :
+                                               nat))
+                                             :
+                                             bool)))
+                                          (r_add
+                                           (bind
+                                            iB
+                                            (bind zNewh ((nat_ 1) : nat))))
+                                          r_nop)))
+                                       :
+                                       (array (pair nat unit)))
+)
+                   :
+                   (nat -> (array prob))))
+                :
+                ((array nat) -> (nat -> (array prob)))))
+             :
+             ((array nat) -> ((array nat) -> (nat -> (array prob))))))
+          :
+          ((array nat)
+           ->
+           ((array nat) -> ((array nat) -> (nat -> (array prob)))))))
+       :
+       (nat
+        ->
+        ((array nat)
+         ->
+         ((array nat) -> ((array nat) -> (nat -> (array prob))))))))
+    :
+    ((array prob)
+     ->
+     (nat
+      ->
+      ((array nat)
+       ->
+       ((array nat) -> ((array nat) -> (nat -> (array prob)))))))))
+ :
+ ((array prob)
+  ->
+  ((array prob)
+   ->
+   (nat
+    ->
+    ((array nat)
+     ->
+     ((array nat) -> ((array nat) -> (nat -> (array prob)))))))))

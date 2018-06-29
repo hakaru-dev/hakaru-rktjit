@@ -1,0 +1,85 @@
+((fn
+     topic_prior
+   ((array prob)
+    ->
+    (nat
+     ->
+     ((array nat)
+      ->
+      ((array nat) -> ((array nat) -> (nat -> (array prob)))))))
+   ((fn
+        word_prior
+      (nat
+       ->
+       ((array nat)
+        ->
+        ((array nat) -> ((array nat) -> (nat -> (array prob))))))
+      ((fn
+           numDocs
+         ((array nat)
+          ->
+          ((array nat) -> ((array nat) -> (nat -> (array prob)))))
+         ((fn
+              w
+            ((array nat) -> ((array nat) -> (nat -> (array prob))))
+            ((fn
+                 doc
+               ((array nat) -> (nat -> (array prob)))
+               ((fn
+                    z
+                  (nat -> (array prob))
+                  ((fn
+                       wordUpdate
+                     (array prob)
+                     ((array
+                       (zNewh ((size (topic_prior : (array prob))) : nat))
+                       ((summate
+                                   (iB
+                                    ((nat_ 0) : nat)
+                                    ((size (word_prior : (array prob)))
+                                     :
+                                     nat))
+                                   ((index
+                                     (word_prior : (array prob))
+                                     (iB : nat))
+                                    :
+                                    prob))
+                                  :
+                                  prob))
+                      :
+                      (array prob))
+                     )
+                   :
+                   (nat -> (array prob))))
+                :
+                ((array nat) -> (nat -> (array prob)))))
+             :
+             ((array nat) -> ((array nat) -> (nat -> (array prob))))))
+          :
+          ((array nat)
+           ->
+           ((array nat) -> ((array nat) -> (nat -> (array prob)))))))
+       :
+       (nat
+        ->
+        ((array nat)
+         ->
+         ((array nat) -> ((array nat) -> (nat -> (array prob))))))))
+    :
+    ((array prob)
+     ->
+     (nat
+      ->
+      ((array nat)
+       ->
+       ((array nat) -> ((array nat) -> (nat -> (array prob)))))))))
+ :
+ ((array prob)
+  ->
+  ((array prob)
+   ->
+   (nat
+    ->
+    ((array nat)
+     ->
+     ((array nat) -> ((array nat) -> (nat -> (array prob)))))))))

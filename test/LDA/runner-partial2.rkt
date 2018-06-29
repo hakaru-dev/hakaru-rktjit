@@ -27,7 +27,7 @@
   (printf "words-size: ~a, docs-size: ~a, topics-size: ~a\n" words-size docs-size topics-size)
 (define full-info
   `(((array-info . ((size . ,num-topics))))
-    ((array-info . ((size . ,words-size))))
+    ((array-info . ((size . ,num-words))))
     ()
     ;; ((nat-info . ((value . ,num-docs))))
     ((array-info . ((size . ,words-size)
@@ -37,12 +37,12 @@
     ((array-info . ((size . ,words-size))))
     ((nat-info . ((value-range . (0 . ,(- num-words 1))))))))
 
-(define prog (compile-hakaru "./partial.hkr" full-info))
+(define prog (compile-hakaru "./partial2.hkr" full-info))
 
 (define (run-test)
   (define topics-prior (list->cblock (build-list num-topics (const 0.0)) _double))
   (printf "made topics-prior\n")
-  (define words-prior (list->cblock (build-list words-size (const 0.0)) _double))
+  (define words-prior (list->cblock (build-list num-words (const 0.0)) _double))
   (printf "made words-prior\n")
 
   (define words (list->cblock rk-words _uint64))
@@ -56,7 +56,7 @@
   result)
 
 (define result (run-test))
-(cblock->list result _double num-topics)
+
 ;; (module+ test
 ;;   (define our-out (run-full-test 42))
 ;;   (printf "output: ~a\n" our-out))
