@@ -157,5 +157,8 @@ main = do
       zs = UV.generate wordLen $ const 1
   print [numDocs, numTopics, numWords, wordLen]
   -- g <- MWC.createSystemRandom
-  let result0 = prog topic_prior word_prior numDocs words docs zs wordUpdate
-  print $ UV.map log result0
+  start_time <- C.getCurrentTime
+  result <- return $ prog topic_prior word_prior numDocs words docs zs wordUpdate
+  print  $ result ! 0
+  end_time <- C.getCurrentTime
+  print $ C.diffUTCTime end_time start_time

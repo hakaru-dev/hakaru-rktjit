@@ -300,15 +300,9 @@
            env)]
 
       [(expr-app t1 (expr-intrf 'car) (list (expr-app `(pair ,t1 unit) (expr-intrf 'index) (list arr ind))))
-       (printf "got car on pair: ~a,~a\n" t1 (typeof arr))
-       (sl (expr-app t1 (expr-intrf 'index) (list arr ind)) env)
-       ;; (expr-app t1 (expr-intrf 'car) (list (expr-app `(pair ,t1 unit) (expr-intrf 'index) (list arr ind))))
-       ]
+       (sl (expr-app t1 (expr-intrf 'index) (list arr ind)) env)]
       [(expr-app t1 (expr-intrf 'cdr) (list (expr-app `(pair unit ,t1) (expr-intrf 'index) (list arr ind))))
-       (printf "got cdr on pair: ~a,~a\n" t1 (typeof arr))
-       ;; (expr-app t1 (expr-intrf 'cdr) (list (expr-app `(pair unit ,t1) (expr-intrf 'index) (list arr ind))))
-       (sl (expr-app t1 (expr-intrf 'index) (list arr ind)) env)
-       ]
+       (sl (expr-app t1 (expr-intrf 'index) (list arr ind)) env)]
 
 
       [(expr-app 'prob (expr-intrf '*) args)

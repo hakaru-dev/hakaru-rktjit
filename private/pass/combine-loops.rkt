@@ -104,6 +104,11 @@
   ;; (printf "\t reducer: \n")(pretty-display (pr reducer))(newline)
 
   (match* (reducer t)
+    [((reducer-split e a b) `(pair ,ta ,tb))
+     #:when (expr-var? result)
+     (stmt-if (assign-binds binds e)
+              (get-accum i binds (var-sym-append result ta 'a 'm) ta a)
+              (get-accum i binds (var-sym-append result tb 'b 'm) tb b))]
     [((reducer-split e ra rb) `(pair unit ,tb))
      (stmt-if (assign-binds binds e)
               (stmt-void)
@@ -112,11 +117,6 @@
      (stmt-if (assign-binds binds e)
               (get-accum i binds result ta ra)
               (stmt-void))]
-    [((reducer-split e a b) `(pair ,ta ,tb))
-     #:when (expr-var? result)
-     (stmt-if (assign-binds binds e)
-              (get-accum i binds (var-sym-append result ta 'a 'm) ta a)
-              (get-accum i binds (var-sym-append result tb 'b 'm) tb b))]
     [((reducer-split e a b) `(pair ,ta ,tb))
      (dpc "reducer-split,accum result: ~a" (print-expr result))
      (stmt-if (assign-binds binds e)

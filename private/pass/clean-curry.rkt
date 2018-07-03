@@ -14,6 +14,9 @@
      (dp "\n\ndoing fn for var: ~a\n" var)
      (define pad (build-string (add1 pos) (const #\_)))
 
+     (unless (pair? args-info)
+       (printf "no arg-info for function argument: ~a\nargs-info: ~a\n" var args-info)
+       (error "arg-info not complete"))
      (define arg-info (car args-info))
      (dp "arg-info : ~a\n" arg-info)
 

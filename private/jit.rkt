@@ -14,23 +14,23 @@
 
 (define basic-pass-list
   (list
-   initial-simplifications     ;; debug-print stop
-   flatten-anf              debug-print ;; stop
-   later-simplifications    debug-print ;; stop
-   middle-simplifications   ;; debug-print
+   initial-simplifications    ;; debug-print stop
+   flatten-anf              ;; debug-print  ;; stop
+   later-simplifications    ;;debug-print ;; stop
+   middle-simplifications    ;;debug-print
    later-simplifications    ;; debug-print stop
    fix-loop-lets             debug-print
-   combine-loops            debug-print ;; stop
-   later-simplifications     debug-print stop
-   remove-pairs             ;; debug-print stop
+   combine-loops              ;;debug-print ;; stop
+   later-simplifications      ;;debug-print ;; stop
+   remove-pairs              ;;debug-print stop
 
    pull-indexes             ;; debug-print
 
-   later-simplifications  debug-print stop
+   later-simplifications  debug-print    stop
 
    to-stmt                  ;; debug-print ;;stop
    compile-opts
-   to-sham-lc               debug-print ;; stop
+   to-sham-lc               ;; debug-print stop
    compile-with-sham
    optimize&init-jit))
 (define passes
@@ -61,9 +61,7 @@
 ;; (curryhere)
 
 (define (compile-src src arg-info)
-
-  (run-pipeline src arg-info)
-)
+  (run-pipeline src arg-info))
 
 (define (compile-file fname arg-info)
   (compile-src (file->value fname) arg-info))
@@ -220,7 +218,7 @@
     ;;                           #:size 1000)
     )
 
-  (define (do-lda num-topics num-words num-docs words-size)
+  (define (do-ldll num-topics num-words num-docs words-size)
     (define empty-info (list '() '() '() '() '() '() '()))
     (define full-info
       `(((array-info . ((size . ,num-topics))))
@@ -229,14 +227,49 @@
         ;; ((nat-info . ((value . ,num-docs))))
         ((array-info . ((size . ,words-size)
                         (value . (0))
+                        (attrs . (constant))
                         )))
         ((array-info . ((size . ,words-size)
                         (value . (0))
+                        (attrs . (constant))
+                        )))
+        ((array-info . ((size . ,words-size))))
+        ;; ((nat-info . ((value-range . (0 . ,(- num-words 1))))))
+        ))
+    (define nb-module-env
+      (debug-file "../../testcode/hkrkt/LdaLikelihood.hkr" full-info)
+      ;; (debug-file "../../testcode/hkrkt/LdaGibbs.hkr" empty-info)
+      )
+
+    ;; (jit-dump-module nb-module-env)
+    ;; (jit-dump-function nb-module-env 'prog)
+    ;; (jit-write-module nb-module-env "nb.ll")
+    (jit-get-function 'prog nb-module-env)
+    ;; (disassemble-ffi-function (jit-get-function-ptr 'prog nb-module-env)
+    ;;                           #:size 1000)
+    )
+  (define (do-lda num-topics num-words num-docs words-size)
+    (define empty-info (list '() '() '() '() '() '() '()))
+    (define full-info
+      `(((array-info . ((size . ,num-topics))))
+        ((array-info . ((size . ,words-size))))
+        ()
+        ;; ((nat-info . ((value . ,num-docs))))
+        ((array-info . ((size . ,words-size)
+                        (value . (0))
+                        (attrs . (constant))
+                        )))
+        ((array-info . ((size . ,words-size)
+                        (value . (0))
+                        (attrs . (constant))
                         )))
         ((array-info . ((size . ,words-size))))
         ((nat-info . ((value-range . (0 . ,(- num-words 1))))))))
     (define nb-module-env
-      (debug-file "../../testcode/hkrkt/LdaGibbs.hkr" full-info))
+      ;; (debug-file "../test/LDA/partial2.hkr" empty-info)
+      (debug-file "../../testcode/hkrkt/LdaGibbs.hkr" full-info)
+      ;; (debug-file "../../testcode/hkrkt/LdaGibbs.hkr" empty-info)
+      )
 
     ;; (jit-dump-module nb-module-env)
     ;; (jit-dump-function nb-module-env 'prog)
@@ -246,6 +279,7 @@
     ;;                           #:size 1000)
     )
   ;; (dogg)
+  ;; (do-lda 20 59967 19997 2435579)
   (do-lda 20 59967 19997 2435579)
   ;; (donb 20 59967 19997 2435579)
   )

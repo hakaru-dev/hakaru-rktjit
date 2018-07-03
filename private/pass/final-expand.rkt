@@ -71,12 +71,22 @@
                         ;; (sham:stmt:expr
                         ;;  (sham:expr:app (sham:rator:racket
                         ;;                  (gensym^ 'let)
-                        ;;                  (λ a
-                        ;;                    (printf "expr-lets: vars: ~a, types: ~a, vals: ~a\n"
-                        ;;                            (map expr-var-sym vars) (map typeof vars) a))
-                        ;;                  (sham:type:function sham-types
+                        ;;                  (λ ()
+                        ;;                    (printf "in-let\n")
+                        ;;                    (flush-output))
+                        ;;                  (sham:type:function (list )
                         ;;                                      (sham:type:ref 'void)))
-                        ;;                 (map (compose sham:expr:var expr-var-sym) vars)))
+                        ;;                 (list )))
+                        ;; (sham:stmt:expr
+                        ;;  (sham:expr:app (sham:rator:racket
+                        ;;                  (gensym^ 'let)
+                        ;;                  (λ ()
+                        ;;                    (printf "racket let\n")
+                        ;;                    (printf "expr-lets: vars: ~a, types: ~a\n"
+                        ;;                            (map expr-var-sym vars) (map typeof vars))
+                        ;;                    (flush-output))
+                        ;;                  (sham:type:function '() (sham:type:ref 'void)))
+                        ;;                 '()))
                         (es stmt)))
                       (ee body))]
       [(expr-if t tst thn els)
@@ -100,7 +110,10 @@
          ;; (sham:stmt:expr
          ;;           (sham:expr:app (sham:rator:racket
          ;;                           (gensym^ 'for)
-         ;;                           (λ (i) (printf "for-index var: ~a, i ~a\n" (expr-var-sym index) i))
+         ;;                           (λ (i)
+         ;;                             (printf "for-index var: ~a, i ~a\n" (expr-var-sym index) i)
+         ;;                             ;; (read)
+         ;;                             )
          ;;                           (sham:type:function (list (sham:type:ref 'nat))
          ;;                                               (sham:type:ref 'void)))
          ;;                          (list (sham:expr:var (expr-var-sym index)))))
@@ -149,6 +162,19 @@
         fname
         (map expr-var-sym nargs) (map (compose get&add-type expr-var-type) nargs)
         (get&add-type ret-type)
+        ;; (sham:stmt:block
+        ;;  (list
+        ;;   (sham:stmt:expr
+        ;;    (sham:expr:app (sham:rator:racket
+        ;;                    (gensym^ 'prog)
+        ;;                    (λ ()
+        ;;                      (printf "called-prog\n")
+        ;;                      (flush-output))
+        ;;                    (sham:type:function (list )
+        ;;                                        (sham:type:ref 'void)))
+        ;;                   (list )))
+        ;;   ;; (sham:stmt:return (ee (expr-val 'nat 0)))
+        ;;   (es b)))
         (es b))]))
 
 

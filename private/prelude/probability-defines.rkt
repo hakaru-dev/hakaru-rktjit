@@ -131,15 +131,21 @@
                                             (sham:expr:app (sham:rator:symbol 'prob2real)
                                                            (list (sham$var 'b))))))))))
 
-    (sham$define #:info (prelude-function-info)
-                 (gammaFunc  (a tprob) tprob)
-                 (sham:stmt:return
-                  (sham:expr:app (sham:rator:symbol 'real2prob)
-                                 (list
-                                  (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_gamma treal)
-                                                 (list
-                                                  (sham:expr:app (sham:rator:symbol 'prob2real)
-                                                                 (list (sham$var 'a)))))))))
+    (sham$define
+     #:info (prelude-function-info)
+     (gammafunc  (a treal) tprob)
+     (sham:stmt:block
+      (list
+       (sham:stmt:expr
+        (sham:expr:app
+         (sham:rator:racket
+          (gensym 'debug-uniform)
+          (λ (a b) (printf "debug: gammafunc args: ~a\n" a b))
+          (sham:type:function (list treal) (sham:type:ref 'void)))
+         (list (sham$var a))))
+       (sham:stmt:return
+        (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_lngamma treal)
+                       (list (sham$var 'a)))))))
 
     (sham:def:function
      (prelude-function-info)

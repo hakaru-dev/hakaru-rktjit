@@ -46,7 +46,7 @@
 ;; utils for running jit
 (define (compile-hakaru file-name info)
   (define module-env (compile-file file-name info))
-  (jit-dump-module module-env)
+  ;; (jit-dump-module module-env)
   (define init-rng (jit-get-function 'init-rng module-env))
   (init-rng)
   (define prog (jit-get-function 'prog module-env))
