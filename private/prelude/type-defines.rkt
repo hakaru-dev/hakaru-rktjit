@@ -25,7 +25,7 @@
 (define (prob-value v) (app (rs 'real2prob) (real-value v)))
 
 (define (create-tarray type)
-  (tstruct (list 'size 'ptr) (list i32 (tptr type))))
+  (tstruct (list 'size 'ptr) (list tnat (tptr type))))
 (define (create-fixed-tarray type size)
   (tarr type size))
 (define (create-tpair t1 t2)

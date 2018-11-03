@@ -15,17 +15,16 @@
                        free const-size-array-literal clear)))
 
 
-(define (get-array-rator sym tresult trands)
+(define (get-array-rator sym array-defs)
+  (match-define (list make-array free-array get-size set-size get-data set-data get-index set-index)
+    array-defs)
   (match sym
-    ['index (values get-index-fun-format (get-type-string (car trands)))]
-    ['set-index! (values set-index-fun-format (get-type-string (car trands)))]
-    ['size (values get-array-size-fun-format (get-type-string (car trands)))]
-    ['empty (values new-size-array-fun-format (get-type-string tresult))]
-    ['clear (values clear-size-array-fun-format (get-type-string tresult))]
-    ['free (values free-size-array-fun-format (get-type-string (car trands)))]
-    [else
-     (error "why is this array rator not done yet?" sym tresult trands)
-     (values "array?")]))
+    ['index get-index]
+    ['set-index! set-index]
+    ['size get-size]
+    ;; ['empty ]
+    ;; ['clear (values clear-size-array-fun-format (get-type-string tresult))]
+    ['free free-array]))
 
 
 (define (simple-array-defs tast)
@@ -49,6 +48,21 @@
       (p : atp)) : tvoid
      (free^ p)
      ret-void))
+
+  (define make-empty-array
+    (sham-function
+     (,(get-function-id array-make-empty-format tast)
+      (size : tnat)) : atp
+     (slet^ ([dp (arr-malloc (etype dt) size) : dtp])
+            (ret (make-array size dp)))))
+  (define clear-array
+    (sham-function
+     (,(get-function-id array-clear-format tast)
+      (p : atp)) : tvoid
+     (ri^ memset.p0i8.i64 tvoid (ptrcast (get-data p) (etype (tptr i8))) (ui8 0)
+          (mul (get-size p) (sizeof dt)) (ui1 0))
+     ret-void))
+
 
   (define get-size
     (sham-function
@@ -89,7 +103,8 @@
                   (list n)))
      ret-void))
 
-  (list make-array free-array get-size set-size get-data set-data get-at-index set-at-index))
+  (list make-array free-array make-empty-array clear-array
+        get-size set-size get-data set-data get-at-index set-at-index))
 
 
 (module+ test
@@ -105,7 +120,8 @@
      (current-sham-module)
      #:opt-level 3))
 
-  (match-define (list make-array free-array get-size set-size get-data set-data get-index set-index)
+  (match-define (list make-array free-array make-empty clear
+                      get-size set-size get-data set-data get-index set-index)
     dfs)
 
   (define tarr (sham-app make-array 10 #f))
@@ -116,7 +132,11 @@
   (sham-app set-data tarr mem)
   (check-equal? (sham-app get-data tarr) mem)
   (sham-app set-index tarr 10 42)
-  (check-equal? (sham-app get-index tarr 10) 42))
+  (check-equal? (sham-app get-index tarr 10) 42)
+
+  (define ea (sham-app make-empty 10))
+  (sham-app clear ea)
+  (check-equal? (sham-app get-index ea 5) 0))
 
 #|
 ;;tast be expanded

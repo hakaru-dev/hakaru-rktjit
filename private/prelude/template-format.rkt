@@ -40,6 +40,8 @@
 ;;array-funs
 (define array-make-format (cft "make" 1))
 (define array-free-format (cft "free" 1))
+(define array-make-empty-format (cft "make-empty" 1))
+(define array-clear-format (cft "clear" 1))
 (define array-get-size-format (cft "get-size" 1))
 (define array-set-size-format (cft "set-size" 1))
 
