@@ -4,103 +4,109 @@
 
 (require ffi/unsafe)
 
-(require sham
-         (submod sham/ast utils)
+(require "../../../sham/private/ast-utils.rkt"
+         "../../../sham/private/info.rkt"
+         "../../../sham/private/parameters.rkt"
+         ;; (submod sham/ast utils)
          "utils.rkt"
          "../ast.rkt"
          "type-defines.rkt"
          "template-format.rkt")
-
+(current-sham-module (create-empty-sham-module "prelude-module"))
 (provide (all-defined-out))
+(define (prelude-function-info)
+  (function-info-add-attributes (empty-function-info) 'alwaysinline))
 
+(define-sham-function
+ #:info (prelude-function-info)
+  (prob2real (v : tprob)) : treal
+  (ret  (ri^ exp.f64 tprob v)))
+
+(define-sham-function
+  #:info  (prelude-function-info)
+  (real2prob (v : treal)) : tprob
+  (ret (ri^ log.f64 tprob v)))
+
+(define-sham-function
+ #:info (prelude-function-info)
+ (nat2prob (v : tnat)) : tprob
+ (ret (real2prob (ui->fp v (etype treal)))))
+
+(define-sham-function
+  #:info  (prelude-function-info)
+  (nat2real (v : tnat)) : treal
+  (ret (ui->fp v (etype treal))))
+
+(define-sham-function
+  #:info  (prelude-function-info)
+  (nat2int (v : tnat)) : tint
+  ;;NOTE: I think going from signed to unsigned is easy because of 2's complement
+  ;; and we are using 64 bit so if the tnat is bigger than 2^32 then we have to worry
+  ;; but for hakaru I think we don't need to worry as tnat's and int's don't go that big
+  (ret v))
+
+(define-sham-function
+  #:info  (prelude-function-info)
+  ;; as in logfloatprelude of haskell this is implemented as id and is unsafe
+  ;; the same is done here assuming the int is never going to be negative.
+  (int2nat (v : tint)) : tnat
+  (ret v))
+
+(define-sham-function
+  #:info  (prelude-function-info)
+  (int2real (v : tint)) : treal
+  (ret (si->fp v (etype treal))))
+
+(define-sham-function
+  #:info (prelude-function-info)
+  (recip-nat (v : tnat)) : treal
+  (ret (fdiv (real-value 1.0)
+             (ui->fp v (etype treal)))))
+(define-sham-function
+  #:info  (prelude-function-info)
+  (recip-real (v : treal)) : treal
+  (ret (fdiv (real-value 1.0)  v)))
+
+(define-sham-function
+  #:info  (prelude-function-info)
+  (recip-prob (v : treal)) : treal
+  (ret (fmul (real-value -1.0) v)))
+
+(define-sham-function
+  #:info (prelude-function-info)
+  (root-prob-nat (v : tprob) (v2 : tnat)) : tprob
+  (ret (fmul v (recip-nat v2))))
+
+(define-sham-function
+  #:info  (prelude-function-info)
+  (exp-real2prob (v : treal)) : tprob
+  (ret v))
+
+(define-sham-function
+  #:info  (prelude-function-info)
+  (fdiv-nat (v1 : tnat) (v2 : tnat)) : treal
+  (ret (fdiv
+        (ui->fp v1 (etype treal))
+        (ui->fp v2 (etype treal)))))
+
+(define-sham-function
+  #:info  (prelude-function-info)
+  (natpow (v : treal) (p : tnat)) : treal
+  (ret (ri^ llvm.powi.f64 treal v (intcast p (etype i32)))))
+(define-sham-function
+  #:info  (prelude-function-info)
+  (natpow-prob (v : tprob) (p : tnat)) : tprob
+  (ret (fmul v (nat2real p))))
+
+#|
 (define (basic-defs)
-  (define nat type-nat-ref)
-  (define real type-real-ref)
-  (define prob type-prob-ref)
-
   (list
-   type-nat-def
-   type-int-def
-   type-real-def
-   type-prob-def
-   type-bool-def
-   (sham$def:type nat* (sham:type:pointer type-nat-ref))
-   (sham$def:type int* (sham:type:pointer type-int-ref))
-   (sham$def:type real* (sham:type:pointer type-real-ref))
-   (sham$def:type prob* (sham:type:pointer type-prob-ref))
-
-   (sham$define #:info  (prelude-function-info)
-    (nat2prob (v nat) prob)
-    (sham$return
-     (sham$app real2prob
-               (sham$app ui->fp
-                         v (sham$etype real)))))
-
-   (sham$define #:info  (prelude-function-info)
-    (nat2real (v nat) real)
-    (sham$return
-     (sham$app ui->fp v (sham$etype real))))
 
 
-   (sham$define #:info  (prelude-function-info)
-    (nat2int (v nat) int)
-    ;;NOTE: I think going from signed to unsigned is easy because of 2's complement
-    ;; and we are using 64 bit so if the nat is bigger than 2^32 then we have to worry
-    ;; but for hakaru I think we don't need to worry as nat's and int's don't go that big
-    (sham$return (sham$var v)))
 
-   (sham$define #:info  (prelude-function-info)
-    ;; as in logfloatprelude of haskell this is implemented as id and is unsafe
-    ;; the same is done here assuming the int is never going to be negative.
-    (int2nat (v int) nat)
-    (sham$return (sham$var v)))
 
-   (sham$define #:info  (prelude-function-info)
-    (int2real (v int) real)
-    (sham$return
-     (sham$app si->fp v (sham$etype real))))
 
-   (sham$define #:info  (prelude-function-info)
-    (prob2real (v prob) real)
-    (sham$return (sham$app (llvm.exp.f64 prob) v)))
-
-   (sham$define #:info  (prelude-function-info)
-    (real2prob (v real) prob)
-    (sham$return (sham$app (llvm.log.f64 prob) v)))
-
-   (sham$define #:info  (prelude-function-info)
-    (recip-nat (v nat) real)
-    (sham$return (sham$app fdiv (real-value 1.0)
-                           (sham$app ui->fp v
-                                     (sham$etype real)))))
-   (sham$define #:info  (prelude-function-info)
-    (recip-real (v real) real)
-    (sham$return (sham$app fdiv (real-value 1.0)  v)))
-
-   (sham$define #:info  (prelude-function-info)
-    (recip-prob (v real) real)
-    (sham$return (sham$app fmul (real-value -1.0)  v)))
-
-   (sham$define #:info  (prelude-function-info)
-    (root-prob-nat (v prob) (v2 nat) prob)
-    (sham$return (sham$app fmul v (sham$app recip-nat v2))))
-
-   (sham$define #:info  (prelude-function-info)
-    (exp-real2prob (v real) prob)
-    (sham$return (sham$var v)))
-
-   (sham$define #:info  (prelude-function-info)
-    (fdiv-nat (v1 nat) (v2 nat) real)
-    (sham$return (sham$app fdiv
-                           (sham$app ui->fp v1 (sham$etype real))
-                           (sham$app ui->fp v2 (sham$etype real)))))
-
-   (sham$define #:info  (prelude-function-info)
-    (natpow (v real) (p nat) real)
-    (sham$return (sham$app (llvm.powi.f64 real) v (sham$app intcast p (sham$etype i32)))))
-   (sham$define #:info  (prelude-function-info)
-    (natpow-prob (v prob) (p nat) prob)
-    (sham$return (sham$app fmul v (sham$app nat2real p))))))
+))
 
 
 (define simple-rators '(nat2prob nat2real prob2real real2prob int2real nat2int int2nat))
@@ -272,7 +278,8 @@
      (values (sham:rator:symbol (get-fun-symbol reject-fun-format tresult))
              (sham:def:function (prelude-function-info)
                                 (get-fun-symbol reject-fun-format tresult) '() '() (get-sham-type-ref-ast tresult)
-                                (sham$return (sham$uiv 0 (get-sham-type-ref-ast tresult)))))]
+                                (ret
+                                 (sham$uiv 0 (get-sham-type-ref-ast tresult)))))]
 
     [else (error "why is this basic-rator not figured out?"
                  sym tresult trands trslt trnds)]))
@@ -376,3 +383,4 @@
   ;; (check-= (mul-2-prob 4.123 5.3123)
   ;;          (real->prob (* (prob->real 4.123) (prob->real 5.3123)))
   ;;          e)
+|#
