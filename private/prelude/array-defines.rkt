@@ -9,38 +9,23 @@
          "basic-defines.rkt"
          "utils.rkt")
 
-;; (define debug-arrays (make-parameter #f))
-;; (define (array-rator? sym)
-;;    (member sym '(empty index size set-index! array-literal
-;;                        free const-size-array-literal clear)))
+(define debug-arrays (make-parameter #f))
+(define (array-rator? sym)
+   (member sym '(empty index size set-index! array-literal
+                       free const-size-array-literal clear)))
 
 
-;; (define (get-array-rator sym tresult trands)
-;; ;  (printf "getting array rator: ~a ~a ~a\n" sym tresult trands)
-;;   (cond
-;;     [(equal? sym 'array-literal)
-;;      (values (sham:rator:symbol (get-fun-symbol array-literal-fun-format (length trands) (get-type-string tresult)))
-;;              (build-array-literal tresult (length trands)))]
-;;     [(equal? sym 'const-size-array-literal)
-;;      (values (sham:rator:symbol (get-fun-symbol size-array-literal-fun-format (get-type-string tresult)))
-;;              (void))]
-;;     [else (values
-;;            (sham:rator:symbol
-;;             (string->symbol
-;;              (call-with-values
-;;               (λ ()
-;;                 (match sym
-;;                   ['index (values get-index-fun-format (get-type-string (car trands)))]
-;;                   ['set-index! (values set-index-fun-format (get-type-string (car trands)))]
-;;                   ['size (values get-array-size-fun-format (get-type-string (car trands)))]
-;;                   ['empty (values new-size-array-fun-format (get-type-string tresult))]
-;;                   ['clear (values clear-size-array-fun-format (get-type-string tresult))]
-;;                   ['free (values free-size-array-fun-format (get-type-string (car trands)))]
-;;                   [else
-;;                    (error "why is this array rator not done yet?" sym tresult trands)
-;;                    (values "array?")]))
-;;               format)))
-;;            (void))]))
+(define (get-array-rator sym tresult trands)
+  (match sym
+    ['index (values get-index-fun-format (get-type-string (car trands)))]
+    ['set-index! (values set-index-fun-format (get-type-string (car trands)))]
+    ['size (values get-array-size-fun-format (get-type-string (car trands)))]
+    ['empty (values new-size-array-fun-format (get-type-string tresult))]
+    ['clear (values clear-size-array-fun-format (get-type-string tresult))]
+    ['free (values free-size-array-fun-format (get-type-string (car trands)))]
+    [else
+     (error "why is this array rator not done yet?" sym tresult trands)
+     (values "array?")]))
 
 
 (define (simple-array-defs tast)
@@ -103,6 +88,7 @@
              (gep (load (get-struct-field p 1))
                   (list n)))
      ret-void))
+
   (list make-array free-array get-size set-size get-data set-data get-at-index set-at-index))
 
 
@@ -117,7 +103,7 @@
   (parameterize ([compile-options `(pretty dump verify mc-jit)])
     (compile-sham-module!
      (current-sham-module)
-     #:opt-level 0))
+     #:opt-level 3))
 
   (match-define (list make-array free-array get-size set-size get-data set-data get-index set-index)
     dfs)
