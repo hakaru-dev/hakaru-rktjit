@@ -26,12 +26,12 @@
 (define reject-fun-format (cft "reject" 1))
 (define eq-dif-type (cft "eq" 2))
 ;;pair-funs
-(define make-pair-fun-format (cft "make" 1))
-(define pair-car-fun-format (cft "car" 1))
-(define pair-cdr-fun-format (cft "cdr" 1))
-(define pair-set-car-fun-format (cft "set-car!" 1))
-(define pair-set-cdr-fun-format (cft "set-cdr!" 1))
-(define free-pair-fun-format (cft "free" 1))
+(define cons-format (cft "cons" 1))
+(define car-format (cft "car" 1))
+(define cdr-format (cft "cdr" 1))
+(define set-car-format (cft "set-car!" 1))
+(define set-cdr-format (cft "set-cdr!" 1))
+(define free-pair-format (cft "free" 1))
 ;struct
 (define struct-literal-fun-format (cft "literal" 1))
 (define struct-make-fun-format (cft "make" 1))
