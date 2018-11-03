@@ -81,23 +81,6 @@
     [`(pair ,t1 ,t2) `(pointer (pair ,(et t1) ,(et t2)))]
     [nrp? t]))
 
-#|
-(define (real-value v)
-  (sham:expr:fl-value (exact->inexact v) treal-ref))
-(define (nat-value v)
-  (sham:expr:ui-value v tnat-ref))
-(define (nat32-value v)
-  (sham:expr:ui-value v (sham:type:ref 'i32)))
-(define (prob-value v)
-  (sham:expr:app (sham:rator:symbol 'real2prob) (list  (sham:expr:fl-value (exact->inexact v) tprob-ref))))
-
-(define (get-struct-field sym . indexs)
-  (sham:expr:gep (sham$var sym) (cons (nat32-value 0) (map nat32-value indexs))))
-(define (get-size-ptr vsym)
-  (get-struct-field vsym 0))
-(define (get-data-ptr vsym)
-  (get-struct-field vsym 1))
-
 (define (get-tstring t)
   (match t
     [`(pointer ,tp)
@@ -115,6 +98,27 @@
     [nrp? (symbol->string t)]
     [else (error "unknown type format" t)]))
 (define get-tsym (compose string->symbol get-tstring))
+
+(define (get-function-id frmt type)
+  (define ts (get-tstring type))
+  (string->symbol (format frmt ts)))
+#|
+(define (real-value v)
+  (sham:expr:fl-value (exact->inexact v) treal-ref))
+(define (nat-value v)
+  (sham:expr:ui-value v tnat-ref))
+(define (nat32-value v)
+  (sham:expr:ui-value v (sham:type:ref 'i32)))
+(define (prob-value v)
+  (sham:expr:app (sham:rator:symbol 'real2prob) (list  (sham:expr:fl-value (exact->inexact v) tprob-ref))))
+
+(define (get-struct-field sym . indexs)
+  (sham:expr:gep (sham$var sym) (cons (nat32-value 0) (map nat32-value indexs))))
+(define (get-size-ptr vsym)
+  (get-struct-field vsym 0))
+(define (get-data-ptr vsym)
+  (get-struct-field vsym 1))
+
 
 
 

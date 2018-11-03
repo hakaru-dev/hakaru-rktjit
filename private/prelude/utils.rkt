@@ -1,8 +1,10 @@
 #lang racket
-(require "../utils.rkt")
+(require
+ "../../../sham/private/ast-utils.rkt"
+ "../utils.rkt")
 
 (provide (all-defined-out)
          (all-from-out "../utils.rkt"))
 
-(define (get-vi i)
-  (string->symbol (format "v~a" i)))
+(define (get-struct-field var . idx)
+  (gep var (cons (ui32 0) (map ui32 idx))))
