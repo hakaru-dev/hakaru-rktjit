@@ -14,146 +14,109 @@
 (define (pair-rator? sym)
   (member sym '(car cdr cons set-car! set-cdr! free-pair)))
 
-(define (get-pair-rator sym tresult trands)
-  (values
-   (sham:rator:symbol
-    (string->symbol
-     (call-with-values
-      (λ ()
-        (match sym
-          ['car (values pair-car-fun-format (get-type-string (car trands)))]
-          ['cdr (values pair-cdr-fun-format (get-type-string (car trands)))]
-          ['set-car! (values pair-set-car-fun-format (get-type-string (car trands)))]
-          ['set-cdr! (values pair-set-cdr-fun-format (get-type-string (car trands)))]
-          ['cons (values make-pair-fun-format (get-type-string tresult))]
-          ['free-pair (values free-pair-fun-format (get-type-string (car trands)))]))
-      format)))
-   (void)))
-
-(define (get-pair-types type)
-  (match type
-    [(sham:type:struct _ _ (list t1 t2)) (values t1 t2)]))
+(define (get-pair-rator sym pair-defs)
+  (match-define (list cons-pair free-pair car-pair cdr-pair set-car-pair set-cdr-pair) pair-defs)
+  (match sym
+    ['car car-pair]
+    ['cdr cdr-pair]
+    ['set-car! set-car-pair]
+    ['set-cdr! set-cdr-pair]
+    ['cons cons-pair]
+    ['free-pair free-pair]))
 
 (define (pair-defs tast)
-  (define-values
-    (ptdefs ptdef pt ptref) (defs-def-t-tref tast))
-  (define-values (atref btref) (get-pair-types pt))
-  (define atp (sham:type:pointer atref))
-  (define btp (sham:type:pointer btref))
+  (match-define (pair ,ta ,td) tast)
+  (define stp (sham-type tast))
+  (define sta (sham-type ta))
+  (define std (sham-type td))
 
-  (define ptp (sham:type:pointer ptref))
+  (define cons-pair
+    (sham-function
+     #:info (prelude-function-info)
+     (,(get-function-id cons-pair-format tast) ;;cons-pair
+      (a : sta) (d : std)) : stp
+     (slet^ ([pp  (malloc (etype pt)) : stp])
+            (store! a (struct-field pp 0))
+            (store! d (struct-field pp 1))
+            (ret pp))))
 
-  (define (get-fun-name frmt)
-    (string->symbol (format frmt (sham:def-id ptdef))))
+  (define free-pair
+    (sham-function
+     #:info (prelude-function-info)
+     (,(get-function-id free-pair-format tast)
+      (p : stp)) : tvoid
+     (free p)
+     ret-void))
+  (define car-pair
+    (sham-function
+     #:info (prelude-function-info)
+     (,(get-function-id car-pair-format tast)
+      (p : stp)) : sta
+     (ret (load (struct-field p 0)))))
+  (define cdr-pair
+    (sham-function
+     #:info (prelude-function-info)
+     (,(get-function-id car-pair-format tast)
+      (p : stp)) : std
+     (ret (load (struct-field p 1)))))
+  (define set-car-pair
+    (sham-function
+     #:info (prelude-function-info)
+     (,(get-function-id set-car-pair-format tast)
+      (p : stp) (a : sta)) : tvoid
+     (store! a (struct-field p 0))
+     ret-void))
+  (define set-cdr-pair
+    (sham-function
+     #:info (prelude-function-info)
+     (,(get-function-id set-car-pair-format tast)
+      (p : stp) (d : std)) : tvoid
+     (store! d (struct-field p 1))
+     ret-void))
+  (list cons-pair free-pair car-pair cdr-pair set-car-pair set-cdr-pair))
 
-  (define (make-pair)
-    (sham:def:function
-     (prelude-function-info)
-     (get-fun-name make-pair-fun-format) ;;make-pair
-     '(a b) (list atref btref) ptp
-     (sham:stmt:let
-      '(pp ap bp)
-      (list ptp atp btp)
-      (list (sham$app malloc (sham:expr:type pt))
-            (get-struct-field 'pp 0)
-            (get-struct-field 'pp 1))
-      (sham$block
-       (sham:stmt:expr (sham$app store! a ap))
-       (sham:stmt:expr (sham$app store! b bp))
-       (sham:stmt:return (sham$var pp))))))
+;; (module+ test
+;;   (require rackunit
+;;            sham/jit
+;;            ffi/unsafe)
 
-  (define (free-pair)
-    (sham:def:function
-     (prelude-function-info)
-     (get-fun-name free-pair-fun-format) ;;car
-     '(p) (list ptp) (sham:type:ref 'void)
-     (sham$block
-      (sham:stmt:expr (sham$app free (sham:expr:var 'p)))
-      (sham:stmt:return (sham:expr:void)))))
+;;   (define defs
+;;     (apply append
+;;            (map pair-defs
+;;                 `((pair nat nat)
+;;                   (pair (pair nat nat) nat)))))
+;; ;  (pretty-print (map sham-def->sexp defs))
+;;   (define mod
+;;     (sham:module (basic-mod-info) defs))
+;;   (define cmod (compile-module mod))
+;;   (optimize-module cmod)
 
-  (define (get-car)
-    (sham:def:function
-     (prelude-function-info)
-     (get-fun-name pair-car-fun-format) ;;car
-     '(p) (list ptp) atref
-     (sham:stmt:return (sham$app 'load (get-struct-field 'p 0)))))
+;;   (jit-dump-module cmod)
+;;   (jit-verify-module cmod)
+;;   (initialize-jit! cmod)
 
-  (define (get-cdr)
-    (sham:def:function
-     (prelude-function-info)
-     (get-fun-name pair-cdr-fun-format)
-     '(p) (list ptp) btref
-     (sham:stmt:return (sham$app 'load (get-struct-field 'p 1)))))
+;;   (define (get-t t) (jit-get-racket-type t cmod))
+;;   (define (get-f f) (jit-get-function f cmod))
+;;   (define ((gf frmt) tsym)
+;;     (get-f (get-fun-symbol frmt (get-type-string tsym))))
 
-  (define (set-car)
-    (sham:def:function
-     (prelude-function-info)
-     (get-fun-name pair-set-car-fun-format) ;;car
-     '(p a) (list ptp atref) type-void-ref
-     (sham$block
-      (sham:stmt:expr
-       (sham$app store! (sham$var a) (get-struct-field 'p 0)))
-      (sham:stmt:return (sham:expr:void)))))
+;;   (define t-nat (get-t 'nat))
+;;   (define make-f (gf cons-pair-fun-format))
+;;   (define car-f (gf pair-car-fun-format))
+;;   (define cdr-f (gf pair-cdr-fun-format))
 
+;;   (define pnn `(pair nat nat))
+;;   (define cons-pair-nn (make-f pnn))
+;;   (define car-pair-nn (car-f pnn))
+;;   (define cdr-pair-nn (cdr-f pnn))
+;;   (define tp (cons-pair-nn 24 42))
+;;   (check-eq? (car-pair-nn tp) 24)
+;;   (check-eq? (cdr-pair-nn tp) 42)
 
-  (define (set-cdr)
-    (sham:def:function
-     (prelude-function-info)
-     (get-fun-name pair-set-cdr-fun-format)
-     '(p b) (list ptp btref) type-void-ref
-     (sham$block
-      (sham:stmt:expr
-       (sham$app store! (sham$var b) (get-struct-field 'p 1)))
-      (sham:stmt:return (sham:expr:void)))))
-
-  (append
-   (reverse ptdefs)
-   (list (make-pair) (free-pair)
-         (get-car) (get-cdr)
-         (set-car) (set-cdr))))
-
-(module+ test
-  (require rackunit
-           sham/jit
-           ffi/unsafe)
-
-  (define defs
-    (apply append
-           (map pair-defs
-                `((pair nat nat)
-                  (pair (pair nat nat) nat)))))
-;  (pretty-print (map sham-def->sexp defs))
-  (define mod
-    (sham:module (basic-mod-info) defs))
-  (define cmod (compile-module mod))
-  (optimize-module cmod)
-
-  (jit-dump-module cmod)
-  (jit-verify-module cmod)
-  (initialize-jit! cmod)
-
-  (define (get-t t) (jit-get-racket-type t cmod))
-  (define (get-f f) (jit-get-function f cmod))
-  (define ((gf frmt) tsym)
-    (get-f (get-fun-symbol frmt (get-type-string tsym))))
-
-  (define t-nat (get-t 'nat))
-  (define make-f (gf make-pair-fun-format))
-  (define car-f (gf pair-car-fun-format))
-  (define cdr-f (gf pair-cdr-fun-format))
-
-  (define pnn `(pair nat nat))
-  (define make-pair-nn (make-f pnn))
-  (define car-pair-nn (car-f pnn))
-  (define cdr-pair-nn (cdr-f pnn))
-  (define tp (make-pair-nn 24 42))
-  (check-eq? (car-pair-nn tp) 24)
-  (check-eq? (cdr-pair-nn tp) 42)
-
-  (define ppn `(pair (pair nat nat) nat))
-  (define make-pair-ppn (make-f ppn))
-  (define car-pair-ppn (car-f ppn))
-  (define cdr-pair-ppn (cdr-f ppn))
-  (define tpp (make-pair-ppn tp 84))
-  (check-eq? (car-pair-nn (car-pair-ppn tpp)) 24)
-  (check-eq? (cdr-pair-ppn tpp) 84))
+;;   (define ppn `(pair (pair nat nat) nat))
+;;   (define cons-pair-ppn (make-f ppn))
+;;   (define car-pair-ppn (car-f ppn))
+;;   (define cdr-pair-ppn (cdr-f ppn))
+;;   (define tpp (cons-pair-ppn tp 84))
+;;   (check-eq? (car-pair-nn (car-pair-ppn tpp)) 24)
+;;   (check-eq? (cdr-pair-ppn tpp) 84))
