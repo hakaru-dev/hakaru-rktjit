@@ -12,33 +12,39 @@
          "../ast.rkt"
          "type-defines.rkt"
          "template-format.rkt")
-(current-sham-module (create-empty-sham-module "prelude-module"))
+
+(define (basic-mod-info)
+  (module-info-add-late-pass
+   (module-info-add-ffi-libs
+    (empty-module-info)
+    `(libgslcblas . ("libgslcblas" #:global? #t))
+    `(libgsl . ("libgsl")))
+   'AlwaysInliner))
+
+
+(define hakrit-prelude-module  (create-empty-sham-module "prelude-module" (basic-mod-info)))
+(current-sham-module hakrit-prelude-module)
 (provide (all-defined-out))
 (define (prelude-function-info)
   (function-info-add-attributes (empty-function-info) 'alwaysinline))
-
+(common-function-info (prelude-function-info))
 (define-sham-function
- #:info (prelude-function-info)
   (prob2real (v : tprob)) : treal
   (ret  (ri^ exp.f64 tprob v)))
 
 (define-sham-function
-  #:info  (prelude-function-info)
   (real2prob (v : treal)) : tprob
   (ret (ri^ log.f64 tprob v)))
 
 (define-sham-function
- #:info (prelude-function-info)
- (nat2prob (v : tnat)) : tprob
+  (nat2prob (v : tnat)) : tprob
  (ret (real2prob (ui->fp v (etype treal)))))
 
 (define-sham-function
-  #:info  (prelude-function-info)
   (nat2real (v : tnat)) : treal
   (ret (ui->fp v (etype treal))))
 
 (define-sham-function
-  #:info  (prelude-function-info)
   (nat2int (v : tnat)) : tint
   ;;NOTE: I think going from signed to unsigned is easy because of 2's complement
   ;; and we are using 64 bit so if the tnat is bigger than 2^32 then we have to worry
@@ -46,69 +52,59 @@
   (ret v))
 
 (define-sham-function
-  #:info  (prelude-function-info)
   ;; as in logfloatprelude of haskell this is implemented as id and is unsafe
   ;; the same is done here assuming the int is never going to be negative.
   (int2nat (v : tint)) : tnat
   (ret v))
 
 (define-sham-function
-  #:info  (prelude-function-info)
   (int2real (v : tint)) : treal
   (ret (si->fp v (etype treal))))
 
 (define-sham-function
-  #:info (prelude-function-info)
   (recip-nat (v : tnat)) : treal
   (ret (fdiv (real-value 1.0)
              (ui->fp v (etype treal)))))
 (define-sham-function
-  #:info  (prelude-function-info)
   (recip-real (v : treal)) : treal
   (ret (fdiv (real-value 1.0)  v)))
 
 (define-sham-function
-  #:info  (prelude-function-info)
   (recip-prob (v : treal)) : treal
   (ret (fmul (real-value -1.0) v)))
 
 (define-sham-function
-  #:info (prelude-function-info)
   (root-prob-nat (v : tprob) (v2 : tnat)) : tprob
   (ret (fmul v (recip-nat v2))))
 
 (define-sham-function
-  #:info  (prelude-function-info)
   (exp-real2prob (v : treal)) : tprob
   (ret v))
 
 (define-sham-function
-  #:info  (prelude-function-info)
   (fdiv-nat (v1 : tnat) (v2 : tnat)) : treal
   (ret (fdiv
         (ui->fp v1 (etype treal))
         (ui->fp v2 (etype treal)))))
 
 (define-sham-function
-  #:info  (prelude-function-info)
   (natpow (v : treal) (p : tnat)) : treal
-  (ret (ri^ llvm.powi.f64 treal v (intcast p (etype i32)))))
+  (ret (ri^ powi.f64 treal v (intcast p (etype i32)))))
 (define-sham-function
-  #:info  (prelude-function-info)
   (natpow-prob (v : tprob) (p : tnat)) : tprob
   (ret (fmul v (nat2real p))))
 
+(module+ test
+  (require ;; "../../../main.rkt"
+   "../../../sham/private/jit-utils.rkt")
+  (require rackunit)
+  (parameterize ([compile-options `(pretty dump mc-jit)])
+    (compile-sham-module!
+     (current-sham-module)
+     #:opt-level 0))
+  (check-= (sham-app natpow 4.0 3) 64 0.01))
+
 #|
-(define (basic-defs)
-  (list
-
-
-
-
-
-))
-
-
 (define simple-rators '(nat2prob nat2real prob2real real2prob int2real nat2int int2nat))
 (define simple-rator? (curryr member simple-rators))
 
@@ -285,16 +281,7 @@
                  sym tresult trands trslt trnds)]))
 
 
-(define (basic-mod-info)
-  (define mod-info (empty-mod-env-info))
-  (mod-info-add-ffi-libs
-   mod-info
-   `(libgslcblas . ("libgslcblas" #:global? #t))
-   `(libgsl . ("libgsl")))
-  (mod-info-add-passes
-   mod-info
-   'AlwaysInliner)
-  mod-info)
+
 
 (define (prelude-function-info)
   (define fn-attrs (fninfo-add-attrs (fninfo-empty) 'alwaysinline))
