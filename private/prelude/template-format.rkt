@@ -38,20 +38,19 @@
 (define struct-get-index-fun-format (cft "index" 1))
 
 ;;array-funs
-(define make-array-fun-format (cft "make" 1))
-(define new-size-array-fun-format (cft "new-sized" 1))
-(define free-size-array-fun-format (cft "free-sized" 1))
-(define empty-array-fun-format (cft "empty" 1))
-(define clear-size-array-fun-format (cft "clear" 1))
-(define get-array-size-fun-format (cft "get-size" 1))
-(define get-array-data-fun-format (cft "get-data" 1))
+(define array-make-format (cft "make" 1))
+(define array-free-format (cft "free" 1))
+(define array-get-size-format (cft "get-size" 1))
+(define array-set-size-format (cft "set-size" 1))
 
-(define get-index-fun-format (cft "get-index" 1))
+(define array-get-data-format (cft "get-data" 1))
+(define array-set-data-format (cft "set-data" 1))
+(define array-get-index-format (cft "get-index" 1))
+(define array-set-index-format (cft "set-index!" 1))
+
 (define get-index-error-fun-format (cft "get-index-error" 1))
-(define rkt-get-index-error-fun-format (cft "rkt-get-index-error" 1))
-
-(define set-index-fun-format (cft "set-index!" 1))
 (define set-index-error-fun-format (cft "set-index-error!" 1))
+(define rkt-get-index-error-fun-format (cft "rkt-get-index-error" 1))
 (define rkt-set-index-error-fun-format (cft "rkt-set-index-error!" 1))
 
 (define array-literal-fun-format (cft "array-literal" 2))
