@@ -27,7 +27,8 @@
 
 (define (pair-defs tast)
   (match-define `(pair ,ta ,td) tast)
-  (define stp (tptr (sham-type tast)))
+  (deifne st (sham-type tast))
+  (define stp (tptr st ))
   (define sta (sham-type ta))
   (define std (sham-type td))
   (common-function-info (prelude-function-info))
@@ -36,7 +37,7 @@
     (sham-function
      (,(get-function-id cons-format tast) ;;cons-pair
       (a : sta) (d : std)) : stp
-     (slet^ ([pp  (malloc^ (etype stp)) : stp])
+     (slet^ ([pp  (malloc^ (etype st)) : stp])
             (store! a (get-struct-field pp 0))
             (store! d (get-struct-field pp 1))
             (ret pp))))
