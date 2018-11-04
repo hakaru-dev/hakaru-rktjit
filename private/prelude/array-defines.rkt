@@ -16,16 +16,69 @@
 
 
 (define (get-array-rator sym array-defs)
-  (match-define (list make-array free-array get-size set-size get-data set-data get-index set-index)
+  (match-define (list make-array free-array make-empty clear-array
+                      get-size set-size get-data set-data get-index set-index)
     array-defs)
   (match sym
     ['index get-index]
     ['set-index! set-index]
     ['size get-size]
-    ;; ['empty ]
-    ;; ['clear (values clear-size-array-fun-format (get-type-string tresult))]
+    ['empty make-empty]
+    ['clear clear-array]
     ['free free-array]))
 
+(define array-type i8*)
+(define size-type i64)
+(define data-type i64)
+
+(define-sham-function
+  (array-make
+   (size : i64) ) : array-type
+  (slet^ ([ap (ptrcast (arr-malloc (etype data-type) (add-nuw size (ui64 1)))
+                       (etype array-type)) : i8*])
+         (store! size (ptrcast ap (etype (tptr size-type))))
+         (ret (ptrcast ap (etype i8*)))))
+
+(define-sham-function
+ (array-clear (p : array-type)) : tvoid
+  (slet^ ([ad (gep p (list (ui64 1))) : array-type])
+         (ri^ memset.i64 tvoid ad (ui8 0) (load p) (ui1 0))
+         (svoid)
+         )
+  ret-void)
+
+(define-sham-function
+  (array-free (p : array-type)) : tvoid
+  (free^ p)
+  ret-void)
+
+(define-sham-function
+ (array-get-size (p : array-type)) : size-type
+ (ret (load (ptrcast p (etype (tptr size-type))))))
+
+(define-sham-function
+ (array-ref (p : array-type) (n : size-type)) : data-type
+  (ret (load (gep (ptrcast p (etype (tptr data-type))) (list n)))))
+
+(define-sham-function
+ (array-set! (p : array-type) (n : size-type) (v : data-type)) : tvoid
+ (store! v (gep (ptrcast p (etype (tptr data-type))) (list n)))
+ ret-void)
+
+(module+ test
+  (require rackunit
+           "../../../sham/private/jit-utils.rkt")
+  (parameterize ([compile-options `( dump
+                                     verify mc-jit)])
+    (compile-sham-module!
+     (current-sham-module)
+     #:opt-level 0))
+  (define tarray (sham-app array-make 10))
+  (sham-app array-set! tarray 1 42)
+  (check-equal? (sham-app array-ref tarray 1) 42)
+  (sham-app array-clear tarray)
+  (check-equal? (sham-app array-ref tarray 1) 0)
+  (sham-app array-free tarray))
 
 (define (simple-array-defs tast)
   (match-define `(array ,t) tast)
@@ -107,7 +160,8 @@
         get-size set-size get-data set-data get-at-index set-at-index))
 
 
-(module+ test
+
+#;(module+ test
   (require rackunit
            "../../../sham/private/jit-utils.rkt")
 
