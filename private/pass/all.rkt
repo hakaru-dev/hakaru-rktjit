@@ -9,8 +9,8 @@
  "simplifications.rkt"
  "to-stmt.rkt"
  "compile-time-opts.rkt"
- "final-expand.rkt"
- "jit.rkt")
+ "expand-to-sham.rkt"
+ "compile.rkt")
 
 (provide
  (all-from-out
@@ -22,5 +22,5 @@
   "simplifications.rkt"
   "to-stmt.rkt"
   "compile-time-opts.rkt"
-  "final-expand.rkt"
-  "jit.rkt"))
+  "expand-to-sham.rkt"
+  "compile.rkt"))

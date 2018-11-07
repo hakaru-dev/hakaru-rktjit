@@ -12,6 +12,8 @@
          "../ast.rkt"
          "type-defines.rkt"
          "template-format.rkt")
+(provide (all-defined-out))
+
 
 (define (basic-mod-info)
   (module-info-add-late-pass
@@ -21,13 +23,13 @@
     `(libgsl . ("libgsl")))
    'AlwaysInliner))
 
-
 (define hakrit-prelude-module  (create-empty-sham-module "prelude-module" (basic-mod-info)))
 (current-sham-module hakrit-prelude-module)
-(provide (all-defined-out))
+
 (define (prelude-function-info)
   (function-info-add-attributes (empty-function-info) 'alwaysinline))
 (common-function-info (prelude-function-info))
+
 (define-sham-function
   (prob2real (v : tprob)) : treal
   (ret  (ri^ exp.f64 tprob v)))

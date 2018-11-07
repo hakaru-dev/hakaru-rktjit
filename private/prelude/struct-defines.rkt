@@ -1,5 +1,6 @@
 #lang racket
 
+#|
 (require sham
          (submod sham/ast utils))
 (require "template-format.rkt"
@@ -118,3 +119,4 @@
 
   (define ls (jit-get-function  'literal$struct<array<real>.array<real>> cmod))
   (define s1 (jit-get-function  'index$struct<array<real>.array<real>>.1 cmod)))
+|#

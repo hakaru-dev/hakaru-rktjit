@@ -159,8 +159,6 @@
   (list make-array free-array make-empty-array clear-array
         get-size set-size get-data set-data get-at-index set-at-index))
 
-
-
 #;(module+ test
   (require rackunit
            "../../../sham/private/jit-utils.rkt")

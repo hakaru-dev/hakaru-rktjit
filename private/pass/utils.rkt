@@ -64,8 +64,6 @@
 ;;info syms
 (define prog-arg-info 'arg-info)
 
-(define (build-var-info arg-info)
-  `((arg-info . ,arg-info)))
 (define (array-type? t)
   (and (pair? t) (equal? (car t) 'array)))
 (define (array-element-type t) (second t))

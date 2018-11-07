@@ -1,8 +1,8 @@
 #lang racket
 
-(require sham
-         (submod sham/ast utils)
-         math/distributions
+
+#|
+(require math/distributions
          ffi/unsafe)
 (require "template-format.rkt"
          "type-defines.rkt"
@@ -530,3 +530,6 @@
   ; (printf "cat2: ~a\n" (categorical-2 100.0 23.0))
   (printf "random normal mu=0, sd=1: ~a\n" (normal 0.0 (c-real2prob 1.0)))
   (printf "random uniform 1-5: ~a\n" (uniform 1.0 5.0)))
+
+
+|#

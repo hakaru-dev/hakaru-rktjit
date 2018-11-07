@@ -40,6 +40,6 @@
                (printf "debug-printing multiple: \n~a\n"
                        (map (compose pretty-format pe) prg))
                (printf "debug-printing multiple: \n~a\n"
-                       (map (compose pretty-format print-sham-def) prg)))
+                       (map pretty-print prg)))
            (printf "debug-printing: \n~a\n" (pretty-format (pe prg)))))
      (run-next prg info st)]))

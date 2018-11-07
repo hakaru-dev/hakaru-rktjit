@@ -13,6 +13,7 @@
 (define treal f64)
 (define tprob f64)
 (define tbool i1)
+(define tarray i8*)
 
 (define (treal? t) (equal? t treal))
 (define (tprob? t) (equal? t tprob))
@@ -20,8 +21,10 @@
 (define (tbool? t) (equal? t tbool))
 (define (tint?  t) (equal? t tint))
 
-(define (real-value v) (fl64 (exact->inexact v)))
 (define (nat-value v) (ui32 v))
+(define (int-value v) (si32 v))
+(define (bool-value v) (ui1 (if (equal? v 0) 0 1)))
+(define (real-value v) (fl64 (exact->inexact v)))
 (define (prob-value v) (app (rs 'real2prob) (real-value v)))
 
 (define (create-tarray type)
@@ -33,11 +36,11 @@
 
 (define (sham-type hakrit-type)
   (match hakrit-type
-    [`(array ,t) (create-tarray (sham-type t))]
-    [`(array ,t (size . ,s)) (create-fixed-tarray (sham-type t) s)]
-    [`(pair ,t1 ,t2) (create-tpair (sham-type t1) (sham-type t2))]
+    [`(array ,t) i8*]
+    [`(array ,t (size . ,s)) i8*]
+    [`(pair ,t1 ,t2) i8*]
     [`(measure ,t) (sham-type t)]
-    [`(pointer ,t) (tptr (sham-type t))]
+    [`(pointer ,t) i8*]
     [`nat tnat]
     [`int tint]
     [`prob tprob]
@@ -53,6 +56,7 @@
   (match t
     [`(measure ,t) t]
     [else t]))
+
 (define (if-need-pointer t)
   (match t
     [`(measure ,mt) (if-need-pointer mt)]

@@ -1,14 +1,16 @@
 #lang racket
 
 (require sham/ast
-         sham/jit)
+         sham/jit
+         sham/private/ast-utils
+         )
 
 (require "../ast.rkt"
          "prelude.rkt"
          "utils.rkt"
          "../utils.rkt")
 
-(provide to-sham-lc
+(provide expand-to-sham
          debug-to-sham)
 (define debug-to-sham (make-parameter #f))
 (define dts (debug-printf debug-to-sham))
@@ -22,17 +24,11 @@
     [`(int ,_) 'int]
     [else t]))
 
-(define (to-sham-lc st)
-  (define prl (new-prelude))
-  (add-basic&probability-defs prl)
+(define (expand-to-sham st)
+  ;; (define prl (new-prelude))
+  ;; (add-basic&probability-defs prl)
 
-  (define (get&add-type type-ast)
-    (dts "get&add-type: ~a\n" type-ast)
-    (define-values (ref defs) (get-defs&ref-type type-ast))
-    (add-defs-prelude! prl defs)
-    ref)
-
-  (define (ea tresult rator rands)
+  #;(define (ea tresult rator rands)
     (dts "ea: ~a, ~a\n" tresult (pe rator))
     (define trands (map typeof rands))
     (define-values (rtr def)
@@ -53,7 +49,7 @@
     ;;                       )))
     )
 
-  (define (ee expr)
+  #;(define (ee expr)
     (match expr
       [(expr-app t rator rands) (ea t rator rands)]
       [(expr-var t sym _) (sham:expr:var sym)]
@@ -99,7 +95,7 @@
                       (ee ev))]
       [else (error (format "not expanding for expr: ~a\n" (pe expr)))]))
 
-  (define (for->while index start end body)
+  #;(define (for->while index start end body)
     (sham:stmt:expr
      (sham:expr:let
       (list (expr-var-sym index)) (list (get&add-type (typeof index))) (list (ee start))
@@ -121,10 +117,10 @@
          (es (stmt-assign index (expr-app (typeof index) (expr-intrf '+)
                                           (list index (expr-val (typeof index) 1))))))))
       (sham:expr:void))))
-  (define testput (sham:stmt:expr
+  #;(define testput (sham:stmt:expr
                    (sham:expr:app (sham:rator:external 'libc 'putchar (sham:type:ref 'i32))
                                   (list (sham:expr:ui-value 0 (sham:type:ref 'i32))))))
-  (define (es stmt)
+  #;(define (es stmt)
     (match stmt
       [(stmt-if tst thn els) (sham:stmt:if (ee tst) (es thn) (es els))]
       [(stmt-expr (stmt-void) e)
@@ -140,50 +136,57 @@
       [(stmt-void) (sham:stmt:void)]
       [else (error (format "not expanding stmt: ~a\n" (ps stmt)))]))
 
-  (define (mod-fun-info) (void)) ;;TODO
-  (define (mod-info) (void))
+  ;; (define (mod-fun-info) (void)) ;;TODO
+  ;; (define (mod-info) (void))
 
-  (define (get-debug-print-expr str)
-    (sham:expr:app (sham:rator:racket (gensym^ 'debug) (λ () (printf str))
-                                      (sham:type:function '() (sham:type:ref 'void)))
-                   '()))
+  ;; (define (get-debug-print-expr str)
+  ;;   (sham:expr:app (sham:rator:racket (gensym^ 'debug) (λ () (printf str))
+  ;;                                     (sham:type:function '() (sham:type:ref 'void)))
+  ;;                  '()))
+
   (define (expand-fun fp)
     (match fp
       [(expr-fun fname args ret-type b)
-       (define nargs (map (λ (a) (if (expr-val? a) (expr-var (expr-val-type a) '_ '()) a)) args))
-       (dts "expanding-function: ~a ~a -> ~a\n"
-            fname; (map expr-var-type nargs) ret-type
-            (map print-sham-type (map (compose get&add-type expr-var-type) nargs))
-            (print-sham-type (get&add-type ret-type)))
+       ;; (define nargs (map (λ (a) (if (expr-val? a) (expr-var (expr-val-type a) '_ '()) a)) args))
+       ;; (dts "expanding-function: ~a ~a -> ~a\n"
+       ;;      fname; (map expr-var-type nargs) ret-type
+       ;;      (map print-sham-type (map (compose get&add-type expr-var-type) nargs))
+       ;;      (print-sham-type (get&add-type ret-type)))
 
-       (define dprf (symbol-append 'debug-print- fname))
-       (sham:def:function
-        (prog-fun-info  (map typeof nargs) ret-type fname)
-        fname
-        (map expr-var-sym nargs) (map (compose get&add-type expr-var-type) nargs)
-        (get&add-type ret-type)
-        ;; (sham:stmt:block
-        ;;  (list
-        ;;   (sham:stmt:expr
-        ;;    (sham:expr:app (sham:rator:racket
-        ;;                    (gensym^ 'prog)
-        ;;                    (λ ()
-        ;;                      (printf "called-prog\n")
-        ;;                      (flush-output))
-        ;;                    (sham:type:function (list )
-        ;;                                        (sham:type:ref 'void)))
-        ;;                   (list )))
-        ;;   ;; (sham:stmt:return (ee (expr-val 'nat 0)))
-        ;;   (es b)))
-        (es b))]))
+       (define nargs args)
+       (dfunction #f fname
+                  (map expr-var-sym nargs) (map (compose sham-type expr-var-type) nargs)
+                  (sham-type ret-type)
+                  (ret (fl32 0.0)))
+       ;; (sham:def:function
+       ;;  (prog-fun-info  (map typeof nargs) ret-type fname)
+       ;;  fname
+       ;;  (map expr-var-sym nargs) (map (compose get-type expr-var-type) nargs)
+       ;;  (get-type ret-type)
+       ;;  ;; (sham:stmt:block
+       ;;  ;;  (list
+       ;;  ;;   (sham:stmt:expr
+       ;;  ;;    (sham:expr:app (sham:rator:racket
+       ;;  ;;                    (gensym^ 'prog)
+       ;;  ;;                    (λ ()
+       ;;  ;;                      (printf "called-prog\n")
+       ;;  ;;                      (flush-output))
+       ;;  ;;                    (sham:type:function (list )
+       ;;  ;;                                        (sham:type:ref 'void)))
+       ;;  ;;                   (list )))
+       ;;  ;;   ;; (sham:stmt:return (ee (expr-val 'nat 0)))
+       ;;  ;;   (es b)))
+       ;;  (es b))
+       ]))
 
 
   (match st
     [(state prgs info passes)
-     (define new-prgs (flatten (for/list ([prg prgs]) (expand-fun prg))))
+     ;; (define new-prgs (flatten (for/list ([prg prgs]) (expand-fun prg))))
      ;(printf "defs: \n~a" (pretty-format (map print-sham-def new-prgs)))
      ;; (printf "prelude: \n~a" (pretty-format (map print-sham-def (flatten (get-defs-prelude prl))))
-     (run-next (append (cleanup-defs (flatten (get-defs-prelude prl))) new-prgs)
+     (run-next (map expand-fun prgs)
+               ;; (append (cleanup-defs (flatten (get-defs-prelude prl))) new-prgs)
                info st)]))
 
 
