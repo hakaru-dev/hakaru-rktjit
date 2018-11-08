@@ -77,10 +77,10 @@
 
 (define (pair-defs tast)
   (match-define `(pair ,ta ,td) tast)
-  (define st (sham-type tast))
+  (define st (get-sham-type tast))
   (define stp (tptr st ))
-  (define sta (sham-type ta))
-  (define std (sham-type td))
+  (define sta (get-sham-type ta))
+  (define std (get-sham-type td))
   (common-function-info (prelude-function-info))
 
   (define cons-pair

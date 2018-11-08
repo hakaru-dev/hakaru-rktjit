@@ -34,12 +34,12 @@
 (define (create-tpair t1 t2)
   (tstruct '(a d) (list t1 t2)))
 
-(define (sham-type hakrit-type)
+(define (get-sham-type hakrit-type)
   (match hakrit-type
     [`(array ,t) i8*]
     [`(array ,t (size . ,s)) i8*]
     [`(pair ,t1 ,t2) i8*]
-    [`(measure ,t) (sham-type t)]
+    [`(measure ,t) (get-sham-type t)]
     [`(pointer ,t) i8*]
     [`nat tnat]
     [`int tint]
@@ -53,9 +53,7 @@
 
 (define nrp? (curryr member '(nat real prob int bool unit i1)))
 (define (remove-measure t)
-  (match t
-    [`(measure ,t) t]
-    [else t]))
+  (match t [`(measure ,t) t] [else t]))
 
 (define (if-need-pointer t)
   (match t

@@ -82,9 +82,9 @@
 
 (define (simple-array-defs tast)
   (match-define `(array ,t) tast)
-  (define st (sham-type tast))
+  (define st (get-sham-type tast))
   (define atp (tptr st))
-  (define dt  (sham-type t))
+  (define dt  (get-sham-type t))
   (define dtp (tptr dt))
   (common-function-info (prelude-function-info))
   (define make-array

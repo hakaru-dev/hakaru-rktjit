@@ -106,6 +106,11 @@
      #:opt-level 0))
   (check-= (sham-app natpow 4.0 3) 64 0.01))
 
+(define (get-sham-rator rator tresult trands)
+  (printf "get-sham-rator ~a, ~a, ~a\n" rator tresult trands))
+(define (get-sham-value v t)
+  (printf "get-sham-value: ~a ~a\n" v t))
+
 #|
 (define simple-rators '(nat2prob nat2real prob2real real2prob int2real nat2int int2nat))
 (define simple-rator? (curryr member simple-rators))
