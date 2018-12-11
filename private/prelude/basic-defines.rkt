@@ -106,38 +106,44 @@
      #:opt-level 0))
   (check-= (sham-app natpow 4.0 3) 64 0.01))
 
-(define (get-sham-rator rator tresult trands)
-  (printf "get-sham-rator ~a, ~a, ~a\n" rator tresult trands))
-(define (get-sham-value v t)
-  (printf "get-sham-value: ~a ~a\n" v t))
 
+(define simple-rators '(nat2prob nat2real prob2real real2prob int2real nat2int int2nat))
+(define basic-rators
+  (append simple-rators
+          '(+ * < > / == - exp and not recip root reject natpow)))
+(define basic-rator? (curryr member basic-rators))
+
+(define (get-basic-rator rator tresult trands)
+  (match rator
+    ['< (andmap (curry equal? 'nat) trands)
+        icmp-ult]
+    ['* (match trands
+          ['(prob prob) fadd])]
+    ['+ (match trands
+          ['(nat nat) add-nuw])]))
 #|
 (define simple-rators '(nat2prob nat2real prob2real real2prob int2real nat2int int2nat))
 (define simple-rator? (curryr member simple-rators))
 
-(define basic-rators
-  (append simple-rators
-          '(+ * < > / == - exp and not recip root reject natpow)))
 
-(define basic-rator? (curryr member basic-rators))
 
 (define (add-prob-sym len)
   (string->symbol (format add-fun-format len 'prob)))
 
 (define (build-add-prob len)
   (sham:def:function (prelude-function-info)
-   (add-prob-sym len)
-   (build-list len get-vi)
-   (build-list len (const type-prob-ref)) type-prob-ref
-   (sham:stmt:return
-    (sham:expr:app
-     (sham:rator:symbol 'real2prob)
-     (list
-      (for/fold ([body (sham:expr:app (sham:rator:symbol 'prob2real) (list (sham$var (get-vi 0))))])
-                ([i (in-range 1 len)])
-        (sham:expr:app (sham:rator:symbol 'fadd)
-                       (list (sham:expr:app (sham:rator:symbol 'prob2real) (list (sham$var (get-vi i))))
-                             body))))))))
+                     (add-prob-sym len)
+                     (build-list len get-vi)
+                     (build-list len (const type-prob-ref)) type-prob-ref
+                     (sham:stmt:return
+                      (sham:expr:app
+                       (sham:rator:symbol 'real2prob)
+                       (list
+                        (for/fold ([body (sham:expr:app (sham:rator:symbol 'prob2real) (list (sham$var (get-vi 0))))])
+                                  ([i (in-range 1 len)])
+                          (sham:expr:app (sham:rator:symbol 'fadd)
+                                         (list (sham:expr:app (sham:rator:symbol 'prob2real) (list (sham$var (get-vi i))))
+                                               body))))))))
 
 (define (build-recip-nat->prob)
   (sham:def:function
@@ -368,13 +374,13 @@
   ;;          (real->prob (+ (prob->real 1.234) (prob->real 543.1234)))
   ;;          e)
   )
-  ;; (check-= (add-3-prob 5.324 543.2432 89.43241)
-  ;;          (logspace-add 5.324 543.2432 89.43241)
-  ;;          e)
-  ;; (check-eq? (mul-2-nat 4 5) 20)
-  ;; (check-= (mul-2-real 4.123 5.3123) (* 4.123 5.3123) e)
-  ;; (check-= (mul-2-prob 4.123 5.3123) (+ 4.123 5.3123) e)
-  ;; (check-= (mul-2-prob 4.123 5.3123)
-  ;;          (real->prob (* (prob->real 4.123) (prob->real 5.3123)))
-  ;;          e)
+;; (check-= (add-3-prob 5.324 543.2432 89.43241)
+;;          (logspace-add 5.324 543.2432 89.43241)
+;;          e)
+;; (check-eq? (mul-2-nat 4 5) 20)
+;; (check-= (mul-2-real 4.123 5.3123) (* 4.123 5.3123) e)
+;; (check-= (mul-2-prob 4.123 5.3123) (+ 4.123 5.3123) e)
+;; (check-= (mul-2-prob 4.123 5.3123)
+;;          (real->prob (* (prob->real 4.123) (prob->real 5.3123)))
+;;          e)
 |#

@@ -8,13 +8,36 @@
          "probability-defines.rkt")
 
 (provide basic-mod-info
-         (all-from-out "type-defines.rkt"
-                       "basic-defines.rkt"
-                       "array-defines.rkt"
-                       "pair-defines.rkt"
-                       "probability-defines.rkt")
-         ;; prog-fun-info
+         ;; prog-fun-info => basic-fun-info
+         get-sham-rator
+         get-sham-value
+         get-sham-type ;; type-defines.rkt
+         ;; (all-from-out "type-defines.rkt"
+         ;;               "basic-defines.rkt"
+         ;;               "array-defines.rkt"
+         ;;               "pair-defines.rkt"
+         ;;               "probability-defines.rkt")
+
          )
+
+
+(define (get-sham-rator rator tresult trands)
+  (printf "get-sham-rator: ~a, ~a, ~a\n" rator tresult trands)
+  (match rator
+    [(? array-rator?) (get-array-rator rator)]
+    [(? pair-rator?) (get-pair-rator rator)]
+    [(? basic-rator?) (get-basic-rator rator tresult trands)]
+    [else (error "unknown rator in get-sham-rator." rator)]))
+
+(define (get-sham-value v t)
+  (printf "get-sham-value: ~a ~a\n" v t)
+  (match t
+    ['prob (prob-value v)]
+    ['nat (nat-value v)]
+    ['int (int-value v)]
+    ['real (real-value v)]
+    ['bool (bool-value v)]))
+
 
 ;;returns (values type-ref (list type-defs ...))
 ;; (define (get-sham-type type-ast)

@@ -9,13 +9,15 @@
          "basic-defines.rkt"
          "utils.rkt")
 
+(provide array-rator?
+         get-array-rator)
 (define debug-arrays (make-parameter #f))
 (define (array-rator? sym)
    (member sym '(empty index size set-index! array-literal
                        free const-size-array-literal clear)))
 
 
-(define (get-array-rator sym array-defs)
+(define (get-array-rator-from-def sym array-defs)
   (match-define (list make-array free-array make-empty clear-array
                       get-size set-size get-data set-data get-index set-index)
     array-defs)
@@ -65,11 +67,15 @@
  (store! v (gep (ptrcast p (etype (tptr data-type))) (list n)))
  ret-void)
 
+(define (get-array-rator rator)
+  (match rator
+    ['size array-get-size]
+    ['index array-ref]))
+
 (module+ test
   (require rackunit
            "../../../sham/private/jit-utils.rkt")
-  (parameterize ([compile-options `( dump
-                                     verify mc-jit)])
+  (parameterize ([compile-options `(dump verify mc-jit)])
     (compile-sham-module!
      (current-sham-module)
      #:opt-level 0))
