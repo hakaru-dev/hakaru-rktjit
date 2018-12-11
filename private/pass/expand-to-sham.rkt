@@ -19,7 +19,7 @@
   (define (ea tresult rator rands)
     (dts "ea: ~a, ~a\n" tresult (pe rator))
     (define rtr (get-sham-rator (expr-intrf-sym rator) tresult (map typeof rands)))
-    (rtr (map ee rands))
+    (apply rtr (map ee rands))
     ;; (sham:expr:let '()'() '()
     ;;                (sham:stmt:block
     ;;                 (list (sham:stmt:void)
@@ -34,6 +34,7 @@
     )
 
   (define (ee expr)
+    (printf "ee: ~a\n" (pe expr))
     (match expr
       [(expr-app t rator rands) (ea t rator rands)]
       [(expr-var t sym _) (v sym)]
@@ -44,33 +45,32 @@
        (unless (empty? vars) (dts "expr-lets: vars: ~a, types: ~a\n" (map expr-var-sym vars) (map typeof vars)))
        (define sham-types (map (compose get-sham-type typeof) vars))
        (sham:ast:expr:let (map expr-var-sym vars)
-                      sham-types
-                      (map ee vals)
-                      (block^
-                       (es stmt)
-                       ;; (list
-                       ;;  ;; (sham:stmt:expr
-                       ;;  ;;  (sham:expr:app (sham:rator:racket
-                       ;;  ;;                  (gensym^ 'let)
-                       ;;  ;;                  (λ ()
-                       ;;  ;;                    (printf "in-let\n")
-                       ;;  ;;                    (flush-output))
-                       ;;  ;;                  (sham:type:function (list )
-                       ;;  ;;                                      (sham:type:ref 'void)))
-                       ;;  ;;                 (list )))
-                       ;;  ;; (sham:stmt:expr
-                       ;;  ;;  (sham:expr:app (sham:rator:racket
-                       ;;  ;;                  (gensym^ 'let)
-                       ;;  ;;                  (λ ()
-                       ;;  ;;                    (printf "racket let\n")
-                       ;;  ;;                    (printf "expr-lets: vars: ~a, types: ~a\n"
-                       ;;  ;;                            (map expr-var-sym vars) (map typeof vars))
-                       ;;  ;;                    (flush-output))
-                       ;;  ;;                  (sham:type:function '() (sham:type:ref 'void)))
-                       ;;  ;;                 '()))
-                       ;;  )
-                       )
-                      (ee body))]
+                          sham-types
+                          (map ee vals)
+                          (block^ (es stmt)
+                                  ;; (list
+                                  ;;  ;; (sham:stmt:expr
+                                  ;;  ;;  (sham:expr:app (sham:rator:racket
+                                  ;;  ;;                  (gensym^ 'let)
+                                  ;;  ;;                  (λ ()
+                                  ;;  ;;                    (printf "in-let\n")
+                                  ;;  ;;                    (flush-output))
+                                  ;;  ;;                  (sham:type:function (list )
+                                  ;;  ;;                                      (sham:type:ref 'void)))
+                                  ;;  ;;                 (list )))
+                                  ;;  ;; (sham:stmt:expr
+                                  ;;  ;;  (sham:expr:app (sham:rator:racket
+                                  ;;  ;;                  (gensym^ 'let)
+                                  ;;  ;;                  (λ ()
+                                  ;;  ;;                    (printf "racket let\n")
+                                  ;;  ;;                    (printf "expr-lets: vars: ~a, types: ~a\n"
+                                  ;;  ;;                            (map expr-var-sym vars) (map typeof vars))
+                                  ;;  ;;                    (flush-output))
+                                  ;;  ;;                  (sham:type:function '() (sham:type:ref 'void)))
+                                  ;;  ;;                 '()))
+                                  ;;  )
+                                  )
+                          (ee body))]
       [(expr-if t tst thn els)
        (define v (gensym^ 'if))
        (define ev (expr-var t v '_))
@@ -82,7 +82,7 @@
   (define (for->while index start end body)
     (se
      (sham:ast:expr:let (list (expr-var-sym index)) (list (get-sham-type (typeof index))) (list (ee start))
-                        (while^ (ee (expr-app 'i1 (expr-intrf '<) (list index end)))
+                        (while^ (ee (expr-app 'bool (expr-intrf '<) (list index end)))
                                 ;; (sham:stmt:expr
                                 ;;           (sham:expr:app (sham:rator:racket
                                 ;;                           (gensym^ 'for)
@@ -98,6 +98,7 @@
                                                                  (list index (expr-val (typeof index) 1))))))
                         (evoid))))
   (define (es stmt)
+    (printf "es: ~a\n" (ps stmt))
     (match stmt
       [(stmt-if tst thn els)
        (if^ (ee tst) (es thn) (es els))]
@@ -117,6 +118,7 @@
   (define (ef fp)
     (match fp
       [(expr-fun fname args ret-type b)
+       (printf "expand-to-sham: \n~a\n" (pe fp))
        (dfunction #f fname
                   (map expr-var-sym args) (map (compose get-sham-type expr-var-type) args)
                   (get-sham-type ret-type)
