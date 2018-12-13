@@ -30,7 +30,7 @@
 
    to-stmt                    ;; debug-print ;; stop
    compile-opts               debug-print ;; stop
-   expand-to-sham             debug-print stop
+   expand-to-sham             debug-print ;;stop
    compile-with-sham          ;; debug-print ;; stop
    ))
 (define passes

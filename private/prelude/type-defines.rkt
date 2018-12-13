@@ -25,7 +25,7 @@
 (define (int-value v) (si32 v))
 (define (bool-value v) (ui1 (if (equal? v 0) 0 1)))
 (define (real-value v) (fl64 (exact->inexact v)))
-(define (prob-value v) (app (rs 'real2prob) (real-value v)))
+(define (prob-value v) (app (rs 'real2prob) (list (real-value v))))
 
 (define (create-tarray type)
   (tstruct (list 'size 'ptr) (list tnat (tptr type))))

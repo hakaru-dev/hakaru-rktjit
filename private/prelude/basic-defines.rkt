@@ -23,8 +23,8 @@
     `(libgsl . ("libgsl")))
    'AlwaysInliner))
 
-(define hakrit-prelude-module  (create-empty-sham-module "prelude-module" (basic-mod-info)))
-(current-sham-module hakrit-prelude-module)
+(define prelude-module  (create-empty-sham-module "prelude-module" (basic-mod-info)))
+(current-sham-module prelude-module)
 
 (define (prelude-function-info)
   (function-info-add-attributes (empty-function-info) 'alwaysinline))
