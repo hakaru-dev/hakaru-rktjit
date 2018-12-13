@@ -8,6 +8,7 @@
          "probability-defines.rkt")
 
 (provide basic-mod-info
+         prelude-module
          ;; prog-fun-info => basic-fun-info
          get-sham-rator
          get-sham-value
