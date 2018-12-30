@@ -5,7 +5,7 @@
 (require ffi/unsafe)
 
 (require "../../../sham/private/ast-utils.rkt"
-         "../../../sham/private/info.rkt"
+         "../../../sham/private/ast-info.rkt"
          "../../../sham/private/parameters.rkt"
          ;; (submod sham/ast utils)
          "utils.rkt"

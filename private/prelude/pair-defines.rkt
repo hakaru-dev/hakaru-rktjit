@@ -1,7 +1,7 @@
 #lang racket
 
 (require "../../../sham/private/ast-utils.rkt"
-         "../../../sham/private/info.rkt"
+         "../../../sham/private/ast-info.rkt"
          "../../../sham/private/parameters.rkt")
 (require "template-format.rkt"
          "type-defines.rkt"
