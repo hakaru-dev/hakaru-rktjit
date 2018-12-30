@@ -1,6 +1,7 @@
 #lang racket
 
 (require sham
+         sham/jit-utils
          "ast.rkt"
          "pass.rkt"
          "pass/utils.rkt"
@@ -66,8 +67,8 @@
 (define (compile-file fname arg-info)
   (compile-src (file->value fname) arg-info))
 
-(define (get-function sym env)
-  (jit-get-function sym env))
+(define (get-function sham-module fid)
+  (sham-module-lookup-function sham-module fid))
 
 (define (compile-function prog-expr prog-info)
   (define-values (env info)
@@ -98,5 +99,6 @@
 (module+ test
   (require ffi/unsafe)
   ;; (require disassemble)
-  (debug-file "../test/simple/array-product.hkr" '())
+  (define sham-module (debug-file "../test/simple/array-product.hkr" '()))
+  (define prog (get-function sham-module 'prog))
   )
