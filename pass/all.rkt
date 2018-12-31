@@ -10,7 +10,8 @@
  "to-stmt.rkt"
  "compile-time-opts.rkt"
  "expand-to-sham.rkt"
- "compile.rkt")
+ "compile.rkt"
+ "interp.rkt")
 
 (provide
  (all-from-out
@@ -23,4 +24,5 @@
   "to-stmt.rkt"
   "compile-time-opts.rkt"
   "expand-to-sham.rkt"
-  "compile.rkt"))
+  "compile.rkt"
+  "interp.rkt"))
