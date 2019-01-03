@@ -8,12 +8,12 @@
 
 (provide compile-with-sham)
 
-(define debug-compile (make-parameter #f))
+(define debug-compile (make-parameter #t))
 
 (define (debug-compile-options)
   (append '(mc-jit)
           (if (debug-compile)
-              '(pretty dump mc-jit)
+              '(pretty dump mc-jit verify)
               '())))
 (define (create-module defs)
   (define defs-module (create-sham-module defs "hakrit" (basic-mod-info)))
