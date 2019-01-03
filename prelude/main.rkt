@@ -23,15 +23,15 @@
 
 
 (define (get-sham-rator rator tresult trands)
-  (printf "get-sham-rator: ~a, ~a, ~a\n" rator tresult trands)
+  ;; (printf "get-sham-rator: ~a, ~a, ~a\n" rator tresult trands)
   (match rator
-    [(? array-rator?) (get-array-rator rator)]
+    [(? array-rator?) (get-array-rator rator tresult trands)]
     [(? pair-rator?) (get-pair-rator rator)]
     [(? basic-rator?) (get-basic-rator rator tresult trands)]
     [else (error "unknown rator in get-sham-rator." rator)]))
 
 (define (get-sham-value v t)
-  (printf "get-sham-value: ~a ~a\n" v t)
+  ;; (printf "get-sham-value: ~a ~a\n" v t)
   (match t
     ['prob (prob-value v)]
     ['nat (nat-value v)]

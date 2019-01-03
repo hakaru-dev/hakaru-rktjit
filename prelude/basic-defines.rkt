@@ -27,7 +27,9 @@
 (current-sham-module prelude-module)
 
 (define (prelude-function-info)
-  (function-info-add-attributes (empty-function-info) 'alwaysinline))
+  (empty-function-info)
+  ;; (function-info-add-attributes (empty-function-info) 'alwaysinline)
+  )
 (common-function-info (prelude-function-info))
 
 (define-sham-function

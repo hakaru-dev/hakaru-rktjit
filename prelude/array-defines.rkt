@@ -61,17 +61,21 @@
 
 (define-sham-function
  (array-ref (p : array-type) (n : size-type)) : data-type
-  (ret (load (gep (ptrcast p (etype (tptr data-type))) (list n)))))
+  (ret (load (gep (ptrcast p (etype (tptr data-type))) (list (add-nuw n (ui64 1)))))))
 
 (define-sham-function
  (array-set! (p : array-type) (n : size-type) (v : data-type)) : tvoid
- (store! v (gep (ptrcast p (etype (tptr data-type))) (list n)))
+  (store! v (gep (ptrcast p (etype (tptr data-type))) (list (add-nuw n (ui64 1)))))
  ret-void)
 
-(define (get-array-rator rator)
+(define (get-array-rator rator tresult trands)
+  (printf "get-array-rator: ~a, ~a, ~a\n" rator tresult trands)
   (match rator
     ['set-index! array-set!]
-    ['index array-ref]
+    ['index (λ (arr i) (define v (array-ref arr i))
+               (match tresult
+                 ['prob (bitcast v (etype tprob))]
+                 [else v]))]
     ['size array-get-size]
     ['empty array-make]
     ['clear array-clear]

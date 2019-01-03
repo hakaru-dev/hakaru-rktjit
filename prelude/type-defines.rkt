@@ -19,8 +19,8 @@
 (define (tbool? t) (equal? t tbool))
 (define (tint?  t) (equal? t tint))
 
-(define (nat-value v) (ui32 v))
-(define (int-value v) (si32 v))
+(define (nat-value v) (ui64 v))
+(define (int-value v) (si64 v))
 (define (bool-value v) (ui1 (if (equal? v 0) 0 1)))
 (define (real-value v) (fl64 (exact->inexact v)))
 (define (prob-value v) (app (rs 'real2prob) (list (real-value v))))
