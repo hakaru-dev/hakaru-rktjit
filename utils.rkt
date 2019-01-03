@@ -8,11 +8,11 @@
 ;; )
 
 ;; (require (for-syntax racket/syntax))
-;; (provide (all-defined-out))
+(provide (all-defined-out))
 
-;; (define (prob->real x) (exp x))
-;; (define (real->prob x) (log x))
-;; (define (nat->prob x) (real->prob (exact->inexact x)))
+(define (prob->real x) (exp x))
+(define (real->prob x) (log x))
+(define (nat->prob x) (real->prob (exact->inexact x)))
 
 ;; (define (logsumexp2 a b)
 ;;   (if (> a b)
@@ -125,30 +125,29 @@
 ;;     ['prob ((jit-get-function 'prob2real module-env) val)]
 ;;     [else val]))
 
-;; (define (rkt-type t)
-;;   (match t
-;;     ['nat _uint64]
-;;     ['prob _double]
-;;     ['real _double]))
+(define (rkt-type t)
+  (match t
+    ['nat _uint64]
+    ['prob _double]
+    ['real _double]))
 
-;; (define (make-fixed-hakrit-array arr type)
-;;   (list->cblock arr (rkt-type type)))
-;; (define (make-sized-hakrit-array arr type)
-;;   (define ret (list->cblock (cons (car arr) arr) (rkt-type type)))
-;;   (ptr-set! ret _uint64 0 (length arr))
-;;   ret)
+(define (make-fixed-hakrit-array arr type) (list->cblock arr (rkt-type type)))
+(define (make-sized-hakrit-array arr type)
+  (define ret (list->cblock (cons (car arr) arr) (rkt-type type)))
+  (ptr-set! ret _uint64 0 (length arr))
+  ret)
 
-;; (define (fixed-hakrit-array-ref arr type index)
-;;   (ptr-ref arr (rkt-type type) index))
-;; (define (fixed-hakrit-array-set! arr type index value)
-;;   (ptr-set! arr (rkt-type type) index value))
-;; (define (sized-hakrit-array-ref arr type index)
-;;   (ptr-ref arr (rkt-type type) (add1 index)))
-;; (define (sized-hakrit-array-set! arr type index value)
-;;   (ptr-set! arr (rkt-type type) (add1 index) value))
-;; (define (sized-hakrit-array-size arr)
-;;   (ptr-ref arr _uint64 0))
+(define (fixed-hakrit-array-ref arr type index) (ptr-ref arr (rkt-type type) index))
+(define (fixed-hakrit-array-set! arr type index value) (ptr-set! arr (rkt-type type) index value))
 
+(define (sized-hakrit-array-ref arr type index) (ptr-ref arr (rkt-type type) (add1 index)))
+(define (sized-hakrit-array-set! arr type index value) (ptr-set! arr (rkt-type type) (add1 index) value))
+(define (sized-hakrit-array-size arr) (ptr-ref arr _uint64 0))
+
+(define (sized-hakrit-array->racket-list ptr type)
+  (define size (sized-hakrit-array-size ptr))
+  (define lst (cblock->list ptr (rkt-type type) (add1 size)))
+  (cdr lst))
 
 ;; (define (nat-array lst)
 ;;   (make-fixed-hakrit-array lst 'nat))

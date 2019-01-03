@@ -1,6 +1,6 @@
 #lang racket
 (require
- "../../sham/private/ast-utils.rkt"
+ sham/private/ast-utils
  "../utils.rkt")
 
 (provide (all-defined-out)
