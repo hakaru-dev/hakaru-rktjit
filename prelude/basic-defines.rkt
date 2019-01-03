@@ -4,10 +4,10 @@
 
 (require ffi/unsafe)
 
-(require "../../sham/private/ast-utils.rkt"
-         "../../sham/private/ast-info.rkt"
-         "../../sham/private/parameters.rkt"
-         ;; (submod sham/ast utils)
+(require sham/private/ast-utils
+         sham/private/jit-utils
+         sham/private/ast-info
+         sham/private/parameters
          "utils.rkt"
          "../ast.rkt"
          "type-defines.rkt"
@@ -97,8 +97,6 @@
   (ret (fmul v (nat2real p))))
 
 (module+ test
-  (require ;; "../../../main.rkt"
-   "../../../sham/private/jit-utils.rkt")
   (require rackunit)
   (parameterize ([compile-options `(pretty dump mc-jit)])
     (compile-sham-module!
@@ -115,12 +113,38 @@
 
 (define (get-basic-rator rator tresult trands)
   (match rator
-    ['< (andmap (curry equal? 'nat) trands)
+    ['< #:when (andmap (curry equal? 'nat) trands)
         icmp-ult]
     ['* (match trands
-          ['(prob prob) fadd])]
+          ['(prob prob) fadd]
+          ['(nat nat) mul-nuw]
+          ['(int int) mul-nsw]
+          ['(real real) fmul]
+          ['(real real real) (λ (x y z) (fmul x (fmul y z)))])]
     ['+ (match trands
-          ['(nat nat) add-nuw])]))
+          ['(nat nat) add-nuw]
+          ['(int int) add-nsw]
+          ['(real real) fadd]
+          ['(int int int) (λ (x y z) (add-nsw x (add-nsw y z)))]
+          ['(real real real) (λ (x y z) (fadd x (fadd y z)))])]
+    ['recip (match trands
+              ['(nat) recip-nat]
+              ['(real) recip-real]
+              ['(prob) recip-prob])]
+    ['== (match trands
+           ['(nat nat) icmp-eq])]
+    ['root (match trands
+             ['(prob nat) root-prob-nat])]
+    ['exp (match* (tresult trands)
+            [('prob '(real)) exp-real2prob])]
+    ['natpow natpow]
+    ['prob2real prob2real]
+    ['real2prob real2prob]
+    ['nat2prob nat2prob]
+    ['nat2real nat2real]
+    ['int2real int2real]
+    ['int2nat int2nat]
+    ['nat2int nat2int]))
 #|
 (define simple-rators '(nat2prob nat2real prob2real real2prob int2real nat2int int2nat))
 (define simple-rator? (curryr member simple-rators))
