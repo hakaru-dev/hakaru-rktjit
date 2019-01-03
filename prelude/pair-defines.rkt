@@ -1,8 +1,9 @@
 #lang racket
 
-(require "../../sham/private/ast-utils.rkt"
-         "../../sham/private/ast-info.rkt"
-         "../../sham/private/parameters.rkt")
+(require sham/private/ast-utils
+         sham/private/ast-info
+         sham/private/jit-utils
+         sham/private/parameters)
 (require "template-format.rkt"
          "type-defines.rkt"
          "basic-defines.rkt"
@@ -57,8 +58,7 @@
  ret-void)
 
 (module+ test
-  (require rackunit
-           "../../../sham/private/jit-utils.rkt")
+  (require rackunit)
   (parameterize ([compile-options `(dump verify mc-jit)])
     (compile-sham-module!
      (current-sham-module)
@@ -123,9 +123,7 @@
   (list cons-pair free-pair car-pair cdr-pair set-car-pair set-cdr-pair))
 
 (module+ test
-  (require rackunit
-           "../../../sham/private/jit-utils.rkt")
-
+  (require rackunit)
   (define simple-test-module (create-empty-sham-module "pair-test-mdoule"))
   (current-sham-module simple-test-module)
   (define pdfs (pair-defs '(pair nat nat)))

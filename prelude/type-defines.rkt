@@ -1,8 +1,6 @@
 #lang racket
 
-(require "../../sham/private/ast-utils.rkt"
-         ;; (submod sham/ast utils)
-         )
+(require sham/private/ast-utils)
 (require "template-format.rkt"
          "utils.rkt")
 

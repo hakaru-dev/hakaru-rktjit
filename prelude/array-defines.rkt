@@ -1,8 +1,9 @@
 #lang racket
 
-(require "../../sham/private/ast-utils.rkt"
-         "../../sham/private/ast-info.rkt"
-         "../../sham/private/parameters.rkt")
+(require sham/private/ast-utils
+         sham/private/jit-utils
+         sham/private/ast-info
+         sham/private/parameters)
 (require ffi/unsafe)
 (require "template-format.rkt"
          "type-defines.rkt"
@@ -69,12 +70,15 @@
 
 (define (get-array-rator rator)
   (match rator
+    ['set-index! array-set!]
+    ['index array-ref]
     ['size array-get-size]
-    ['index array-ref]))
+    ['empty array-make]
+    ['clear array-clear]
+    ['free array-free]))
 
 (module+ test
-  (require rackunit
-           "../../../sham/private/jit-utils.rkt")
+  (require rackunit)
   (parameterize ([compile-options `(dump verify mc-jit)])
     (compile-sham-module!
      (current-sham-module)
