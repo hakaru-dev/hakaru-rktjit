@@ -71,10 +71,16 @@
 (define (get-array-rator rator tresult trands)
   (printf "get-array-rator: ~a, ~a, ~a\n" rator tresult trands)
   (match rator
-    ['set-index! array-set!]
+    ['set-index! (λ (arr i v)
+                   (array-set! arr i
+                               (match (third trands)
+                                 ['prob (bitcast v (etype data-type))]
+                                 ['real (bitcast v (etype data-type))]
+                                 [else v])))]
     ['index (λ (arr i) (define v (array-ref arr i))
                (match tresult
                  ['prob (bitcast v (etype tprob))]
+                 ['real (bitcast v (etype tprob))]
                  [else v]))]
     ['size array-get-size]
     ['empty array-make]
