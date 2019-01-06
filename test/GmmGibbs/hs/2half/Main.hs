@@ -97,7 +97,3 @@ main = do
   let result = (prog stddev as zs ts doc)
   print result
   print $ UV.map LF.logFromLogFloat result
-  g <- MWC.createSystemRandom
-  replicateM_ 100 $ do
-    z <- unMeasure (categorical result) g
-    print z

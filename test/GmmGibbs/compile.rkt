@@ -5,8 +5,8 @@
          hakrit/jit
          hakrit/utils)
 (require ffi/unsafe)
-(define fname "input11.hkr")
-(define input-dir "./1half")
+(define fname "input.hkr")
+(define input-dir "./nocat")
 
 (define input '([-3.8907259534842202
                  -6.618193122202014
