@@ -142,6 +142,7 @@
 
 (define (sized-hakrit-array-ref arr type index) (ptr-ref arr (rkt-type type) (add1 index)))
 (define (sized-hakrit-array-set! arr type index value) (ptr-set! arr (rkt-type type) (add1 index) value))
+
 (define (sized-hakrit-array-size arr) (ptr-ref arr _uint64 0))
 
 (define (sized-hakrit-array->racket-list ptr type)

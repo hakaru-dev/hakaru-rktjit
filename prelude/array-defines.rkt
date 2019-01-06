@@ -34,21 +34,6 @@
 (define size-type i64)
 (define data-type i64)
 
-(define-sham-function
-  (array-make
-   (size : i64) ) : array-type
-  (slet^ ([ap (ptrcast (arr-malloc (etype data-type) (add-nuw size (ui64 1)))
-                       (etype array-type)) : i8*])
-         (store! size (ptrcast ap (etype (tptr size-type))))
-         (ret (ptrcast ap (etype i8*)))))
-
-(define-sham-function
- (array-clear (p : array-type)) : tvoid
-  (slet^ ([ad (gep p (list (ui64 1))) : array-type])
-         (ri^ memset.i64 tvoid ad (ui8 0) (load p) (ui1 0))
-         (svoid)
-         )
-  ret-void)
 
 (define-sham-function
   (array-free (p : array-type)) : tvoid
@@ -58,6 +43,25 @@
 (define-sham-function
  (array-get-size (p : array-type)) : size-type
  (ret (load (ptrcast p (etype (tptr size-type))))))
+
+(define-sham-function
+ (array-clear (p : array-type)) : tvoid
+  (slet^ ([ad (gep (ptrcast p (etype (tptr data-type))) (list (ui64 1))) : array-type])
+         (ri^ memset.p0i8.i64 tvoid ad (ui8 0)
+              (mul-nuw (intcast (sizeof tprob) (etype size-type))
+                       (array-get-size p))
+              (ui1 0))
+         (svoid))
+  ret-void)
+
+(define-sham-function
+  (array-make
+   (size : i64) ) : array-type
+  (slet^ ([ap (ptrcast (arr-malloc (etype data-type) (add-nuw size (ui64 1)))
+                       (etype array-type)) : i8*])
+         (store! size (ptrcast ap (etype (tptr size-type))))
+         (array-clear ap)
+         (ret (ptrcast ap (etype i8*)))))
 
 (define-sham-function
  (array-ref (p : array-type) (n : size-type)) : data-type
@@ -88,17 +92,49 @@
     ['free array-free]))
 
 (module+ test
-  (require rackunit)
+  (require rackunit ;; ffi/unsafe
+           )
+  (define (make-sized-hakrit-array arr type)
+    (define ret (list->cblock (cons (car arr) arr) (rkt-type type)))
+    (ptr-set! ret _uint64 0 (length arr))
+    ret)
+  (define (sized-hakrit-array-size arr) (ptr-ref arr _uint64 0))
+  (define (sized-hakrit-array->racket-list ptr type)
+    (define size (sized-hakrit-array-size ptr))
+    (define lst (cblock->list ptr (rkt-type type) (add1 size)))
+    (cdr lst))
+  (define (rkt-type t)
+    (match t
+      ['nat _uint64]
+      ['prob _double]
+      ['real _double]))
+
   (parameterize ([compile-options `(dump verify mc-jit)])
     (compile-sham-module!
      (current-sham-module)
      #:opt-level 0))
-  (define tarray (sham-app array-make 10))
-  (sham-app array-set! tarray 1 42)
-  (check-equal? (sham-app array-ref tarray 1) 42)
+  (define tarray (sham-app array-make 9))
+  (sham-app array-set! tarray 8 42)
+  (for ([i (range 9)]) (sham-app array-set! tarray i i))
+  (pretty-print (for/list ([i (range 9)]) (sham-app array-ref tarray i)))
+  (check-equal? (sham-app array-ref tarray 8) 8)
   (sham-app array-clear tarray)
-  (check-equal? (sham-app array-ref tarray 1) 0)
-  (sham-app array-free tarray))
+  (check-equal? (sham-app array-ref tarray 8) 0)
+
+  (define ta (make-sized-hakrit-array (build-list 10 (const 5.0)) 'real))
+  (sized-hakrit-array->racket-list ta 'real)
+  (sham-app array-clear ta)
+  (sized-hakrit-array->racket-list ta 'real)
+
+(define tb (make-sized-hakrit-array (build-list 10 (const 5)) 'nat))
+(sized-hakrit-array->racket-list tb 'nat)
+;; '(5 5 5 5 5 5 5 5 5 5)
+(sham-app array-clear tb)
+(sized-hakrit-array->racket-list tb 'nat)
+;; '(0 0 0 0 0 0 0 0 0 0)
+
+  ;; (sham-app array-free tarray)
+  )
 
 (define (simple-array-defs tast)
   (match-define `(array ,t) tast)

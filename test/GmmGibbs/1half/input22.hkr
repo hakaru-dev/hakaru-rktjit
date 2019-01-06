@@ -1,0 +1,42 @@
+((fn
+     s
+   ((array prob) -> ((array nat) -> ((array real) -> (nat -> (array prob)))))
+   ((fn
+        as
+      ((array nat) -> ((array real) -> (nat -> (array prob))))
+      ((fn
+           z
+         ((array real) -> (nat -> (array prob)))
+         ((fn
+              t
+            (nat -> (array prob))
+            ((fn
+                 docUpdate
+               (array prob)
+               ((array
+                 (zNewd ((size (as : (array prob))) : nat))
+                 ((prob2real
+                   ((index (as : (array prob)) (zNewd : nat))
+                    :
+                    prob))
+                  :
+                  real)
+                 )
+                :
+                (array prob)))
+             :
+             (nat -> (array prob))))
+          :
+          ((array real) -> (nat -> (array prob)))))
+       :
+       ((array nat) -> ((array real) -> (nat -> (array prob))))))
+    :
+    ((array prob)
+     ->
+     ((array nat) -> ((array real) -> (nat -> (array prob)))))))
+ :
+ (prob
+  ->
+  ((array prob)
+   ->
+   ((array nat) -> ((array real) -> (nat -> (array prob)))))))

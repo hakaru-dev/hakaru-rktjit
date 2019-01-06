@@ -3,19 +3,21 @@
 (require sham
          sham/jit-utils
          "ast.rkt"
-         "pass.rkt"
+         "pass/all.rkt"
          "pass/utils.rkt"
-         "parse-hk.rkt"
+
          "utils.rkt")
 
 (provide compile-file
          debug-file
          compile-function
-         get-function)
+         get-function
+         dump-llvm
+         get-prog)
 
 (define basic-pass-list
   (list
-   initial-simplifications    debug-print stop
+   initial-simplifications    debug-print
    flatten-anf                ;; debug-print ;; stop
    later-simplifications      ;; debug-print ;; stop
    middle-simplifications     ;; debug-print ;; stop
@@ -29,9 +31,9 @@
 
    later-simplifications      ;; debug-print ;; stop
 
-   to-stmt                    ;; debug-print ;; stop
+   to-stmt                    debug-print ;; stop
    compile-opts               debug-print ;; stop
-   expand-to-sham             debug-print ;;stop
+   expand-to-sham             debug-print ;; stop
    compile-with-sham          ;; debug-print ;; stop
    ))
 (define passes
@@ -47,20 +49,6 @@
   (define-values (env info) (run-state init-state))
   env)
 
-;; this arginfo for now only talks about the prog function,
-;; as for hakaru we only take one function
-;; arginfo is a list of same size as args
-;; the position in list maps to the info about
-;; the argument of the function
-
-;; each info is again list
-;; which can have following:
-
-;; (constant <value>)
-;; (pair-info <ainfo> <binfo>)
-;; (array-info (size <value>) (valuerange (from . to))
-;; (curryhere)
-
 (define (compile-src src arg-info)
   (run-pipeline src arg-info))
 
@@ -69,6 +57,10 @@
 
 (define (get-function sham-module fid)
   (sham-module-lookup-function sham-module fid))
+(define (get-prog sham-module)
+  (get-function sham-module 'prog))
+(define (dump-llvm sham-module)
+  (sham-dump-llvm sham-module))
 
 (define (compile-function prog-expr prog-info)
   (define-values (env info)
@@ -85,7 +77,7 @@
                  [debug-flatten-anf #t]
                  [debug-combine-loops #t]
                  [debug-later-simplifications #t]
-                 [debug-to-sham #t]
+                 [debug-to-sham #f]
                  [debug-print-stop #t])
     (compile-src (file->value fname) arg-info)))
 
@@ -96,12 +88,3 @@
       (parameterize ([current-output-port out-port])
         (compile-file src-fname)))
     #:exists 'truncate/replace))
-
-(module+ test
-  (require ffi/unsafe)
-  ;; (require disassemble)
-  (define test-val (interpret-file "../test/simple/array-product.hkr" (list (build-vector 10 (const 1.0)))))
-
-  ;; (define sham-module (debug-file "../test/simple/array-product.hkr" '()))
-  ;; (define prog (get-function sham-module 'prog))
-  )

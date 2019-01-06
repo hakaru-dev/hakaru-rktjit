@@ -5,7 +5,7 @@
          hakrit/jit
          hakrit/utils)
 (require ffi/unsafe)
-(define fname "input2.hkr")
+(define fname "input11.hkr")
 (define input-dir "./1half")
 
 (define input '([-3.8907259534842202
@@ -37,7 +37,7 @@
   (define array-make (gf 'array-make))
   (define array-clear (gf 'array-clear))
   (define array-free (gf 'array-free))
-  (define array-get-size (gf 'array-get-size))
+  (define array-size (gf 'array-get-size))
   (define array-ref (gf 'array-ref))
   (define array-set! (gf 'array-set!)))
 
@@ -52,3 +52,25 @@
 (define 1half
   '(-10.818090761678354 -14.355996628824293 -14.355996628824293 -14.355996628824293 -10.013711119074703 -14.355996628824293 -11.36655052546099 -11.36655052546099 -14.355996628824293))
 (define 2half '(278.877769682939 286.50738478269585 286.50738478269585 286.50738478269585 284.6275578914128 286.50738478269585 204.99249877820037 267.6101906176343 286.50738478269585))
+
+
+
+;; bucket manual
+;; (define bk (make-sized-hakrit-array (build-list 10 (const 0)) 'nat))
+;; (for ([i (range 10)]) (array-set! bk (array-ref zs i) (+ (array-ref bk (array-ref zs i)) 1)))
+
+
+;; (define ta (make-sized-hakrit-array (build-list 10 (const 5.0)) 'real))
+;; (sized-hakrit-array->racket-list ta 'real)
+;; ;; '(5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0)
+;; (array-clear ta)
+;; (sized-hakrit-array->racket-list ta 'real)
+;; ;; '(0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 5.0)
+
+
+;; (define tb (make-sized-hakrit-array (build-list 10 (const 5)) 'nat))
+;; (sized-hakrit-array->racket-list tb 'nat)
+;; ;; '(5 5 5 5 5 5 5 5 5 5)
+;; (array-clear tb)
+;; (sized-hakrit-array->racket-list tb 'nat)
+;; ;; '(0 0 0 0 0 0 0 0 0 0)

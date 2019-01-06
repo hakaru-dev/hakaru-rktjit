@@ -34,7 +34,7 @@
     )
 
   (define (ee expr)
-    (printf "ee: ~a\n" (pe expr))
+    (dts "ee: ~a\n" (pe expr))
     (match expr
       [(expr-app t rator rands) (ea t rator rands)]
       [(expr-var t sym _) (v sym)]
@@ -98,7 +98,7 @@
                                                                  (list index (expr-val (typeof index) 1))))))
                         (evoid))))
   (define (es stmt)
-    (printf "es: ~a\n" (ps stmt))
+    (dts "es: ~a\n" (ps stmt))
     (match stmt
       [(stmt-if tst thn els)
        (if^ (ee tst) (es thn) (es els))]
@@ -118,11 +118,14 @@
   (define (ef fp)
     (match fp
       [(expr-fun fname args ret-type b)
-       (printf "expand-to-sham: \n~a\n" (pe fp))
-       (dfunction #f fname
-                  (map expr-var-sym args) (map (compose get-sham-type expr-var-type) args)
-                  (get-sham-type ret-type)
-                  (es b))
+       (dts "expand-to-sham: \n~a\n" (pe fp))
+       (define f
+         (dfunction #f fname
+                    (map expr-var-sym args) (map (compose get-sham-type expr-var-type) args)
+                    (get-sham-type ret-type)
+                    (es b)))
+       (dts "final function: \n~a\n"(pretty-format f))
+       f
        ;; (sham:def:function
        ;;  (prog-fun-info  (map typeof nargs) ret-type fname)
        ;;  fname
