@@ -139,7 +139,12 @@
              ['(prob nat) root-prob-nat])]
     ['exp (match* (tresult trands)
             [('prob '(real)) exp-real2prob])]
-    ['natpow natpow]
+    ['natpow
+     (match (car trands)
+       ['prob natpow-prob]
+       ['real natpow])
+     ;; (printf "get-basic-rator ~a\n" trands) (error "stop") natpow
+     ]
     ['prob2real prob2real]
     ['real2prob real2prob]
     ['nat2prob nat2prob]
