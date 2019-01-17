@@ -31,8 +31,8 @@
 (define t (make-sized-hakrit-array (car input) 'real))
 (define doc 0)
 
-(define (run-test input-dir fname)
-  (define module-env (debug-file (build-path input-dir fname) '()))
+(define (run input-dir fname)
+  (define module-env (compile-file (build-path input-dir fname) '()))
   (begin
     (define (gf id) (get-function module-env id))
     (define array-make (gf 'array-make))
@@ -49,16 +49,16 @@
 
 (module+ test
   (require rackunit)
-  (define nocat-result (run-test "./nocat" "input.hkr"))
+  (define nocat-result (run "./nocat" "input.hkr"))
   (define nocat-expected
     '(268.0596789212606 272.15138815387155 272.15138815387155 272.15138815387155 274.6138467723381 272.15138815387155 193.6259482527394 256.24364009217334 272.15138815387155))
-  (map (λ (v1 v2) (check-= v1 v2 0.00001 "GmmGibbs.nocat")) nocat-result nocat-expected )
+  (map (λ (v1 v2) (check-= v1 v2 0.00001 "GmmGibbs.nocat")) nocat-result nocat-expected)
 
-  (define 1half-result (run-test "./1half" "input.hkr"))
+  (define 1half-result (run "./1half" "input.hkr"))
   (define 1half-expected
     '(-10.818090761678354 -14.355996628824293 -14.355996628824293 -14.355996628824293 -10.013711119074703 -14.355996628824293 -11.36655052546099 -11.36655052546099 -14.355996628824293))
-  (map (λ (v1 v2) (check-= v1 v2 0.00001 "GmmGibbs.1half")) 1half-result 1half-expected )
+  (map (λ (v1 v2) (check-= v1 v2 0.00001 "GmmGibbs.1half")) 1half-result 1half-expected)
 
-  (define 2half-result (run-test "./2half" "input.hkr"))
+  (define 2half-result (run "./2half" "input.hkr"))
   (define 2half-expected '(278.877769682939 286.50738478269585 286.50738478269585 286.50738478269585 284.6275578914128 286.50738478269585 204.99249877820037 267.6101906176343 286.50738478269585))
   (map (λ (v1 v2) (check-= v1 v2 0.00001 "GmmGibbs.2half")) 2half-result 2half-expected))

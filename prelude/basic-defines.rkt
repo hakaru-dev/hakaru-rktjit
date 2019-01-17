@@ -14,6 +14,7 @@
          "template-format.rkt")
 (provide (all-defined-out))
 
+(define always-inline (make-parameter #t))
 
 (define (basic-mod-info)
   (module-info-add-late-pass
@@ -27,9 +28,9 @@
 (current-sham-module prelude-module)
 
 (define (prelude-function-info)
-  (empty-function-info)
-  ;; (function-info-add-attributes (empty-function-info) 'alwaysinline)
-  )
+  (if (always-inline)
+      (function-info-add-attributes (empty-function-info) 'alwaysinline)
+      (empty-function-info)))
 (common-function-info (prelude-function-info))
 
 (define-sham-function
@@ -114,21 +115,26 @@
 (define basic-rator? (curryr member basic-rators))
 
 (define (get-basic-rator rator tresult trands)
+  (printf "get-basic-rator: ~a, ~a, ~a\n" rator tresult trands)
   (match rator
-    ['< #:when (andmap (curry equal? 'nat) trands)
-        icmp-ult]
+    ['< (match trands
+          ['(nat nat) icmp-ult]
+          ['(int int) icmp-slt])]
     ['* (match trands
           ['(prob prob) fadd]
           ['(nat nat) mul-nuw]
           ['(int int) mul-nsw]
           ['(real real) fmul]
-          ['(real real real) (λ (x y z) (fmul x (fmul y z)))])]
+          ['(real real real) (λ (x y z) (fmul x (fmul y z)))]
+          ['(prob prob prob) (λ (x y z) (fadd x (fadd y z)))])]
     ['+ (match trands
           ['(nat nat) add-nuw]
           ['(int int) add-nsw]
           ['(real real) fadd]
+          ['(prob prob) (λ (x y) (real2prob (fadd (prob2real x) (prob2real y))))] ;todo
           ['(int int int) (λ (x y z) (add-nsw x (add-nsw y z)))]
-          ['(real real real) (λ (x y z) (fadd x (fadd y z)))])]
+          ['(real real real) (λ (x y z) (fadd x (fadd y z)))]
+          ['(prob prob prob) (λ (x y z) (real2prob (fadd (prob2real x) (fadd (prob2real y) (prob2real z)))))])]
     ['recip (match trands
               ['(nat) recip-nat]
               ['(real) recip-real]
@@ -142,16 +148,18 @@
     ['natpow
      (match (car trands)
        ['prob natpow-prob]
-       ['real natpow])
-     ;; (printf "get-basic-rator ~a\n" trands) (error "stop") natpow
-     ]
+       ['real natpow])]
     ['prob2real prob2real]
     ['real2prob real2prob]
     ['nat2prob nat2prob]
     ['nat2real nat2real]
     ['int2real int2real]
     ['int2nat int2nat]
-    ['nat2int nat2int]))
+    ['nat2int nat2int]
+
+    ['and and^]
+    ['not not^]
+    ))
 #|
 (define simple-rators '(nat2prob nat2real prob2real real2prob int2real nat2int int2nat))
 (define simple-rator? (curryr member simple-rators))
