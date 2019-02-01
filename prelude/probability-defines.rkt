@@ -1,19 +1,14 @@
 #lang racket
-
-
-#|
-(require math/distributions
-         ffi/unsafe)
+(require sham/private/ast-utils
+         sham/private/jit-utils
+         sham/private/ast-info
+         sham/private/parameters)
+;; (require ffi/unsafe)
 (require "template-format.rkt"
          "type-defines.rkt"
          "basic-defines.rkt"
          "array-defines.rkt"
          "utils.rkt")
-
-(provide probability-defs
-         probability-rator?
-         build-categorical
-         get-probability-rator)
 
 (define (probability-rator? sym)
   (member sym '(uniform normal beta gamma
@@ -21,282 +16,338 @@
                         categorical
                         superpose-categorical superpose-categorical-real)))
 
-(define (get-probability-rator sym tresult trands)
-  (cond [(equal? sym 'superpose-categorical) (build-superpose-categorical tresult (length trands))]
-        [(equal? sym 'superpose-categorical-real) (build-superpose-categorical-real tresult (length trands))]
-        [(equal? sym 'categorical) (build-categorical (car trands))]
-        [else (values (sham:rator:symbol sym) (void))]))
+(define-sham-global gsl-rng i8*)
 
-(define tvoid (sham:type:ref 'void))
-(define tvoid* (sham:type:pointer (sham:type:ref 'i8)))
-(define tnat (sham:type:ref 'nat))
-(define treal (sham:type:ref 'real))
-(define tprob (sham:type:ref 'prob))
+(define-sham-function (init-rng : tvoid)
+  (set!^ gsl-rng
+        (app^ (re 'libgsl 'gsl_rng_alloc i8*)
+              (external 'libgsl 'gsl_rng_rand i8*)))
+  (return-void))
 
-(define (probability-defs)
-  (define adefs (append
-                 (array-defs `(array nat))
-                 (array-defs `(array real))
-                 (array-defs `(array prob))))
-  (append
-   adefs
-   (list
-    (sham:def:global (void) 'gsl-rng t8*)
+#;(sham$define
+   #:info (prelude-function-info)
+   (categorical-real-disc
 
-    (sham$define
-     #:info (prelude-function-info)
-     (init-rng tvoid)
-     (sham:stmt:block
-      (list
-       (sham:stmt:set!
-        (sham:expr:var 'gsl-rng)
-        (sham:expr:app (sham:rator:external 'libgsl 'gsl_rng_alloc tvoid*)
-                       (list (sham:expr:external 'libgsl 'gsl_rng_rand tvoid*))))
-       (sham:stmt:return (sham:expr:void)))))
+    (arr (sham:type:ref 'real*)) (size (sham:type:ref 'nat)) tnat)
+   (sham:stmt:expr
+    (sham:expr:let
+     '(table) (list (sham:type:pointer (sham:type:ref 'i8)))
+     (list
+      (sham:expr:app (gsl-rator 'gsl_ran_discrete_preproc
+                                (sham:type:pointer (sham:type:ref 'i8)))
+                     (list (sham$var size) (sham$var arr))))
+     (sham:stmt:void)
+     (sham:expr:let
+      '(result) (list tnat)
+      (list (sham:expr:app (gsl-rator 'gsl_ran_discrete tnat)
+                           (list (sham:expr:var 'gsl-rng) (sham$var 'table))))
+      (sham$block
+       (sham:stmt:expr (sham:expr:app (gsl-rator 'gsl_ran_discrete_free tvoid) (list (sham$var 'table))))
+       (sham:stmt:return (sham$var 'result)))
+      (sham:expr:void)))))
 
-    (sham$define
-     #:info (prelude-function-info)
-     (uniform  (v1 treal) (v2 treal) treal)
+(define-sham-function (categorical-real (arr : f64*) (size : i64) : i64)
+  (slet^ ([table (app^ (re 'libgsl 'gsl_ran_discrete_preproc i8*) size arr) : i8*]
+          [result (app^ (re 'libgsl 'gsl_ran_discrete i64) gsl-rng table) : i64])
+         (app^ (re 'gsl_ran_discrete 'gsl_ran_discrete_free tvoid) table)
+         (return result)))
+
+#;(sham$define
+   #:info (prelude-function-info)
+   (categorical  (arp (sham:type:ref 'array<prob>*)) tnat)
+   (sham:stmt:expr
+    (sham:expr:let
+     '(arr i mx)
+     (list (sham:type:ref 'real*) type-nat-ref type-prob-ref)
+     (list (sham$app arr-malloc (sham:expr:type type-real-ref)
+                     (sham$app get-size$array<prob> arp))
+           (sham:expr:ui-value 0 type-nat-ref)
+           (sham$app get-index$array<prob> arp
+                     (sham:expr:ui-value 0 type-nat-ref)))
+
      (sham$block
-      ;; (sham:stmt:expr
-      ;;  (sham:expr:app
-      ;;   (sham:rator:racket
-      ;;    (gensym 'debug-uniform)
-      ;;    (λ (a b) (printf "debug: uniform args: ~a, ~a\n" a b))
-      ;;    (sham:type:function (list treal treal) (sham:type:ref 'void)))
-      ;;   (list (sham$var v1) (sham$var v2))))
-      (sham:stmt:return
-       (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_flat treal)
-                      (list (sham:expr:var 'gsl-rng)
-                            (sham$var 'v1) (sham$var 'v2))))))
-
-    (sham$define
-     #:info (prelude-function-info)
-     (normal  (mean treal) (sigma tprob) treal)
-     (sham:stmt:return
-      (sham:expr:app (sham:rator:symbol 'fadd)
-                     (list
-                      (sham$var 'mean)
-                      (sham:expr:app
-                       (sham:rator:external 'libgsl 'gsl_ran_gaussian treal)
-                       (list (sham$var 'gsl-rng)
-                             (sham:expr:app (sham:rator:symbol 'prob2real)
-                                            (list (sham$var 'sigma)))))))))
-
-    (sham$define
-     #:info (prelude-function-info)
-     (beta  (a tprob) (b tprob) tprob)
-     (sham:stmt:return
-      (sham:expr:app (sham:rator:symbol 'betafuncreal)
-                     (list (sham:expr:app (sham:rator:symbol 'prob2real)
-                                          (list (sham$var 'a)))
-                           (sham:expr:app (sham:rator:symbol 'prob2real)
-                                          (list (sham$var 'b)))))))
-
-
-    (sham$define
-     #:info (prelude-function-info)
-     (realbetafunc  (a treal) (b treal) treal)
-     (sham:stmt:return
-      (sham:expr:app (sham:rator:symbol 'prob2real)
-                     (list (sham:expr:app (sham:rator:symbol 'betafuncreal) (list (sham$var a) (sham$var  b)))))))
-
-    (sham$define
-     #:info (prelude-function-info)
-     (betafuncreal  (a treal) (b treal) tprob)
-     (sham:stmt:return (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_lnbeta treal)
-                                      (list (sham$var a) (sham$var  b)))))
-
-    (sham$define
-     #:info (prelude-function-info)
-     (betafunc  (a tprob) (b tprob) tprob)
-     (sham:stmt:return
-      (sham:expr:app (sham$rator betafuncreal)
-                     (list (sham$app prob2real a) (sham$app prob2real b)))))
-
-    (sham$define
-     #:info (prelude-function-info)
-     (gamma  (a tprob) (b tprob) tprob)
-     (sham$block
-      (sham:stmt:void)
-      ;; (sham:stmt:expr (sham$app print-prob a))
-      ;; (sham:stmt:expr (sham$app print-prob b))
-      (sham:stmt:return
-       (sham:expr:app (sham:rator:symbol 'real2prob)
-                      (list
-                       (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_gamma treal)
-                                      (list (sham:expr:var 'gsl-rng)
-                                            (sham:expr:app (sham:rator:symbol 'prob2real)
-                                                           (list (sham$var 'a)))
-                                            (sham:expr:app (sham:rator:symbol 'prob2real)
-                                                           (list (sham$var 'b))))))))))
-
-    (sham$define
-     #:info (prelude-function-info)
-     (gammafunc  (a treal) tprob)
-     (sham:stmt:block
-      (list
-       (sham:stmt:expr
-        (sham:expr:app
-         (sham:rator:racket
-          (gensym 'debug-uniform)
-          (λ (a b) (printf "debug: gammafunc args: ~a\n" a b))
-          (sham:type:function (list treal) (sham:type:ref 'void)))
-         (list (sham$var a))))
-       (sham:stmt:return
-        (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_lngamma treal)
-                       (list (sham$var 'a)))))))
-
-    (sham:def:function
-     (prelude-function-info)
-     'print-prob (list 'a) (list tprob) (sham:type:ref 'void)
-     (sham:stmt:block
-      (list
-       (sham:stmt:expr
-        (sham:expr:app
-         (sham:rator:racket
-          'rkt-print
-          (λ (a) (printf "printing-prob: ~a\n" a))
-          (sham:type:function (list (sham:type:ref 'f64))
-                              (sham:type:ref 'void)))
-         (list (sham$var a))))
-       (sham:stmt:return (sham:expr:void)))))
-
-    (sham$define
-     #:info (prelude-function-info)
-     (categorical-real-disc
-
-      (arr (sham:type:ref 'real*)) (size (sham:type:ref 'nat)) tnat)
-     (sham:stmt:expr
-      (sham:expr:let
-       '(table) (list (sham:type:pointer (sham:type:ref 'i8)))
-       (list
-        (sham:expr:app (gsl-rator 'gsl_ran_discrete_preproc
-                                  (sham:type:pointer (sham:type:ref 'i8)))
-                       (list (sham$var size) (sham$var arr))))
-       (sham:stmt:void)
-       (sham:expr:let
-        '(result) (list tnat)
-        (list (sham:expr:app (gsl-rator 'gsl_ran_discrete tnat)
-                             (list (sham:expr:var 'gsl-rng) (sham$var 'table))))
-        (sham$block
-         (sham:stmt:expr (sham:expr:app (gsl-rator 'gsl_ran_discrete_free tvoid) (list (sham$var 'table))))
-         (sham:stmt:return (sham$var 'result)))
-        (sham:expr:void)))))
-
-    (sham$define
-      #:info (prelude-function-info)
-      (categorical-real
-       (arr (sham:type:ref 'real*)) (size tnat) tnat)
-      (sham$return
-       (sham:expr:app
-        (sham:rator:racket
-         'cat
-         (λ (arr len)
-           (printf "categorical-array: ~a\n" (cblock->list arr _double len))
-           (let ([val (sample (discrete-dist (build-list len identity) (cblock->list arr _double len)))])
-             val))
-         (sham:type:function (list (sham:type:ref 'real*)
-                                   (sham:type:ref 'nat))
-                             (sham:type:ref 'nat)))
-        (list (sham$var arr)
-              (sham$var size))))
-      ;; (sham:stmt:expr
-      ;;  (sham:expr:let
-      ;;   '(i j) (list tnat tnat) (list (sham:expr:ui-value 1 tnat)
-      ;;                                 (sham:expr:ui-value 0 tnat))
-      ;;   (sham:stmt:block
-      ;;    (list
-      ;;     (sham:stmt:while
-      ;;      (sham$app icmp-ult i size)
-      ;;      (sham$block
-      ;;       (sham:stmt:while
-      ;;        (sham$app icmp-ult j i)
-      ;;        (sham$block
-      ;;         (sham:stmt:expr
-      ;;          (sham$app store!
-      ;;                    (sham$app fadd
-      ;;                              (sham$app 'load arr (sham$var j))
-      ;;                              (sham$app 'load arr (sham$var i)))
-      ;;                    (sham:expr:gep (sham$var arr) (list (sham$var i)))))
-      ;;         (sham:stmt:set! (sham$var j)
-      ;;                         (sham$app add-nuw j (sham:expr:ui-value 1 tnat)))))
-      ;;       (sham:stmt:set! (sham$var 'i)
-      ;;                       (sham$app add-nuw i (sham:expr:ui-value 1 tnat)))))
-      ;;     (sham:stmt:set! (sham$var i) (sham:expr:ui-value 0 tnat))))
-      ;;   (sham:expr:let
-      ;;    '(p) (list treal)
-      ;;    (list (sham$app fmul
-      ;;                    (sham$app 'load (sham:expr:gep (sham$var arr)
-      ;;                                                   (list (sham$app sub-nuw size (sham:expr:ui-value 1 tnat)))))
-      ;;                    (sham$app uniform (sham:expr:fl-value 0.0 treal) (sham:expr:fl-value 0.0 treal))))
-      ;;    (sham:stmt:while
-      ;;     (sham$app icmp-ult i size)
-      ;;     (sham$block
-      ;;      (sham:stmt:if
-      ;;       (sham$app fcmp-ugt
-      ;;                 (sham$app 'load
-      ;;                           (sham:expr:gep
-      ;;                            (sham$var arr) (list (sham$var i)))) p)
-      ;;       (sham:stmt:return (sham$var i))
-      ;;       (sham:stmt:void))
-      ;;      (sham:stmt:set! (sham$var i)
-      ;;                      (sham$app add-nuw i (sham:expr:ui-value 1 tnat)))))
-      ;;    (sham:expr:let
-      ;;     '() '() '()
-      ;;     (sham:stmt:return (sham:expr:ui-value 0 tnat))
-      ;;     (sham:expr:void)))))
-      )
-
-
-    (sham$define
-     #:info (prelude-function-info)
-     (categorical  (arp (sham:type:ref 'array<prob>*)) tnat)
-     (sham:stmt:expr
-      (sham:expr:let
-       '(arr i mx)
-       (list (sham:type:ref 'real*) type-nat-ref type-prob-ref)
-       (list (sham$app arr-malloc (sham:expr:type type-real-ref)
-                       (sham$app get-size$array<prob> arp))
-             (sham:expr:ui-value 0 type-nat-ref)
-             (sham$app get-index$array<prob> arp
-                       (sham:expr:ui-value 0 type-nat-ref)))
-
+      (sham:stmt:while
+       (sham$app icmp-ult i (sham$app get-size$array<prob> arp))
        (sham$block
-        (sham:stmt:while
-         (sham$app icmp-ult i (sham$app get-size$array<prob> arp))
-         (sham$block
-          (sham:stmt:expr
-           (sham:expr:let
-            '(c) (list type-prob-ref)
-            (list (sham$app get-index$array<prob> arp (sham$var 'i)))
-            (sham:stmt:if (sham$app fcmp-uge (sham$var 'mx) (sham$var 'c))
-                          (sham:stmt:set! (sham$var 'mx) (sham$var 'c))
-                          (sham:stmt:void))
-            (sham:expr:void)))
-          (sham:stmt:set! (sham$var 'i)
-                          (sham$app add-nuw i
-                                    (sham:expr:ui-value 1 type-nat-ref)))))
+        (sham:stmt:expr
+         (sham:expr:let
+          '(c) (list type-prob-ref)
+          (list (sham$app get-index$array<prob> arp (sham$var 'i)))
+          (sham:stmt:if (sham$app fcmp-uge (sham$var 'mx) (sham$var 'c))
+                        (sham:stmt:set! (sham$var 'mx) (sham$var 'c))
+                        (sham:stmt:void))
+          (sham:expr:void)))
+        (sham:stmt:set! (sham$var 'i)
+                        (sham$app add-nuw i
+                                  (sham:expr:ui-value 1 type-nat-ref)))))
 
-        (sham:stmt:set! (sham$var 'i) (sham:expr:ui-value 0 type-nat-ref))
+      (sham:stmt:set! (sham$var 'i) (sham:expr:ui-value 0 type-nat-ref))
 
-        (sham:stmt:while
-         (sham$app icmp-ult i (sham$app get-size$array<prob> arp))
-         (sham$block
-          (sham:stmt:expr (sham$app store! (sham$app prob2real
-                                                     (sham$app fsub
-                                                               (sham$app get-index$array<prob> arp i)
-                                                               (sham$var 'mx)))
-                                    (sham:expr:gep (sham$var arr) (list (sham$var i)))))
-          (sham:stmt:set! (sham$var 'i) (sham:expr:app (sham:rator:symbol 'add-nuw)
-                                                       (list (sham$var 'i)
-                                                             (sham:expr:ui-value  1 type-nat-ref)))))))
-       (sham:expr:let
-        '(result) (list tnat) (list (sham$app categorical-real-disc arr (sham$app get-size$array<prob> arp)))
-        (sham$block
-         (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$var arr))))
-         (sham:stmt:return (sham$var result)))
-        (sham:expr:void))))))))
+      (sham:stmt:while
+       (sham$app icmp-ult i (sham$app get-size$array<prob> arp))
+       (sham$block
+        (sham:stmt:expr (sham$app store! (sham$app prob2real
+                                                   (sham$app fsub
+                                                             (sham$app get-index$array<prob> arp i)
+                                                             (sham$var 'mx)))
+                                  (sham:expr:gep (sham$var arr) (list (sham$var i)))))
+        (sham:stmt:set! (sham$var 'i) (sham:expr:app (sham:rator:symbol 'add-nuw)
+                                                     (list (sham$var 'i)
+                                                           (sham:expr:ui-value  1 type-nat-ref)))))))
+     (sham:expr:let
+      '(result) (list tnat) (list (sham$app categorical-real-disc arr (sham$app get-size$array<prob> arp)))
+      (sham$block
+       (sham:stmt:expr (sham:expr:app (sham:rator:symbol 'free) (list (sham$var arr))))
+       (sham:stmt:return (sham$var result)))
+      (sham:expr:void)))))
+
+
+(define-sham-function
+  (categorical-prob (arp : array-type) : i64)
+  (slet^ ([narr (arr-malloc (etype f64) (array-get-size arp)) : f64*]
+          [i (ui64 0) : i64]
+          [min-value (bitcast (array-index arp (ui64 0)) (etype f64)) : f64])
+         (while^ (icmp-ult i (array-get-size arp))
+                 (slet^ ([c (bitcast (array-index arp i) (etype f64)) : f64])
+                        (if^ (fcmp-uge min-value c)
+                             (set!^ min-value c)
+                             (svoid)))
+                 (set!^ i (add-nuw i (ui64 1))))
+         (set!^ i (ui64 0))
+         (while^ (icmp-ult i (array-get-size arp))
+                 (store! (prob2real (fsub (bitcast (array-index arp i) (etype f64)) min-value))
+                         (gep^ narr i))
+                 (set!^ i (add-nuw i (ui64 1))))
+         (slet^ ([result (categorical-real narr (array-get-size arp)) : i64])
+                (free^ narr)
+                (return result))))
+
+(module+ test
+  (require rackunit)
+  (require ffi/unsafe)
+  (define (make-sized-hakrit-array arr type)
+    (define ret (list->cblock (cons (car arr) arr) (rkt-type type)))
+    (ptr-set! ret _uint64 0 (length arr))
+    ret)
+  (define (sized-hakrit-array-size arr) (ptr-ref arr _uint64 0))
+  (define (sized-hakrit-array->racket-list ptr type)
+    (define size (sized-hakrit-array-size ptr))
+    (define lst (cblock->list ptr (rkt-type type) (add1 size)))
+    (cdr lst))
+  (define (rkt-type t)
+    (match t
+      ['nat _uint64]
+      ['prob _double]
+      ['real _double]))
+
+  (parameterize ([compile-options `(dump verify mc-jit)])
+    (compile-sham-module!
+     (current-sham-module)
+     #:opt-level 3))
+  (sham-app init-rng)
+  (define ta (make-sized-hakrit-array (build-list 10 (const 5.0)) 'real))
+
+  (sham-app categorical-real (list->cblock '(1.0 3.0 4.0) _double) 3)
+  (sham-app categorical-prob ta)
+  )
+
+
+#;(sham$define
+   #:info (prelude-function-info)
+   (uniform  (v1 treal) (v2 treal) treal)
+   (sham$block
+    ;; (sham:stmt:expr
+    ;;  (sham:expr:app
+    ;;   (sham:rator:racket
+    ;;    (gensym 'debug-uniform)
+    ;;    (λ (a b) (printf "debug: uniform args: ~a, ~a\n" a b))
+    ;;    (sham:type:function (list treal treal) (sham:type:ref 'void)))
+    ;;   (list (sham$var v1) (sham$var v2))))
+    (sham:stmt:return
+     (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_flat treal)
+                    (list (sham:expr:var 'gsl-rng)
+                          (sham$var 'v1) (sham$var 'v2))))))
+
+
+
+
+
+#|
+(sham$define
+ #:info (prelude-function-info)
+ (normal  (mean treal) (sigma tprob) treal)
+ (sham:stmt:return
+  (sham:expr:app (sham:rator:symbol 'fadd)
+                 (list
+                  (sham$var 'mean)
+                  (sham:expr:app
+                   (sham:rator:external 'libgsl 'gsl_ran_gaussian treal)
+                   (list (sham$var 'gsl-rng)
+                         (sham:expr:app (sham:rator:symbol 'prob2real)
+                                        (list (sham$var 'sigma)))))))))
+
+(sham$define
+ #:info (prelude-function-info)
+ (beta  (a tprob) (b tprob) tprob)
+ (sham:stmt:return
+  (sham:expr:app (sham:rator:symbol 'betafuncreal)
+                 (list (sham:expr:app (sham:rator:symbol 'prob2real)
+                                      (list (sham$var 'a)))
+                       (sham:expr:app (sham:rator:symbol 'prob2real)
+                                      (list (sham$var 'b)))))))
+
+
+(sham$define
+ #:info (prelude-function-info)
+ (realbetafunc  (a treal) (b treal) treal)
+ (sham:stmt:return
+  (sham:expr:app (sham:rator:symbol 'prob2real)
+                 (list (sham:expr:app (sham:rator:symbol 'betafuncreal) (list (sham$var a) (sham$var  b)))))))
+
+(sham$define
+ #:info (prelude-function-info)
+ (betafuncreal  (a treal) (b treal) tprob)
+ (sham:stmt:return (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_lnbeta treal)
+                                  (list (sham$var a) (sham$var  b)))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(sham$define
+ #:info (prelude-function-info)
+ (betafunc  (a tprob) (b tprob) tprob)
+ (sham:stmt:return
+  (sham:expr:app (sham$rator betafuncreal)
+                 (list (sham$app prob2real a) (sham$app prob2real b)))))
+
+(sham$define
+ #:info (prelude-function-info)
+ (gamma  (a tprob) (b tprob) tprob)
+ (sham$block
+  (sham:stmt:void)
+  ;; (sham:stmt:expr (sham$app print-prob a))
+  ;; (sham:stmt:expr (sham$app print-prob b))
+  (sham:stmt:return
+   (sham:expr:app (sham:rator:symbol 'real2prob)
+                  (list
+                   (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_gamma treal)
+                                  (list (sham:expr:var 'gsl-rng)
+                                        (sham:expr:app (sham:rator:symbol 'prob2real)
+                                                       (list (sham$var 'a)))
+                                        (sham:expr:app (sham:rator:symbol 'prob2real)
+                                                       (list (sham$var 'b))))))))))
+
+(sham$define
+ #:info (prelude-function-info)
+ (gammafunc  (a treal) tprob)
+ (sham:stmt:block
+  (list
+   (sham:stmt:expr
+    (sham:expr:app
+     (sham:rator:racket
+      (gensym 'debug-uniform)
+      (λ (a b) (printf "debug: gammafunc args: ~a\n" a b))
+      (sham:type:function (list treal) (sham:type:ref 'void)))
+     (list (sham$var a))))
+   (sham:stmt:return
+    (sham:expr:app (sham:rator:external 'libgsl 'gsl_sf_lngamma treal)
+                   (list (sham$var 'a)))))))
+
+(sham:def:function
+ (prelude-function-info)
+ 'print-prob (list 'a) (list tprob) (sham:type:ref 'void)
+ (sham:stmt:block
+  (list
+   (sham:stmt:expr
+    (sham:expr:app
+     (sham:rator:racket
+      'rkt-print
+      (λ (a) (printf "printing-prob: ~a\n" a))
+      (sham:type:function (list (sham:type:ref 'f64))
+                          (sham:type:ref 'void)))
+     (list (sham$var a))))
+   (sham:stmt:return (sham:expr:void)))))
+
+
+
+(sham$define
+ #:info (prelude-function-info)
+ (categorical-real
+  (arr (sham:type:ref 'real*)) (size tnat) tnat)
+ (sham$return
+  (sham:expr:app
+   (sham:rator:racket
+    'cat
+    (λ (arr len)
+      (printf "categorical-array: ~a\n" (cblock->list arr _double len))
+      (let ([val (sample (discrete-dist (build-list len identity) (cblock->list arr _double len)))])
+        val))
+    (sham:type:function (list (sham:type:ref 'real*)
+                              (sham:type:ref 'nat))
+                        (sham:type:ref 'nat)))
+   (list (sham$var arr)
+         (sham$var size))))
+ ;; (sham:stmt:expr
+ ;;  (sham:expr:let
+ ;;   '(i j) (list tnat tnat) (list (sham:expr:ui-value 1 tnat)
+ ;;                                 (sham:expr:ui-value 0 tnat))
+ ;;   (sham:stmt:block
+ ;;    (list
+ ;;     (sham:stmt:while
+ ;;      (sham$app icmp-ult i size)
+ ;;      (sham$block
+ ;;       (sham:stmt:while
+ ;;        (sham$app icmp-ult j i)
+ ;;        (sham$block
+ ;;         (sham:stmt:expr
+ ;;          (sham$app store!
+ ;;                    (sham$app fadd
+ ;;                              (sham$app 'load arr (sham$var j))
+ ;;                              (sham$app 'load arr (sham$var i)))
+ ;;                    (sham:expr:gep (sham$var arr) (list (sham$var i)))))
+ ;;         (sham:stmt:set! (sham$var j)
+ ;;                         (sham$app add-nuw j (sham:expr:ui-value 1 tnat)))))
+ ;;       (sham:stmt:set! (sham$var 'i)
+ ;;                       (sham$app add-nuw i (sham:expr:ui-value 1 tnat)))))
+ ;;     (sham:stmt:set! (sham$var i) (sham:expr:ui-value 0 tnat))))
+ ;;   (sham:expr:let
+ ;;    '(p) (list treal)
+ ;;    (list (sham$app fmul
+ ;;                    (sham$app 'load (sham:expr:gep (sham$var arr)
+ ;;                                                   (list (sham$app sub-nuw size (sham:expr:ui-value 1 tnat)))))
+ ;;                    (sham$app uniform (sham:expr:fl-value 0.0 treal) (sham:expr:fl-value 0.0 treal))))
+ ;;    (sham:stmt:while
+ ;;     (sham$app icmp-ult i size)
+ ;;     (sham$block
+ ;;      (sham:stmt:if
+ ;;       (sham$app fcmp-ugt
+ ;;                 (sham$app 'load
+ ;;                           (sham:expr:gep
+ ;;                            (sham$var arr) (list (sham$var i)))) p)
+ ;;       (sham:stmt:return (sham$var i))
+ ;;       (sham:stmt:void))
+ ;;      (sham:stmt:set! (sham$var i)
+ ;;                      (sham$app add-nuw i (sham:expr:ui-value 1 tnat)))))
+ ;;    (sham:expr:let
+ ;;     '() '() '()
+ ;;     (sham:stmt:return (sham:expr:ui-value 0 tnat))
+ ;;     (sham:expr:void)))))
+ )
+
+
+
+)))
 
 (define (gsl-rator sym type)
   (sham:rator:external 'libgsl sym type))
