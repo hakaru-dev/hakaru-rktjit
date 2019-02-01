@@ -145,11 +145,10 @@
      (current-sham-module)
      #:opt-level 3))
   (sham-app init-rng)
-  (define ta (make-sized-hakrit-array (build-list 10 (const 5.0)) 'real))
+  (define ta (make-sized-hakrit-array (build-list 10 (const (sham-app real2prob 5.0))) 'real))
 
-  (sham-app categorical-real (list->cblock '(1.0 3.0 4.0) _double) 3)
-  (sham-app categorical-prob ta)
-  )
+  (sham-app categorical-real (list->cblock '(0.0 0.0 4.0) _double) 3)
+  (sham-app categorical-prob ta))
 
 
 #;(sham$define
