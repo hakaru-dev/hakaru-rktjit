@@ -33,24 +33,19 @@
       (empty-function-info)))
 (common-function-info (prelude-function-info))
 
-(define-sham-function
-  (prob2real (v : tprob)) : treal
+(define-sham-function (prob2real (v : tprob) : treal)
   (ret  (ri^ exp.f64 tprob v)))
 
-(define-sham-function
-  (real2prob (v : treal)) : tprob
+(define-sham-function (real2prob (v : treal) : tprob)
   (ret (ri^ log.f64 tprob v)))
 
-(define-sham-function
-  (nat2prob (v : tnat)) : tprob
+(define-sham-function (nat2prob (v : tnat) : tprob)
  (ret (real2prob (ui->fp v (etype treal)))))
 
-(define-sham-function
-  (nat2real (v : tnat)) : treal
+(define-sham-function (nat2real (v : tnat) : treal)
   (ret (ui->fp v (etype treal))))
 
-(define-sham-function
-  (nat2int (v : tnat)) : tint
+(define-sham-function (nat2int (v : tnat) : tint)
   ;;NOTE: I think going from signed to unsigned is easy because of 2's complement
   ;; and we are using 64 bit so if the tnat is bigger than 2^32 then we have to worry
   ;; but for hakaru I think we don't need to worry as tnat's and int's don't go that big
@@ -59,44 +54,35 @@
 (define-sham-function
   ;; as in logfloatprelude of haskell this is implemented as id and is unsafe
   ;; the same is done here assuming the int is never going to be negative.
-  (int2nat (v : tint)) : tnat
+  (int2nat (v : tint) : tnat)
   (ret v))
 
-(define-sham-function
-  (int2real (v : tint)) : treal
+(define-sham-function (int2real (v : tint) : treal)
   (ret (si->fp v (etype treal))))
 
-(define-sham-function
-  (recip-nat (v : tnat)) : treal
+(define-sham-function (recip-nat (v : tnat) : treal)
   (ret (fdiv (real-value 1.0)
              (ui->fp v (etype treal)))))
-(define-sham-function
-  (recip-real (v : treal)) : treal
+(define-sham-function (recip-real (v : treal) : treal)
   (ret (fdiv (real-value 1.0)  v)))
 
-(define-sham-function
-  (recip-prob (v : treal)) : treal
+(define-sham-function (recip-prob (v : treal) : treal)
   (ret (fmul (real-value -1.0) v)))
 
-(define-sham-function
-  (root-prob-nat (v : tprob) (v2 : tnat)) : tprob
+(define-sham-function (root-prob-nat (v : tprob) (v2 : tnat) : tprob)
   (ret (fmul v (recip-nat v2))))
 
-(define-sham-function
-  (exp-real2prob (v : treal)) : tprob
+(define-sham-function (exp-real2prob (v : treal) : tprob)
   (ret v))
 
-(define-sham-function
-  (fdiv-nat (v1 : tnat) (v2 : tnat)) : treal
+(define-sham-function (fdiv-nat (v1 : tnat) (v2 : tnat) : treal)
   (ret (fdiv
         (ui->fp v1 (etype treal))
         (ui->fp v2 (etype treal)))))
 
-(define-sham-function
-  (natpow (v : treal) (p : tnat)) : treal
+(define-sham-function (natpow (v : treal) (p : tnat) : treal)
   (ret (ri^ powi.f64 treal v (intcast p (etype i32)))))
-(define-sham-function
-  (natpow-prob (v : tprob) (p : tnat)) : tprob
+(define-sham-function (natpow-prob (v : tprob) (p : tnat) : tprob)
   (ret (fmul v (nat2real p))))
 
 (module+ test

@@ -11,7 +11,9 @@
          "utils.rkt")
 
 (provide array-rator?
-         get-array-rator)
+         get-array-rator
+         array-free array-get-size array-clear array-make array-index array-set!
+         array-type)
 (define debug-arrays (make-parameter #f))
 (define (array-rator? sym)
    (member sym '(empty index size set-index! array-literal
@@ -35,17 +37,14 @@
 (define data-type i64)
 
 
-(define-sham-function
-  (array-free (p : array-type)) : tvoid
+(define-sham-function (array-free (p : array-type) : tvoid)
   (free^ p)
   ret-void)
 
-(define-sham-function
- (array-get-size (p : array-type)) : size-type
+(define-sham-function (array-get-size (p : array-type) : size-type)
  (ret (load (ptrcast p (etype (tptr size-type))))))
 
-(define-sham-function
- (array-clear (p : array-type)) : tvoid
+(define-sham-function (array-clear (p : array-type) : tvoid)
   (slet^ ([ad (gep (ptrcast p (etype (tptr data-type))) (list (ui64 1))) : array-type])
          (ri^ memset.p0i8.i64 tvoid ad (ui8 0)
               (mul-nuw (intcast (sizeof tprob) (etype size-type))
@@ -54,21 +53,17 @@
          (svoid))
   ret-void)
 
-(define-sham-function
-  (array-make
-   (size : i64) ) : array-type
+(define-sham-function (array-make (size : i64) : array-type)
   (slet^ ([ap (ptrcast (arr-malloc (etype data-type) (add-nuw size (ui64 1)))
                        (etype array-type)) : i8*])
          (store! size (ptrcast ap (etype (tptr size-type))))
          (array-clear ap)
          (ret (ptrcast ap (etype i8*)))))
 
-(define-sham-function
- (array-ref (p : array-type) (n : size-type)) : data-type
+(define-sham-function (array-index (p : array-type) (n : size-type) : data-type)
   (ret (load (gep (ptrcast p (etype (tptr data-type))) (list (add-nuw n (ui64 1)))))))
 
-(define-sham-function
- (array-set! (p : array-type) (n : size-type) (v : data-type)) : tvoid
+(define-sham-function (array-set! (p : array-type) (n : size-type) (v : data-type) : tvoid)
   (store! v (gep (ptrcast p (etype (tptr data-type))) (list (add-nuw n (ui64 1)))))
  ret-void)
 
@@ -81,7 +76,7 @@
                                  ['prob (bitcast v (etype data-type))]
                                  ['real (bitcast v (etype data-type))]
                                  [else v])))]
-    ['index (λ (arr i) (define v (array-ref arr i))
+    ['index (λ (arr i) (define v (array-index arr i))
                (match tresult
                  ['prob (bitcast v (etype tprob))]
                  ['real (bitcast v (etype tprob))]
@@ -116,10 +111,10 @@
   (define tarray (sham-app array-make 9))
   (sham-app array-set! tarray 8 42)
   (for ([i (range 9)]) (sham-app array-set! tarray i i))
-  (pretty-print (for/list ([i (range 9)]) (sham-app array-ref tarray i)))
-  (check-equal? (sham-app array-ref tarray 8) 8)
+  (pretty-print (for/list ([i (range 9)]) (sham-app array-index tarray i)))
+  (check-equal? (sham-app array-index tarray 8) 8)
   (sham-app array-clear tarray)
-  (check-equal? (sham-app array-ref tarray 8) 0)
+  (check-equal? (sham-app array-index tarray 8) 0)
 
   (define ta (make-sized-hakrit-array (build-list 10 (const 5.0)) 'real))
   (sized-hakrit-array->racket-list ta 'real)
@@ -136,6 +131,7 @@
   ;; (sham-app array-free tarray)
   )
 
+#|
 (define (simple-array-defs tast)
   (match-define `(array ,t) tast)
   (define st (get-sham-type tast))
@@ -577,4 +573,5 @@
   (set-index!-10double a 4 42.0)
   (check-= (get-index-10double a 4) 42.0 e)
   (free-array-10double a))
+|#
 |#
