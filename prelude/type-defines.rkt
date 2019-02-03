@@ -34,11 +34,11 @@
 
 (define (get-sham-type hakrit-type)
   (match hakrit-type
-    [`(array ,t) i8*]
-    [`(array ,t (size . ,s)) i8*]
+    [`(array ,t) (tptr (get-sham-type t))]
+    [`(array ,t (size . ,s)) (tptr (tarr (get-sham-type t) s))]
     [`(pair ,t1 ,t2) i8*]
     [`(measure ,t) (get-sham-type t)]
-    [`(pointer ,t) i8*]
+    [`(pointer ,t) (tptr (get-sham-type t))]
     [`nat tnat]
     [`int tint]
     [`prob tprob]
