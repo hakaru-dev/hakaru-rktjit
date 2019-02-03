@@ -149,6 +149,8 @@
   (define size (sized-hakrit-array-size ptr))
   (define lst (cblock->list ptr (rkt-type type) (add1 size)))
   (cdr lst))
+(define (fixed-hakrit-array->racket-list ptr type size)
+  (cblock->list ptr (rkt-type type) size))
 
 ;; (define (nat-array lst)
 ;;   (make-fixed-hakrit-array lst 'nat))
