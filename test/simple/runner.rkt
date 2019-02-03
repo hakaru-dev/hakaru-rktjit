@@ -25,29 +25,29 @@
   (define arp "array-product.hkr")
   (define ars  "array-summate.hkr")
 
-  #;(begin
+  (begin
     (printf "normals\n")
     (begin
       (printf "normal array-get-size\n")
-      (define result (compile-and-run ags (list sized-input-array)))
-      (check-equal? result (length input-array)))
+      (define nresult-ags (compile-and-run ags (list sized-input-array)))
+      (check-equal? nresult-ags (length input-array)))
 
     (begin
       (printf "normal array\n")
-      (define result
+      (define nresult-arr
         (sized-hakrit-array->racket-list (compile-and-run arr (list sized-input-array)) 'prob))
-      (map (λ (v1 v2) (check-= v1 v2 0.00001)) result input-array)
-      (map (λ (v1 v2) (check-= (prob->real v1) (prob->real v2) 0.00001)) result input-array))
+      (map (λ (v1 v2) (check-= v1 v2 0.00001)) nresult-arr input-array)
+      (map (λ (v1 v2) (check-= (prob->real v1) (prob->real v2) 0.00001)) nresult-arr input-array))
 
     (begin
       (printf "normal array-product\n")
-      (define result (compile-and-run arp (list sized-input-array)))
-      (check-equal? result (foldr + 0 input-array)))
+      (define nresult-arp (compile-and-run arp (list sized-input-array)))
+      (check-equal? nresult-arp (foldr + 0 input-array)))
 
     (begin
       (printf "normal array-summate\n")
-      (define result (compile-and-run ars (list sized-input-array)))
-      (check-equal? (prob->real result) (foldr + 0 input-array-real))))
+      (define nresult-ars (compile-and-run ars (list sized-input-array)))
+      (check-equal? (prob->real nresult-ars) (foldr + 0 input-array-real))))
 
   (begin
     (printf "optimized\n")
@@ -60,20 +60,17 @@
 
     (begin
       (printf "optimized array\n")
-      (define raw-result-arr  (compile-and-run arr (list sized-input-array) info))
-      (define result-arr (sized-hakrit-array->racket-list raw-result-arr 'prob))
+      (define raw-result-arr  (compile-and-run arr (list fixed-input-array) info))
+      (define result-arr (fixed-hakrit-array->racket-list raw-result-arr 'prob (length input-array)))
       (map (λ (v1 v2) (check-= v1 v2 0.00001)) result-arr input-array)
       (map (λ (v1 v2) (check-= (prob->real v1) (prob->real v2) 0.00001)) result-arr input-array))
 
-    ;; (begin
-    ;;   (printf "optimized array-product\n")
-    ;;   (define result (compile-and-run arp (list sized-input-array)))
-    ;;   (check-equal? result (foldr + 0 input-array)))
+    (begin
+      (printf "optimized array-product\n")
+      (define result-arp (compile-and-run arp (list fixed-input-array) info))
+      (check-equal? result-arp (foldr + 0 input-array)))
 
-    ;; (begin
-    ;;   (printf "optimized array-summate\n")
-    ;;   (define result (compile-and-run ars (list sized-input-array)))
-    ;;   (check-equal? (prob->real result) (foldr + 0 input-array-real)))
-    )
-
-  )
+    (begin
+      (printf "optimized array-summate\n")
+      (define result-ars (compile-and-run ars (list fixed-input-array) info))
+      (check-equal? (prob->real result-ars) (foldr + 0 input-array-real)))))
