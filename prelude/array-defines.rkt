@@ -20,22 +20,9 @@
                        free const-size-array-literal clear)))
 
 
-(define (get-array-rator-from-def sym array-defs)
-  (match-define (list make-array free-array make-empty clear-array
-                      get-size set-size get-data set-data get-index set-index)
-    array-defs)
-  (match sym
-    ['index get-index]
-    ['set-index! set-index]
-    ['size get-size]
-    ['empty make-empty]
-    ['clear clear-array]
-    ['free free-array]))
-
 (define array-type i8*)
 (define size-type i64)
 (define data-type i64)
-
 
 (define-sham-function (array-free (p : array-type) : tvoid)
   (free^ p)
@@ -67,23 +54,45 @@
   (store! v (gep (ptrcast p (etype (tptr data-type))) (list (add-nuw n (ui64 1)))))
  ret-void)
 
+(define ((build-general-array-clear arrt) arr)
+  (match arrt
+    [`(array ,t (size . ,s))
+     (let^ ()
+           (ri^ memset.p0i8.i64 tvoid
+                (ptrcast arr (etype i8*))
+                (ui8 0)
+                (mul-nuw (intcast (sizeof (get-sham-type t)) (etype tnat))
+                         (ui64 s))
+                (ui1 0))
+           arr)]
+    [`(array ,t)
+     (array-clear arr)]))
+
+(define ((build-general-set-index trands) arr i v)
+  (match (first trands)
+    [`(array ,t (size . ,s))
+     (store! v (gep^ arr i))]
+    [`(array ,t)
+     (store! v (gep^ arr (add-nuw i (ui64 1))))]
+    [else (error "unknown type for array-set-index" trands)]))
+
+(define ((build-general-get-index trands) arr i)
+  (match (first trands)
+    [`(array ,t (size . ,s))
+     (load (gep^ arr i))]
+    [`(array ,t)
+     (load (gep^ arr (add-nuw i (ui64 1))))]
+    [else (error "unknown type for array-get-index" trands)]))
+
 (define (get-array-rator rator tresult trands)
   (printf "get-array-rator: ~a, ~a, ~a\n" rator tresult trands)
   (match rator
-    ['set-index! (λ (arr i v)
-                   (array-set! arr i
-                               (match (third trands)
-                                 ['prob (bitcast v (etype data-type))]
-                                 ['real (bitcast v (etype data-type))]
-                                 [else v])))]
-    ['index (λ (arr i) (define v (array-index arr i))
-               (match tresult
-                 ['prob (bitcast v (etype tprob))]
-                 ['real (bitcast v (etype tprob))]
-                 [else v]))]
+    ['set-index!
+     (build-general-set-index trands)]
+    ['index (build-general-get-index trands)]
     ['size array-get-size]
     ['empty array-make]
-    ['clear array-clear]
+    ['clear (build-general-array-clear (first trands))]
     ['free array-free]))
 
 (module+ test
