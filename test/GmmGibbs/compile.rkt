@@ -33,15 +33,6 @@
 
 (define (run input-dir fname)
   (define module-env (compile-file (build-path input-dir fname) '()))
-  (begin
-    (define (gf id) (get-function module-env id))
-    (define array-make (gf 'array-make))
-    (define array-clear (gf 'array-clear))
-    (define array-free (gf 'array-free))
-    (define array-size (gf 'array-get-size))
-    (define array-ref (gf 'array-ref))
-    (define array-set! (gf 'array-set!)))
-
   (define prog (get-prog module-env))
 
   (define result (prog stdev as zs t doc))
