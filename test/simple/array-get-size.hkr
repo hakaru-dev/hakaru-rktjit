@@ -1,0 +1,4 @@
+((fn z prob
+     ((size (z : (array prob))) : nat))
+ :
+ ((array prob) -> nat))

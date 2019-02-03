@@ -1,0 +1,9 @@
+((fn z prob
+
+     ((summate (j ((nat_ 0) : nat) ((size (z : (array prob))) : nat))
+               ((index (z : (array prob)) (j : nat)) : prob))
+      : prob)
+
+     )
+ :
+ ((array prob) -> prob))

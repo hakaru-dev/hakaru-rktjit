@@ -1,0 +1,8 @@
+((fn z prob
+     ((array
+       (i ((size (z : (array prob))) : nat))
+       ((index (z : (array prob)) (i : nat)) : prob))
+      :
+      (array prob)))
+ :
+ ((array prob) -> (array prob)))

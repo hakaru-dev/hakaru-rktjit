@@ -1,8 +1,8 @@
 ((fn z prob
 
-     ;; ((product (j ((nat_ 0) : nat) ((size (z : (array prob))) : nat))
-     ;;           ((index (z : (array prob)) (j : nat)) : prob))
-     ;;  : prob)
+     ((product (j ((nat_ 0) : nat) ((size (z : (array prob))) : nat))
+               ((index (z : (array prob)) (j : nat)) : prob))
+      : prob)
 
      ;; ((array
      ;;   (i ((size (z : (array prob))) : nat))
@@ -10,13 +10,13 @@
      ;;  :
      ;;  (array prob))
 
-     ((array
-       (i ((size (z : (array prob))) : nat))
-       ((product (j ((nat_ 0) : nat) ((size (z : (array prob))) : nat))
-                 ((index (z : (array prob)) ((nat_ 0) : nat)) : prob))
-        : prob))
-      :
-      (array prob))
+     ;; ((array
+     ;;   (i ((size (z : (array prob))) : nat))
+     ;;   ((product (j ((nat_ 0) : nat) ((size (z : (array prob))) : nat))
+     ;;             ((index (z : (array prob)) ((nat_ 0) : nat)) : prob))
+     ;;    : prob))
+     ;;  :
+     ;;  (array prob))
      )
  :
- ((array prob) -> (array prob)))
+ ((array prob) -> prob))
