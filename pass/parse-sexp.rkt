@@ -52,7 +52,7 @@
        (expr-arr type ie nsize (parse body (hash-set env index ie)))]
 
       [`((bucket ,start ,end ,reducer) : ,type)
-       (expr-bucket type (parse start env) (parse end env) (parse-reducer reducer env (list (expr-var 'nat (gensym^ 'bki) '_))))]
+       (expr-bucket type (parse start env) (parse end env) (parse-reducer reducer env (list (expr-var 'nat (gensym^ 'bki) '()))))]
 
       [`((match ,tst ,brnchs ...) : ,type)
        (expr-match type (parse tst env) (map (curryr parse-branch env) brnchs))]

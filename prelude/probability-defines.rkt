@@ -10,12 +10,17 @@
          "array-defines.rkt"
          "utils.rkt")
 
+(provide probability-rator?
+         get-probability-rator)
 (define (probability-rator? sym)
   (member sym '(uniform normal beta gamma
                         betafunc realbetafunc betafuncreal gammafunc
                         categorical
                         superpose-categorical superpose-categorical-real)))
 
+(define (get-probability-rator rator tresult trands)
+  (match rator
+    ['categorical categorical-prob]))
 (define-sham-global gsl-rng i8*)
 
 (define-sham-function (init-rng : tvoid)

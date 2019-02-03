@@ -17,11 +17,11 @@
 
 (define basic-pass-list
   (list
-   initial-simplifications    debug-print
+   initial-simplifications    ;; debug-print  ;; stop
    flatten-anf                ;; debug-print ;; stop
    later-simplifications      ;; debug-print ;; stop
    middle-simplifications     ;; debug-print ;; stop
-   later-simplifications      ;; debug-print ;; stop
+   later-simplifications      ;; debug-print stop
    fix-loop-lets              ;; debug-print ;; stop
    combine-loops              ;; debug-print ;; stop
    later-simplifications      ;; debug-print ;; stop
@@ -37,8 +37,8 @@
    compile-with-sham          ;; debug-print ;; stop
    ))
 (define passes
-  `(,clean-curry
-    ,parse-sexp ;; ,debug-print ;; stop
+  `(,clean-curry ,debug-print
+    ,parse-sexp ,debug-print ;; stop
     ,@basic-pass-list))
 
 (define (run-pipeline src arg-info)
@@ -58,6 +58,8 @@
 (define (get-function sham-module fid)
   (sham-module-lookup-function sham-module fid))
 (define (get-prog sham-module)
+  (define init-rng (get-function sham-module 'init-rng))
+  (init-rng)
   (get-function sham-module 'prog))
 (define (dump-llvm sham-module)
   (sham-dump-llvm sham-module))

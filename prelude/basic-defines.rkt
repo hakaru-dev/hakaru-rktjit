@@ -85,6 +85,9 @@
 (define-sham-function (natpow-prob (v : tprob) (p : tnat) : tprob)
   (ret (fmul v (nat2real p))))
 
+(define-sham-function (reject : tnat)
+  (ret (ui64 0)))
+
 (module+ test
   (require rackunit)
   (parameterize ([compile-options `(pretty dump mc-jit)])
@@ -103,6 +106,7 @@
 (define (get-basic-rator rator tresult trands)
   (printf "get-basic-rator: ~a, ~a, ~a\n" rator tresult trands)
   (match rator
+
     ['< (match trands
           ['(nat nat) icmp-ult]
           ['(int int) icmp-slt])]
@@ -145,6 +149,8 @@
 
     ['and and^]
     ['not not^]
+
+    ['reject reject]
     ))
 #|
 (define simple-rators '(nat2prob nat2real prob2real real2prob int2real nat2int int2nat))

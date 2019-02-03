@@ -360,9 +360,9 @@
      `(function ,name ,(map pe args) ,(pe body))]
     [(expr-cvar var val)
      `(constant ,(pe var) _)]
-    [(expr-var type sym orig)
+    [(expr-var type sym info)
      (if (hakrit-print-debug)
-         `(,sym : ,type)
+         `(,sym : ,type % ,info)
          sym)]
     [(expr-arr type index size body)
      `(array ,(pe index) ,(pe size) ,(pe body))]

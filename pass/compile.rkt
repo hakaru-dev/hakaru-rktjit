@@ -19,7 +19,7 @@
   (define defs-module (create-sham-module defs "hakrit" (basic-mod-info)))
   (define full-module (merge-sham-module defs-module prelude-module))
   (parameterize ([compile-options (debug-compile-options)])
-    (compile-sham-module! full-module #:opt-level 1 #:size-level 1 #:loop-vec #f))
+    (compile-sham-module! full-module #:opt-level 1 #:size-level 1 #:loop-vec #t))
   full-module)
 
 (define (compile-with-sham st)

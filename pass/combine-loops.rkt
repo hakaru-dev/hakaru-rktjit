@@ -257,7 +257,9 @@
                    (cons (get-stmt-ar b i t) stmts)
                    (if (constant-size-array? nt)
                        cleanup
-                       (cons (stmt-expr (stmt-void) (expr-app 'void (expr-intrf 'free) (list var))) cleanup)))])))
+                       cleanup
+                       ;; (cons (stmt-expr (stmt-void) (expr-app 'void (expr-intrf 'free) (list var))) cleanup)
+                       ))])))
 
     (define for-stmt (stmt-for index start end (stmt-block nstmts)))
     (define vl (expr-var (typeof b) (gensym^ 'vl) '()))

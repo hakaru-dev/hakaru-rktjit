@@ -11,7 +11,7 @@
 (define (remove-curry src args (args-info '()))
   (match src
     [`((fn ,var ,ret-type ,body) : ,fn-type)
-     (define arg-info (assoc var args-info))
+     (define arg-info (assocv var args-info))
      (define var-type (get-type-with-info (car fn-type) arg-info))
      (dp "arg: ~a, info: ~a, type: ~a\n" var arg-info var-type)
      (define evar (expr-var var-type var arg-info))
@@ -23,6 +23,8 @@
 (define (clean-curry st)
   (match st
     [(state src info passes)
-     (define new-src (remove-curry src '() (hash-ref info 'arg-info)))
+     (pretty-print info)
+     (define new-src  (remove-curry src '() (hash-ref info 'arg-info)))
+
      (dp "debug-curry: out \n~a\n" (pe new-src))
      (run-next new-src info st)]))

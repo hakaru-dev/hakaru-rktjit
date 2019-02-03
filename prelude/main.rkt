@@ -18,7 +18,6 @@
          ;;               "array-defines.rkt"
          ;;               "pair-defines.rkt"
          ;;               "probability-defines.rkt")
-
          )
 
 
@@ -28,6 +27,7 @@
     [(? array-rator?) (get-array-rator rator tresult trands)]
     [(? pair-rator?) (get-pair-rator rator)]
     [(? basic-rator?) (get-basic-rator rator tresult trands)]
+    [(? probability-rator?) (get-probability-rator rator tresult trands)]
     [else (error "unknown rator in get-sham-rator." rator)]))
 
 (define (get-sham-value v t)

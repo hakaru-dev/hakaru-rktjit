@@ -27,7 +27,7 @@
   (match st
     [(state prg info rp)
      (if (debug-print-stop)
-         (begin (pretty-display info)
+         (begin
                 (error 'stop))
          (run-next prg info st))]))
 
@@ -38,7 +38,7 @@
        (if (list? prg)
            (if (expr? (car prg))
                (printf "debug-printing multiple: \n~a\n"
-                       (map (compose pretty-format pe) prg))
+                       (parameterize [(hakrit-print-debug #t)] (map (compose pretty-format pe) prg)))
                (printf "debug-printing multiple: \n~a\n"
                        (map pretty-print prg)))
            (printf "debug-printing: \n~a\n" (pretty-format (pe prg)))))
