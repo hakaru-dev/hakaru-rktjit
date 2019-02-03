@@ -71,7 +71,7 @@
 (define ((build-general-set-index trands) arr i v)
   (match (first trands)
     [`(array ,t (size . ,s))
-     (store! v (gep^ arr i))]
+     (store! v (gep^ arr (ui64 0) i))]
     [`(array ,t)
      (store! v (gep^ arr (add-nuw i (ui64 1))))]
     [else (error "unknown type for array-set-index" trands)]))
@@ -79,7 +79,7 @@
 (define ((build-general-get-index trands) arr i)
   (match (first trands)
     [`(array ,t (size . ,s))
-     (load (gep^ arr i))]
+     (load (gep^ arr (ui64 0) i))]
     [`(array ,t)
      (load (gep^ arr (add-nuw i (ui64 1))))]
     [else (error "unknown type for array-get-index" trands)]))
