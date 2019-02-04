@@ -14,7 +14,7 @@
 
 (define (compile-and-run fname inputs (info '()))
   (printf "compiling: ~a with info: ~a\n" fname info)
-  (define module-env (debug-file (build-path input-dir fname) info))
+  (define module-env (compile-file (build-path input-dir fname) info))
   (define prog (get-prog module-env))
   (apply prog inputs))
 
@@ -51,7 +51,8 @@
 
   (begin
     (printf "optimized\n")
-    (define info `((z . ((array-info . ((size . ,(length input-array))))))))
+    (define info `((z . ((array-info . ((size . ,(length input-array))
+                                        (value . ,input-array)))))))
 
     (begin
       (printf "optimized array-get-size\n")

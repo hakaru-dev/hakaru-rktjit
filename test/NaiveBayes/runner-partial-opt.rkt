@@ -46,6 +46,7 @@
     ))
 
 (define module-env (compile-file "./partial.hkr" full-info))
+(printf "module compiled\n")
 (define prog (get-prog module-env))
 
 (module+ test
