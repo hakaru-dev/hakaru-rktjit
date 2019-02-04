@@ -20,7 +20,14 @@
 
 (define (get-probability-rator rator tresult trands)
   (match rator
-    ['categorical categorical-prob]))
+    ['categorical (get-categorical-rator (first trands))]))
+(define (get-categorical-rator t)
+  (match t
+    [`(array prob) categorical-prob]
+    [`(array prob (size . ,len))
+     (λ (arr)
+       (categorical-prob-fixed (bitcast arr (etype f64*)) (ui64 len)))]))
+
 (define-sham-global gsl-rng i8*)
 
 (define-sham-function (init-rng : tvoid)
@@ -108,19 +115,40 @@
 
 
 (define-sham-function
+  (categorical-prob-fixed (arp : f64*) (size : i64) : i64)
+  (slet^ (
+          [narr (arr-malloc (etype f64) size) : f64*]
+          [i (ui64 0) : i64]
+          [max-value (load (gep^ arp (ui64 0))) : f64])
+         (while^ (icmp-ult i size)
+                 (slet^ ([c (load (gep^ arp i)) : f64])
+                        (if^ (fcmp-uge c max-value)
+                             (set!^ max-value c)
+                             (svoid)))
+                 (set!^ i (add-nuw i (ui64 1))))
+         (set!^ i (ui64 0))
+         (while^ (icmp-ult i size)
+                 (store! (prob2real (fsub (load (gep^ arp i)) max-value))
+                         (gep^ narr i))
+                 (set!^ i (add-nuw i (ui64 1))))
+         (slet^ ([result (categorical-real narr size) : i64])
+                (free^ narr)
+                (return result))))
+
+(define-sham-function
   (categorical-prob (arp : array-type) : i64)
   (slet^ ([narr (arr-malloc (etype f64) (array-get-size arp)) : f64*]
           [i (ui64 0) : i64]
-          [min-value (bitcast (array-index arp (ui64 0)) (etype f64)) : f64])
+          [max-value (bitcast (array-index arp (ui64 0)) (etype f64)) : f64])
          (while^ (icmp-ult i (array-get-size arp))
                  (slet^ ([c (bitcast (array-index arp i) (etype f64)) : f64])
-                        (if^ (fcmp-uge min-value c)
-                             (set!^ min-value c)
+                        (if^ (fcmp-uge c max-value)
+                             (set!^ max-value c)
                              (svoid)))
                  (set!^ i (add-nuw i (ui64 1))))
          (set!^ i (ui64 0))
          (while^ (icmp-ult i (array-get-size arp))
-                 (store! (prob2real (fsub (bitcast (array-index arp i) (etype f64)) min-value))
+                 (store! (prob2real (fsub (bitcast (array-index arp i) (etype f64)) max-value))
                          (gep^ narr i))
                  (set!^ i (add-nuw i (ui64 1))))
          (slet^ ([result (categorical-real narr (array-get-size arp)) : i64])
@@ -150,10 +178,35 @@
      (current-sham-module)
      #:opt-level 3))
   (sham-app init-rng)
-  (define ta (make-sized-hakrit-array (build-list 10 (const (sham-app real2prob 5.0))) 'real))
 
-  (sham-app categorical-real (list->cblock '(0.0 0.0 4.0) _double) 3)
-  (sham-app categorical-prob ta))
+  (define (build-probability-table f)
+    (define h (make-hash))
+    (for ([i (in-range 10000)])
+      (define v (f))
+      (hash-set! h v (add1 (hash-ref h v 0))))
+    h)
+  (define raw-arr (build-list 10 (λ (i) (exact->inexact (add1 i)))))
+  (define prob-arr (map (λ (v) (sham-app real2prob v)) raw-arr))
+
+  (define sta (make-sized-hakrit-array prob-arr 'real))
+  (define fta (list->cblock prob-arr _double))
+  (define rta (list->cblock raw-arr _double))
+
+  (define cfh (build-probability-table (λ () (sham-app categorical-prob-fixed fta 10))))
+  (printf "categorical-prob-fixed:\n")
+  (for ([(k v) (in-hash cfh)])
+    (define got (exact->inexact (/ v 10000)))
+    (define expect  (exact->inexact (/ (add1 k) 55)))
+    (printf "~a | ~a\n" got expect)
+    (check-= got expect 0.01))
+
+  (define csh (build-probability-table (λ () (sham-app categorical-prob sta))))
+  (printf "categorical-prob:\n")
+  (for ([(k v) (in-hash csh)])
+    (define got (exact->inexact (/ v 10000)))
+    (define expect  (exact->inexact (/ (add1 k) 55)))
+    (printf "~a | ~a\n" got expect)
+    (check-= got expect 0.01)))
 
 
 #;(sham$define
