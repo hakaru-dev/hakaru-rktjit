@@ -104,9 +104,7 @@
 (define basic-rator? (curryr member basic-rators))
 
 (define (get-basic-rator rator tresult trands)
-  (printf "get-basic-rator: ~a, ~a, ~a\n" rator tresult trands)
   (match rator
-
     ['< (match trands
           ['(nat nat) icmp-ult]
           ['(int int) icmp-slt])]

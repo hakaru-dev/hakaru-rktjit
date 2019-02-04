@@ -23,8 +23,7 @@
 (define (clean-curry st)
   (match st
     [(state src info passes)
-     (pretty-print info)
+     (dp "info: ~a\n" info)
      (define new-src  (remove-curry src '() (hash-ref info 'arg-info)))
-
      (dp "debug-curry: out \n~a\n" (pe new-src))
      (run-next new-src info st)]))

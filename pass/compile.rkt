@@ -6,9 +6,9 @@
 (require "prelude.rkt"
          "utils.rkt")
 
-(provide compile-with-sham)
+(provide compile-with-sham debug-compile)
 
-(define debug-compile (make-parameter #t))
+(define debug-compile (make-parameter #f))
 
 (define (debug-compile-options)
   (append '(mc-jit)

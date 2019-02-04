@@ -80,7 +80,8 @@
                  [debug-combine-loops #t]
                  [debug-later-simplifications #t]
                  [debug-to-sham #f]
-                 [debug-print-stop #t])
+                 [debug-print-stop #t]
+                 [debug-compile #t])
     (compile-src (file->value fname) arg-info)))
 
 

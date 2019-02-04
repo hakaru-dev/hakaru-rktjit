@@ -66,7 +66,7 @@
                 (ui1 0))
            arr)]
     [`(array ,t)
-     (array-clear arr)]))
+     (let^ () (array-clear arr) arr)]))
 
 (define ((build-general-set-index trands) arr i v)
   (match (first trands)
@@ -85,7 +85,6 @@
     [else (error "unknown type for array-get-index" trands)]))
 
 (define (get-array-rator rator tresult trands)
-  (printf "get-array-rator: ~a, ~a, ~a\n" rator tresult trands)
   (match rator
     ['set-index!
      (build-general-set-index trands)]
