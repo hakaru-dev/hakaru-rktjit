@@ -165,7 +165,12 @@
 ;;   (fixed-hakrit-array-ref arr 'real index))
 ;; (define (real-array-set! arr index val)
 ;;   (fixed-hakrit-array-set! arr 'real index val))
-
+(module+ test
+  (require rackunit)
+  (define tfa (make-fixed-hakrit-array '(1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 0.0) 'real))
+  (check-= (fixed-hakrit-array-ref tfa 'real 2) 3.0 0.0001)
+  (fixed-hakrit-array-set! tfa 'real 2 42.0)
+  (check-= (fixed-hakrit-array-ref tfa 'real 2) 42.0 0.0001))
 
 ;; interpreter utils
 (define (make-interp-hakrit-array val) (if (vector? val) val (apply vector val)))

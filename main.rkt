@@ -3,9 +3,9 @@
 (module+ test
   (require rackunit))
 
-(require "private/jit.rkt"
+(require "jit.rkt"
          "utils.rkt")
-(provide (all-from-out "private/jit.rkt"
+(provide (all-from-out "jit.rkt"
                        "utils.rkt"))
 
 (module+ test
