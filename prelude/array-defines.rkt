@@ -52,7 +52,7 @@
 
 (define-sham-function (array-set! (p : array-type) (n : size-type) (v : data-type) : tvoid)
   (store! v (gep (ptrcast p (etype (tptr data-type))) (list (add-nuw n (ui64 1)))))
- ret-void)
+  ret-void)
 
 (define ((build-general-array-clear arrt) arr)
   (match arrt
