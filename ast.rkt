@@ -1,54 +1,65 @@
 #lang racket
-
+(require rcf/ast)
 (provide (all-defined-out))
 
 (require racket/generic)
 (define f-symbol identity)
 
 ;;GRAMMAR-INFO
-#|
-(define-grammar hakaru
+(define-ast hakaru
+    #:prefix ||
+    #:top-seperator ||
+    #:seperator -
+  #:build-map #t
   (expr
-   (mod (main fns) [expr (* (symbol . expr))])
-   (fun (args ret-type body) [(* expr) symbol expr])
-   (lets (types vars vals body) [symbol (* expr) (* expr) expr])
-   (var (type sym orig) [symbol symbol symbol])
-   (arr (type index size body) [symbol expr expr expr])
-   (sum (type index start end body) [symbol expr expr expr expr])
-   (prd (type index start end body) [symbol expr expr expr expr])
-   (bucket (type start end reducer) [symbol expr expr reducer])
-   (branch (pat body) (pat expr))
-   (match (type tst branches) [symbol expr (* expr)])
-   (bind (var body) (expr expr))
-   (if (type tst thn els) (symbol expr expr expr))
-   (app (type rator rands) (symbol expr (* expr)))
-   (val (type v) (symbol symbol))
-   (intrf (sym) (symbol))
-   (block (type stmt body) (symbol stmt expr)))
+   [mod (main:expr fns:expr ...)]
+   [cvar (var val:expr)]
+   [fun (name (args:expr ...) ': ret-type body:expr)]
+   [lets (((types vars:expr vals:expr) ...) stmt:stmt body:expr)]
+   [var (type sym info)
+        #:mutable type #:mutable info
+        #:extra (#:methods gen:equal+hash
+                 ((define (equal-proc v1 v2 _)
+                    (equal? (expr-var-sym v1) (expr-var-sym v2)))
+                  (define (hash-proc v _) (equal-hash-code (expr-var-sym v)))
+                  (define (hash2-proc v _) (equal-secondary-hash-code (expr-var-sym v)))))]
+   [arr (type index:expr size:expr body:expr)]
+   [sum (type index:expr start:expr end:expr body:expr)]
+   [prd (type index:expr start:expr end:expr body:expr)]
+   [bucket (type start:expr end:expr reducer:reducer)]
+   [branch (pat:pat body:expr)]
+   [match (type tst:expr branches:expr ...)]
+   [bind (var body:expr)]
+   [if (type tst:expr thn:expr els:expr)]
+   [app (type rator:expr rands:expr ...)]
+   [val (type v)]
+   [intrf (sym)])
+
   (reducer
-   (split (e a b) [expr reducer reducer])
-   (fanout (a b) [reducer reducer])
-   (add (e) [expr])
-   (nop () ())
-   (index (n i a) (expr expr reducer)))
+   [split (e:expr a:reducer b:reducer)]
+   [fanout (a:reducer b:reducer)]
+   [add (e:expr)]
+   [nop ()]
+   [index (n:expr i:expr a:reducer)])
+
   (stmt
-   (if (tst thn els) (expr stmt stmt))
-   (elets (vars vals bstmt) ((* expr) (* expr) stmt))
-   (for (i start end body) (expr expr expr stmt))
-   (block (stmts) ((* stmt)))
-   (assign (var val) (expr expr))
-   (return (val) (expr))
-   (void () ()))
+   [return (val)]
+   [if (tst:expr thn:stmt els:stmt)]
+   [for (i:expr start:expr end:expr body:stmt)]
+   [expr (stmt:stmt expr:expr)]
+   [block (stmts:stmt ...)]
+   [assign (var:expr val:expr)]
+   [void ()])
+
   (pat
-   (true () ())
-   (false () ())
-   (pair (a b) [pat pat])
-   (var () ())
-   (ident () ())))
-|#
+   [true ()]
+   [false ()]
+   [pair (a:pat b:pat)]
+   [var ()]
+   [ident ()]))
 
 ;AG
-(begin
+#;(begin
   (begin
     (define-generics exprg (map-expr f-expr f-reducer f-stmt f-pat exprg))
     (struct expr ())
