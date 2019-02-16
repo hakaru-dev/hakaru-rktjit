@@ -39,7 +39,7 @@
 (define-sham-function
   (pair-free (p : pair-type) : tvoid)
   (free^ p)
-  ret-void)
+  (return-void))
 (define-sham-function
   (pair-car (p : pair-type) : data-type)
   (ret (load (get-struct-field p 0))))
@@ -50,12 +50,12 @@
    (pair-set-car!
     (p : pair-type) (a : data-type) : tvoid)
   (store! a (get-struct-field p 0))
-  ret-void)
+  (return-void))
 (define-sham-function
   (pair-set-cdr!
    (p : pair-type) (d : data-type) : tvoid)
  (store! d (get-struct-field p 1))
- ret-void)
+ (return-void))
 
 (module+ test
   (require rackunit)

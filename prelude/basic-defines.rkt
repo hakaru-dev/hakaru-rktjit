@@ -103,7 +103,8 @@
           '(+ * < > / == - exp and not recip root reject natpow)))
 (define basic-rator? (curryr member basic-rators))
 
-(define (get-basic-rator rator tresult trands)
+(define (get-basic-rator rator tresult trands^)
+  (define trands (map clean-measure trands^))
   (match rator
     ['< (match trands
           ['(nat nat) icmp-ult]
@@ -114,7 +115,9 @@
           ['(int int) mul-nsw]
           ['(real real) fmul]
           ['(real real real) (λ (x y z) (fmul x (fmul y z)))]
-          ['(prob prob prob) (λ (x y z) (fadd x (fadd y z)))])]
+          ['(prob prob prob) (λ (x y z) (fadd x (fadd y z)))]
+          [trs #:when (andmap (λ (t) (equal? t 'real)) trs)
+               (λ args (foldl fmul (car args) (cdr args)))])]
     ['+ (match trands
           ['(nat nat) add-nuw]
           ['(int int) add-nsw]
@@ -122,7 +125,9 @@
           ['(prob prob) (λ (x y) (real2prob (fadd (prob2real x) (prob2real y))))] ;todo
           ['(int int int) (λ (x y z) (add-nsw x (add-nsw y z)))]
           ['(real real real) (λ (x y z) (fadd x (fadd y z)))]
-          ['(prob prob prob) (λ (x y z) (real2prob (fadd (prob2real x) (fadd (prob2real y) (prob2real z)))))])]
+          ['(prob prob prob) (λ (x y z) (real2prob (fadd (prob2real x) (fadd (prob2real y) (prob2real z)))))]
+          [trs #:when (andmap (λ (t) (equal? t 'real)) trs)
+               (λ args (foldl fadd (car args) (cdr args)))])]
     ['recip (match trands
               ['(nat) recip-nat]
               ['(real) recip-real]

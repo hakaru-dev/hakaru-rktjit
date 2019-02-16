@@ -102,6 +102,11 @@
 (define (get-function-id frmt type)
   (define ts (get-tstring type))
   (string->symbol (format frmt ts)))
+(define (clean-measure t)
+  (match t
+    [`(measure ,typ) typ]
+    [else t]))
+
 #|
 (define (real-value v)
   (sham:expr:fl-value (exact->inexact v) treal-ref))

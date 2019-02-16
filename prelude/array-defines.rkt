@@ -26,7 +26,7 @@
 
 (define-sham-function (array-free (p : array-type) : tvoid)
   (free^ p)
-  ret-void)
+  (return-void))
 
 (define-sham-function (array-get-size (p : array-type) : size-type)
  (ret (load (ptrcast p (etype (tptr size-type))))))
@@ -38,7 +38,7 @@
                        (array-get-size p))
               (ui1 0))
          (svoid))
-  ret-void)
+  (return-void))
 
 (define-sham-function (array-make (size : i64) : array-type)
   (slet^ ([ap (ptrcast (arr-malloc (etype data-type) (add-nuw size (ui64 1)))
@@ -52,7 +52,7 @@
 
 (define-sham-function (array-set! (p : array-type) (n : size-type) (v : data-type) : tvoid)
   (store! v (gep (ptrcast p (etype (tptr data-type))) (list (add-nuw n (ui64 1)))))
-  ret-void)
+  (return-void))
 
 (define ((build-general-array-clear arrt) arr)
   (match arrt
@@ -84,6 +84,15 @@
      (load (gep^ arr (add-nuw i (ui64 1))))]
     [else (error "unknown type for array-get-index" trands)]))
 
+(define ((build-array-literal tresult trands) . args)
+  (define data-type (match (clean-measure (first trands))
+                      [(or 'real 'prob) f64]
+                      [(or 'nat 'int) i64]))
+  (let^ ([ap (arr-malloc (etype data-type) (ui64 (length args))) : (tptr data-type)])
+        (block (for/list ([arg args]
+                          [i (in-range (length args))])
+                 (store! arg (gep^ ap (ui64 i)))))
+        ap))
 (define (get-array-rator rator tresult trands)
   (match rator
     ['set-index!
@@ -92,7 +101,8 @@
     ['size array-get-size]
     ['empty array-make]
     ['clear (build-general-array-clear (first trands))]
-    ['free array-free]))
+    ['free array-free]
+    ['array-literal (build-array-literal tresult trands)]))
 
 (module+ test
   (require rackunit ;; ffi/unsafe

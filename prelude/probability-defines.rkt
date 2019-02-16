@@ -20,7 +20,9 @@
 
 (define (get-probability-rator rator tresult trands)
   (match rator
-    ['categorical (get-categorical-rator (first trands))]))
+    ['categorical (get-categorical-rator (first trands))]
+    ['gamma gamma]
+    ['normal normal]))
 (define (get-categorical-rator t)
   (match t
     [`(array prob) categorical-prob]
@@ -35,6 +37,44 @@
         (app^ (re 'libgsl 'gsl_rng_alloc i8*)
               (external 'libgsl 'gsl_rng_rand i8*)))
   (return-void))
+
+#;(sham$define
+ #:info (prelude-function-info)
+ (gamma  (a tprob) (b tprob) tprob)
+ (sham$block
+  (sham:stmt:void)
+  ;; (sham:stmt:expr (sham$app print-prob a))
+  ;; (sham:stmt:expr (sham$app print-prob b))
+  (sham:stmt:return
+   (sham:expr:app (sham:rator:symbol 'real2prob)
+                  (list
+                   (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_gamma treal)
+                                  (list (sham:expr:var 'gsl-rng)
+                                        (sham:expr:app (sham:rator:symbol 'prob2real)
+                                                       (list (sham$var 'a)))
+                                        (sham:expr:app (sham:rator:symbol 'prob2real)
+                                                       (list (sham$var 'b))))))))))
+
+(define-sham-function (gamma (a : tprob) (b : tprob) : tprob)
+  (return (real2prob (app^ (re 'libgsl 'gsl_ran_gamma tprob)
+                           gsl-rng (prob2real a) (prob2real b)))))
+
+#;(sham$define
+ #:info (prelude-function-info)
+ (normal  (mean treal) (sigma tprob) treal)
+ (sham:stmt:return
+  (sham:expr:app (sham:rator:symbol 'fadd)
+                 (list
+                  (sham$var 'mean)
+                  (sham:expr:app
+                   (sham:rator:external 'libgsl 'gsl_ran_gaussian treal)
+                   (list (sham$var 'gsl-rng)
+                         (sham:expr:app (sham:rator:symbol 'prob2real)
+                                        (list (sham$var 'sigma)))))))))
+(define-sham-function (normal (mean : treal) (sigma : tprob) : treal)
+  (return (fadd mean
+                (app^ (re 'libgsl 'gsl_ran_gaussian treal)
+                      gsl-rng (prob2real sigma)))))
 
 #;(sham$define
    #:info (prelude-function-info)
@@ -288,22 +328,7 @@
   (sham:expr:app (sham$rator betafuncreal)
                  (list (sham$app prob2real a) (sham$app prob2real b)))))
 
-(sham$define
- #:info (prelude-function-info)
- (gamma  (a tprob) (b tprob) tprob)
- (sham$block
-  (sham:stmt:void)
-  ;; (sham:stmt:expr (sham$app print-prob a))
-  ;; (sham:stmt:expr (sham$app print-prob b))
-  (sham:stmt:return
-   (sham:expr:app (sham:rator:symbol 'real2prob)
-                  (list
-                   (sham:expr:app (sham:rator:external 'libgsl 'gsl_ran_gamma treal)
-                                  (list (sham:expr:var 'gsl-rng)
-                                        (sham:expr:app (sham:rator:symbol 'prob2real)
-                                                       (list (sham$var 'a)))
-                                        (sham:expr:app (sham:rator:symbol 'prob2real)
-                                                       (list (sham$var 'b))))))))))
+
 
 (sham$define
  #:info (prelude-function-info)
