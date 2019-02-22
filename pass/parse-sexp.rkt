@@ -97,7 +97,7 @@
       [`(,s : ,type)
        #:when (and (symbol? s) (hash-has-key? env s))
        (define sb (hash-ref env s))
-       (when (and (equal? (expr-var-type sb) 'bind)
+       (when (and (equal? (expr-var-type sb) '?)
                   (not (equal? type 'bind)))
          (dp "parse: got new type for bind: ~a : ~a\n" s type)
          (set-expr-var-type! sb type))
