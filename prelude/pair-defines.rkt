@@ -16,15 +16,14 @@
 (define (pair-rator? sym)
   (member sym '(car cdr cons set-car! set-cdr! free-pair)))
 
-(define (get-pair-rator sym pair-defs)  ;;todo bitcast
-  (match-define (list cons-pair free-pair car-pair cdr-pair set-car-pair set-cdr-pair) pair-defs)
-  (match sym
-    ['car car-pair]
-    ['cdr cdr-pair]
-    ['set-car! set-car-pair]
-    ['set-cdr! set-cdr-pair]
-    ['cons cons-pair]
-    ['free-pair free-pair]))
+(define (get-pair-rator rator tresult trands)
+  (match rator
+    ['car pair-car]
+    ['cdr pair-car]
+    ['set-car! pair-set-car!]
+    ['set-cdr! pair-set-cdr!]
+    ['cons pair-cons]
+    ['free-pair pair-free]))
 
 (define pair-struct (tstruct '(a b) (list i64 i64)))
 (define pair-type  (tptr pair-struct))
