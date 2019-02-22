@@ -10,7 +10,7 @@
 (define tint i64)
 (define treal f64)
 (define tprob f64)
-(define tbool i1)
+(define tbool i64)
 (define tarray i8*)
 
 (define (treal? t) (equal? t treal))

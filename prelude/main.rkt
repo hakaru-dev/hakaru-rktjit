@@ -37,7 +37,8 @@
     ['nat (nat-value v)]
     ['int (int-value v)]
     ['real (real-value v)]
-    ['bool (bool-value v)]))
+    ['bool (bool-value v)]
+    ['(measure bool) (bool-value v)]))
 
 
 ;;returns (values type-ref (list type-defs ...))

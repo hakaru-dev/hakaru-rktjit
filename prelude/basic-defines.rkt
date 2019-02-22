@@ -133,7 +133,8 @@
               ['(real) recip-real]
               ['(prob) recip-prob])]
     ['== (match trands
-           ['(nat nat) icmp-eq])]
+           ['(nat nat) icmp-eq]
+           ['(bool bool) icmp-eq])]
     ['root (match trands
              ['(prob nat) root-prob-nat])]
     ['exp (match* (tresult trands)
