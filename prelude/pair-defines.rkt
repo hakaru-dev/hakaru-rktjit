@@ -18,58 +18,61 @@
 
 (define (get-pair-rator rator tresult trands)
   (match rator
-    ['car pair-car]
-    ['cdr pair-car]
-    ['set-car! pair-set-car!]
-    ['set-cdr! pair-set-cdr!]
-    ['cons pair-cons]
-    ['free-pair pair-free]))
+    ['car (λ (p) (load (get-struct-field p 0)))]
+    ['cdr (λ (p) (load (get-struct-field p 1)))]
+    ['set-car! (λ (p a) (store! a (get-struct-field p 0)))]
+    ['set-cdr! (λ (p a) (store! a (get-struct-field p 0)))]
+    ['cons (λ (a b) (let^ ([pp (malloc^ (etype (get-sham-type tresult))) : (get-sham-type tresult)])
+                          (store! a (get-struct-field pp 0))
+                          (store! b (get-struct-field pp 1))
+                          pp))]
+    ['free-pair (λ (p) (free^ p))]))
 
 (define pair-struct (tstruct '(a b) (list i64 i64)))
 (define pair-type  (tptr pair-struct))
 (define data-type i64)
 
-(define-sham-function
-  (pair-cons (a : data-type) (d : data-type) : pair-type)
-  (slet^ ([pp  (malloc^ (etype pair-struct)) : pair-type])
-         (store! a (get-struct-field pp 0))
-         (store! d (get-struct-field pp 1))
-         (ret pp)))
-(define-sham-function
-  (pair-free (p : pair-type) : tvoid)
-  (free^ p)
-  (return-void))
-(define-sham-function
-  (pair-car (p : pair-type) : data-type)
-  (ret (load (get-struct-field p 0))))
-(define-sham-function
-  (pair-cdr (p : pair-type) : data-type)
-  (ret (load (get-struct-field p 1))))
- (define-sham-function
-   (pair-set-car!
-    (p : pair-type) (a : data-type) : tvoid)
-  (store! a (get-struct-field p 0))
-  (return-void))
-(define-sham-function
-  (pair-set-cdr!
-   (p : pair-type) (d : data-type) : tvoid)
- (store! d (get-struct-field p 1))
- (return-void))
+;; (define-sham-function
+;;   (pair-cons (a : data-type) (d : data-type) : pair-type)
+;;   (slet^ ([pp  (malloc^ (etype pair-struct)) : pair-type])
+;;          (store! a (get-struct-field pp 0))
+;;          (store! d (get-struct-field pp 1))
+;;          (ret pp)))
+;; (define-sham-function
+;;   (pair-free (p : pair-type) : tvoid)
+;;   (free^ p)
+;;   (return-void))
+;; (define-sham-function
+;;   (pair-car (p : pair-type) : data-type)
+;;   (ret (load (get-struct-field p 0))))
+;; (define-sham-function
+;;   (pair-cdr (p : pair-type) : data-type)
+;;   (ret (load (get-struct-field p 1))))
+;;  (define-sham-function
+;;    (pair-set-car!
+;;     (p : pair-type) (a : data-type) : tvoid)
+;;   (store! a (get-struct-field p 0))
+;;   (return-void))
+;; (define-sham-function
+;;   (pair-set-cdr!
+;;    (p : pair-type) (d : data-type) : tvoid)
+;;  (store! d (get-struct-field p 1))
+;;  (return-void))
 
-(module+ test
-  (require rackunit)
-  (parameterize ([compile-options `(dump verify mc-jit)])
-    (compile-sham-module!
-     (current-sham-module)
-     #:opt-level 0))
-  (define pc (sham-app pair-cons 3 4))
-  (check-equal? (sham-app pair-car pc) 3)
-  (check-equal? (sham-app pair-cdr pc) 4)
-  (sham-app pair-set-car! pc 42)
-  (check-equal? (sham-app pair-car pc) 42)
-  (sham-app pair-set-cdr! pc 21)
-  (check-equal? (sham-app pair-cdr pc) 21)
-  (sham-app pair-free pc))
+;; (module+ test
+;;   (require rackunit)
+;;   (parameterize ([compile-options `(dump verify mc-jit)])
+;;     (compile-sham-module!
+;;      (current-sham-module)
+;;      #:opt-level 0))
+;;   (define pc (sham-app pair-cons 3 4))
+;;   (check-equal? (sham-app pair-car pc) 3)
+;;   (check-equal? (sham-app pair-cdr pc) 4)
+;;   (sham-app pair-set-car! pc 42)
+;;   (check-equal? (sham-app pair-car pc) 42)
+;;   (sham-app pair-set-cdr! pc 21)
+;;   (check-equal? (sham-app pair-cdr pc) 21)
+;;   (sham-app pair-free pc))
 
 
 
