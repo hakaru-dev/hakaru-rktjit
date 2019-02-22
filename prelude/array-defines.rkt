@@ -13,7 +13,7 @@
 (provide array-rator?
          get-array-rator
          array-free array-get-size array-clear array-make array-index array-set!
-         array-type)
+         array-type build-array-literal)
 (define debug-arrays (make-parameter #f))
 (define (array-rator? sym)
    (member sym '(empty index size set-index! array-literal
