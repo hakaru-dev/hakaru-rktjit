@@ -21,7 +21,7 @@
 
 (define (nat-value v) (ui64 v))
 (define (int-value v) (si64 v))
-(define (bool-value v) (ui1 (if (equal? v 0) 0 1)))
+(define (bool-value v) (ui64 (if (equal? v 0) 0 1)))
 (define (real-value v) (fl64 (exact->inexact v)))
 (define (prob-value v) (app (rs 'real2prob) (list (real-value v))))
 
@@ -36,7 +36,7 @@
   (match hakrit-type
     [`(array ,t) (tptr (get-sham-type t))]
     [`(array ,t (size . ,s)) (tptr (tarr (get-sham-type t) s))]
-    [`(pair ,t1 ,t2) i8*]
+    [`(pair ,t1 ,t2) (tptr (tstruct '(a b) (list (get-sham-type t1) (get-sham-type t2))))]
     [`(measure ,t) (get-sham-type t)]
     [`(pointer ,t) (tptr (get-sham-type t))]
     [`nat tnat]
