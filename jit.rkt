@@ -17,8 +17,8 @@
 
 (define basic-pass-list
   (list
-   initial-simplifications    ;; debug-print  ;; stop
-   flatten-anf                ;; debug-print ;; stop
+   initial-simplifications    debug-print  ;; stop
+   flatten-anf                debug-print  ;; stop
    later-simplifications      ;; debug-print ;; stop
    middle-simplifications     ;; debug-print ;; stop
    later-simplifications      ;; debug-print stop
@@ -52,7 +52,7 @@
 (define (compile-src src arg-info)
   (run-pipeline src arg-info))
 
-(define (compile-file fname arg-info)
+(define (compile-file fname (arg-info '()))
   (compile-src (file->value fname) arg-info))
 
 (define (get-function sham-module fid)
@@ -73,11 +73,12 @@
       basic-pass-list)))
   env)
 
-(define (debug-file fname arg-info)
-  (parameterize ([hakrit-print-debug #t]
+(define (debug-file fname (arg-info '()))
+  (parameterize ([hakrit-print-debug #f]
                  [debug-curry #t]
                  [debug-flatten-anf #t]
                  [debug-combine-loops #t]
+                 [debug-initial-simplifications #t]
                  [debug-later-simplifications #t]
                  [debug-to-sham #f]
                  [debug-print-stop #t]
@@ -91,3 +92,8 @@
       (parameterize ([current-output-port out-port])
         (compile-file src-fname)))
     #:exists 'truncate/replace))
+
+(module+ test
+  (debug-file "../hakaru-benchmarks/testcode/hkrkt/ClinicalTrial.hkr")
+  ;; (debug-file "../hakaru-benchmarks/testcode/hkrkt/GmmGibbs.hkr")
+  )
