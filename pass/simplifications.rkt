@@ -43,11 +43,11 @@
         [(expr-branch _ (expr-bind av (expr-bind bv b)))
          (values av bv b)]))
 
-    (set-expr-var-type! car-var car-type)
-    (set-expr-var-type! cdr-var cdr-type)
-
     (dpi "\t ~a\t: ~a\n" (print-expr car-var) car-type)
     (dpi "\t ~a\t: ~a\n" (print-expr cdr-var) cdr-type)
+
+    (set-expr-var-type! car-var car-type)
+    (set-expr-var-type! cdr-var cdr-type)
 
     (if (expr-var? body)
         (match body
@@ -121,7 +121,8 @@
             (expr-val ta (get-size-of-array (typeof arg)))]
 
            [(expr-app ta (expr-intrf 'index) (list (expr-var tv vv info) ind))
-            (if (is-constant-type? (second tv))
+            (dpi "expr-app: ~a\n" tv)
+            (if (and (list? tv) (is-constant-type? (second tv)))
                 (expr-val ta (get-constant-value (second tv)))
                 (expr-app ta (expr-intrf 'index) (list (expr-var tv vv info) ind)))]
            [(expr-app ta (expr-intrf 'index)
