@@ -25,7 +25,7 @@
   ;; (printf "get-sham-rator: ~a, ~a, ~a\n" rator tresult trands)
   (match rator
     [(? array-rator?) (get-array-rator rator tresult trands)]
-    [(? pair-rator?) (get-pair-rator rator)]
+    [(? pair-rator?) (get-pair-rator rator tresult trands)]
     [(? basic-rator?) (get-basic-rator rator tresult trands)]
     [(? probability-rator?) (get-probability-rator rator tresult trands)]
     [else (error "unknown rator in get-sham-rator." rator)]))
