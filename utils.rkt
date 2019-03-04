@@ -152,12 +152,21 @@
 (define (fixed-hakrit-array->racket-list ptr type size)
   (cblock->list ptr (rkt-type type) size))
 
-;; (define (nat-array lst)
-;;   (make-fixed-hakrit-array lst 'nat))
-;; (define (nat-array-ref arr index)
-;;   (fixed-hakrit-array-ref arr 'nat index))
-;; (define (nat-array-set! arr index val)
-;;   (fixed-hakrit-array-set! arr 'nat index val))
+(define (nat-array lst) (make-fixed-hakrit-array lst 'nat))
+(define (nat-array-ref arr index) (fixed-hakrit-array-ref arr 'nat index))
+(define (nat-array-set! arr index val) (fixed-hakrit-array-set! arr 'nat index val))
+
+(define (sized-nat-array lst) (make-sized-hakrit-array lst 'nat))
+(define (sized-nat-array-ref arr index) (sized-hakrit-array-ref arr 'nat index))
+(define (sized-nat-array-set! arr index val) (sized-hakrit-array-set! arr 'nat index val))
+
+(define (real-array lst) (make-fixed-hakrit-array lst 'real))
+(define (real-array-ref arr index) (fixed-hakrit-array-ref arr 'real index))
+(define (real-array-set! arr index val) (fixed-hakrit-array-set! arr 'real index val))
+
+(define (sized-real-array lst) (make-sized-hakrit-array lst 'real))
+(define (sized-real-array-ref arr index) (sized-hakrit-array-ref arr 'real index))
+(define (sized-real-array-set! arr index val) (sized-hakrit-array-set! arr 'real index val))
 
 ;; (define (real-array lst)
 ;;   (make-fixed-hakrit-array lst 'real))
@@ -165,6 +174,15 @@
 ;;   (fixed-hakrit-array-ref arr 'real index))
 ;; (define (real-array-set! arr index val)
 ;;   (fixed-hakrit-array-set! arr 'real index val))
+(define (cons-array-pair a b)
+  (define p (list->cblock  '(0 0) _uint64))
+  (ptr-set! p _pointer 0 a)
+  (ptr-set! p _pointer 1 b)
+  p)
+(define (car-array-pair pr) (ptr-ref pr _pointer 0))
+(define (cdr-array-pair pr) (ptr-ref pr _pointer 1))
+
+
 (module+ test
   (require rackunit)
   (define tfa (make-fixed-hakrit-array '(1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 0.0) 'real))
