@@ -37,7 +37,7 @@
     ((array-info . ((size . ,words-size))))
     ((nat-info . ((value-range . (0 . ,(- num-words 1))))))))
 
-(define prog (compile-hakaru "./partial.hkr" full-info))
+(define prog (compile-file "./partial.hkr" full-info))
 
 (define (run-test)
   (define topics-prior (list->cblock (build-list num-topics (const 0.0)) _double))
