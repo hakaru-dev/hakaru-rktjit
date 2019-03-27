@@ -35,10 +35,29 @@
 (define (get-sham-type hakrit-type)
   (match hakrit-type
     [`(array ,t) (tptr (get-sham-type t))]
-    [`(array ,t (size . ,s)) (tptr (tarr (get-sham-type t) s))]
+    [`(array ,t (size . ,s)) (tptr (tarr (get-sham-type-no-ptr t) s))]
     [`(pair ,t1 ,t2) (tptr (tstruct '(a b) (list (get-sham-type t1) (get-sham-type t2))))]
-    [`(measure ,t) (get-sham-type t)]
-    [`(pointer ,t) (tptr (get-sham-type t))]
+    [else (get-sham-type-no-ptr hakrit-type)]
+    ;; [`(measure ,t) (get-sham-type t)]
+    ;; [`(pointer ,t) (tptr (get-sham-type t))]
+    ;; [`nat tnat]
+    ;; [`int tint]
+    ;; [`prob tprob]
+    ;; [`real treal]
+    ;; [`bool tbool]
+    ;; [`unit tnat]
+    ;; [`void tvoid]
+    ;; [`(nat ,info) tnat]
+    ;; [`(prob ,info) tprob]
+    ))
+
+(define (get-sham-type-no-ptr hakrit-type)
+  (match hakrit-type
+    ;; [`(array ,t) (get-sham-type t)]
+    [`(array ,t (size . ,s)) (tarr (get-sham-type-no-ptr t) s)]
+    ;; [`(pair ,t1 ,t2) (tstruct '(a b) (list (get-sham-type t1) (get-sham-type t2)))]
+    [`(measure ,t) (get-sham-type-no-ptr t)]
+    ;; [`(pointer ,t) (tptr (get-sham-type t))]
     [`nat tnat]
     [`int tint]
     [`prob tprob]

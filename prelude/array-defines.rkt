@@ -78,6 +78,8 @@
 
 (define ((build-general-get-index trands) arr i)
   (match (first trands)
+    [`(array (array ,t (size . ,s1)) (size . ,s))
+     (gep^ arr (ui64 0) i)]
     [`(array ,t (size . ,s))
      (load (gep^ arr (ui64 0) i))]
     [`(array ,t)
@@ -98,10 +100,10 @@
     ['set-index!
      (build-general-set-index trands)]
     ['index (build-general-get-index trands)]
-    ['size array-get-size]
+    ['size (λ (p) (load (ptrcast p (etype (tptr size-type)))))]
     ['empty array-make]
     ['clear (build-general-array-clear (first trands))]
-    ['free array-free]
+    ['free (λ (p) (free^ p))]
     ['array-literal (build-array-literal tresult trands)]))
 
 (module+ test
