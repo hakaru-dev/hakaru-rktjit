@@ -33,15 +33,36 @@
     (doc . ((array-info . ((size . ,words-size)))))
     ))
 
-(define module-env (compile-file "./partial.hkr" full-info))
+(define module-env (compile-file "./partial2.hkr" full-info))
 (printf "module compiled\n")
 (define prog (get-prog module-env))
 
 (module+ test
   (require rackunit)
   (printf "running prog\n")
-  (define result (time (prog topic-prior word-prior zsc c-words c-docs 9900)))
+  (define result (prog topic-prior word-prior zsc c-words c-docs 9900))
   (printf "got result\n")
   (define nocat-result (fixed-hakrit-array->racket-list result 'prob 20))
-  (define nocat-expected '(-458.1908976216084 -461.9810000474454 -478.57190842283467 -446.5395681936905 -453.6747904210667 -463.4369314698437 -450.8619961395306 -453.16976113041795 -445.12265609048325 -374.5512758505581 -458.091812993318 -447.1539476558063 -454.3902748158387 -450.796948060257 -448.8193584047232 -450.2865595520607 -450.52765701408424 -460.69817293449074 -453.0247297820897 -457.1166709136238))
-  (map (λ (v1 v2) (check-= v1 v2 0.00001 "NaiveBayes.nocat")) nocat-result nocat-expected))
+  (pretty-display nocat-result)
+  (define nocat-expected '(81.13020809116642
+                           75.49329450576455
+                           77.37990328377306
+                           79.42381708972944
+                           69.80226757429736
+                           77.3238933802139
+                           69.16354905595196
+                           74.78024716851174
+                           81.21301607112039
+                           154.82742570957714
+                           78.4744091006872
+                           94.79851070676456
+                           72.5266684002621
+                           88.08264202709779
+                           91.11054327393825
+                           92.4930633276475
+                           91.62033709479157
+                           95.02414174329836
+                           94.86645039152441
+                           83.33978177944539))
+  (map (λ (v1 v2) (check-= v1 v2 0.00001 "NaiveBayes.nocat")) nocat-result nocat-expected)
+  )
