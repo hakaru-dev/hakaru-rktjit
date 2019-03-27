@@ -61,7 +61,7 @@
            (ri^ memset.p0i8.i64 tvoid
                 (ptrcast arr (etype i8*))
                 (ui8 0)
-                (mul-nuw (intcast (sizeof (get-sham-type t)) (etype tnat))
+                (mul-nuw (intcast (sizeof (get-sham-type-no-ptr t)) (etype tnat))
                          (ui64 s))
                 (ui1 0))
            arr)]
