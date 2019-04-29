@@ -53,10 +53,10 @@
 
 (define (get-sham-type-no-ptr hakrit-type)
   (match hakrit-type
-    ;; [`(array ,t) (get-sham-type t)]
+    ;; [`(array ,t) (tptr (get-sham-type t))]
     [`(array ,t (size . ,s)) (tarr (get-sham-type-no-ptr t) s)]
     ;; [`(pair ,t1 ,t2) (tstruct '(a b) (list (get-sham-type t1) (get-sham-type t2)))]
-    [`(measure ,t) (get-sham-type-no-ptr t)]
+    [`(measure ,t) (get-sham-type t)]
     ;; [`(pointer ,t) (tptr (get-sham-type t))]
     [`nat tnat]
     [`int tint]

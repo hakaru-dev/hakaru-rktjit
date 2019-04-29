@@ -38,7 +38,7 @@
    ))
 (define passes
   `(,clean-curry ,debug-print
-    ,parse-sexp ,debug-print ;; stop
+    ,parse-sexp ,debug-print
     ,@basic-pass-list))
 
 (define (run-pipeline src arg-info)
